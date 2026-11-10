@@ -29,9 +29,6 @@ import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SystemUpdateAlt
-import androidx.compose.ui.platform.LocalContext
-import com.boox.day.update.AppUpdateGate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -94,7 +91,6 @@ fun SettingsMenu(
 ) {
     // State for showing tooltip when tapping disabled Calendar Accounts
     var showStandaloneTooltip by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Popup(
         alignment = Alignment.TopEnd,
@@ -202,10 +198,6 @@ fun SettingsMenu(
                 )
             }
             SettingsMenuItemWithIcon("Help", Icons.AutoMirrored.Filled.Help) { onHelp() }
-            SettingsMenuItemWithIcon("Check for Updates", Icons.Default.SystemUpdateAlt) {
-                onClose()
-                AppUpdateGate.checkNow(context)
-            }
             SettingsMenuItemWithIcon("About", Icons.Default.Info) { onAbout() }
         }
     }

@@ -286,7 +286,7 @@ object AppUpdateGate {
     /** Keeps only a partial download of a version newer than this one (to continue it). */
     private fun removeOldDownloads(app: Context) {
         AppUpdateDownloader.updatesDir(app).listFiles()?.forEach { file ->
-            val version = file.name.removePrefix("booxday-").substringBefore(".apk")
+            val version = file.name.removePrefix("bsplan-").removePrefix("booxday-").substringBefore(".apk")
             val keep = file.name.endsWith(".apk.part") && AppUpdateChecker.isNewer(version, BuildConfig.VERSION_NAME)
             if (!keep) file.delete()
         }

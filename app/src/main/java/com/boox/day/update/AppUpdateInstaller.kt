@@ -22,7 +22,7 @@ import java.io.File
  */
 object AppUpdateInstaller {
     private const val TAG = "AppUpdateInstaller"
-    const val ACTION_INSTALL_STATUS = "com.boox.day.update.INSTALL_STATUS"
+    const val ACTION_INSTALL_STATUS = "com.bsplan.app.update.INSTALL_STATUS"
 
     /** True when the user allowed BooxDay to install apps. */
     fun canInstall(context: Context): Boolean = context.packageManager.canRequestPackageInstalls()
@@ -61,7 +61,7 @@ object AppUpdateInstaller {
             sessionId = installer.createSession(params)
             installer.openSession(sessionId).use { session ->
                 apk.inputStream().use { input ->
-                    session.openWrite("booxday.apk", 0, apk.length()).use { output ->
+                    session.openWrite("bsplan.apk", 0, apk.length()).use { output ->
                         input.copyTo(output, 64 * 1024)
                         session.fsync(output)
                     }

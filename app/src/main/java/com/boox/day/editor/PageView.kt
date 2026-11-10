@@ -718,6 +718,17 @@ class PageView(
         val canvasWidth = windowedCanvas.width
         val canvasHeight = windowedCanvas.height
 
+        // Dynamic planner templates (month_grid) always draw live calendar events/tasks rather than stale disk previews
+        if (pageFromDb?.background == "month_grid" ||
+            com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month
+        ) {
+            drawBg(
+                context, windowedCanvas, BackgroundType.Native,
+                "month_grid", scroll, 1f, this
+            )
+            return false
+        }
+
         // PRIORITY 1: Check preview cache (instant - no disk I/O)
         if (PageDataManager.drawPreviewToCanvas(currentPageId, windowedCanvas, canvasWidth, canvasHeight)) {
             log.d("PREVIEW_HIT: Used cached preview for $currentPageId")

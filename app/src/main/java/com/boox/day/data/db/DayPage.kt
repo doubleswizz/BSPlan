@@ -161,10 +161,11 @@ class DayPageRepository(context: Context) {
             return pageId
         }
 
-        // Create new page for this date
+        // Create new page for this date (or month grid if key starts with MONTH-)
+        val defaultBg = if (date.startsWith("MONTH-")) "month_grid" else "blank"
         val newPage = Page(
             id = UUID.randomUUID().toString(),
-            background = "blank",
+            background = defaultBg,
             backgroundType = "native"
         )
         pageDao.create(newPage)

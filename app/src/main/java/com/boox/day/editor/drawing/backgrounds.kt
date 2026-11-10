@@ -388,7 +388,14 @@ fun drawBg(
 
         is BackgroundType.Native -> {
             when (background) {
-                "blank" -> canvas.drawColor(Color.WHITE)
+                "blank" -> {
+                    if (page != null && com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month) {
+                        MonthPlannerCanvasRenderer.drawMonthPlannerBg(canvas)
+                    } else {
+                        canvas.drawColor(Color.WHITE)
+                    }
+                }
+                "month_grid" -> MonthPlannerCanvasRenderer.drawMonthPlannerBg(canvas)
                 "dotted" -> drawDottedBg(canvas, scroll, scale)
                 "lined" -> drawLinedBg(canvas, scroll, scale)
                 "squared" -> drawSquaredBg(canvas, scroll, scale)

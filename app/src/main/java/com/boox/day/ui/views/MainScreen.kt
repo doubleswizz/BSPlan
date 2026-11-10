@@ -1884,14 +1884,22 @@ fun MainScreen(
         }
     }
 
-    // Load or create page when date changes (off main thread)
-    // PERF: Check for pre-loaded ID from splash screen first (instant for today)
-    LaunchedEffect(selectedDate) {
+    // Load or create page when date or planner mode/month changes (off main thread)
+    // PERF: Check for pre-loaded ID from splash screen first (instant for today in Day mode)
+    val activePlannerMode = com.boox.day.ui.calendar.PlannerNavigationState.mode
+    val activePageKey = remember(activePlannerMode, currentYear, currentMonth, selectedDate) {
+        if (activePlannerMode == com.boox.day.ui.calendar.PlannerViewMode.Month) {
+            com.boox.day.ui.calendar.MonthPlannerGridState.monthPageKey(currentYear, currentMonth)
+        } else {
+            selectedDate
+        }
+    }
+    LaunchedEffect(activePageKey) {
         val preloadedDate = GlobalAppSettings.preloadedDate
         val preloadedMemosId = GlobalAppSettings.preloadedMemosPageId
-        val cachedPageId = appRepository.dayPageRepository.getCachedPageIdForDate(selectedDate)
+        val cachedPageId = appRepository.dayPageRepository.getCachedPageIdForDate(activePageKey)
 
-        if (selectedDate == preloadedDate && preloadedMemosId != null) {
+        if (activePageKey == preloadedDate && preloadedMemosId != null) {
             // Use pre-loaded ID instantly - skip DB call
             currentPageId = preloadedMemosId
             isMemosPageLoading = false
@@ -1901,10 +1909,10 @@ fun MainScreen(
             currentPageId = cachedPageId
             isMemosPageLoading = false
         } else {
-            // Fallback to DB call for other dates
+            // Fallback to DB call for other dates/month pages
             isMemosPageLoading = true
             val pageId = withContext(Dispatchers.IO) {
-                appRepository.dayPageRepository.getOrCreatePageForDate(selectedDate)
+                appRepository.dayPageRepository.getOrCreatePageForDate(activePageKey)
             }
             currentPageId = pageId
             isMemosPageLoading = false
@@ -1912,7 +1920,7 @@ fun MainScreen(
 
         // Multi-page indicator: Update memos page count for tab label
         val pageCount = withContext(Dispatchers.IO) {
-            appRepository.dayPageRepository.getPageCount(selectedDate).coerceAtLeast(1)
+            appRepository.dayPageRepository.getPageCount(activePageKey).coerceAtLeast(1)
         }
         memosPageCount = pageCount
     }
@@ -2153,6 +2161,17 @@ fun MainScreen(
     com.boox.day.ui.dialogs.CalendarAiNoticeHost(onOpenAiSettings = { showAiSettingsDialog = true })
     // Full screen (Oct 2026, ui/FullScreenState): Back, tidy-up before a switch, full redraw after it
     com.boox.day.ui.FullScreenEffects(tabManager = tabManager, onEnter = { isEventsExpanded = false })
+    com.boox.day.ui.calendar.MonthPlannerEffects(
+        year = currentYear,
+        monthZeroBased = currentMonth,
+        selectedDate = selectedDate,
+        firstDayOfWeek = firstDayOfWeek,
+        datesWithNotes = remember(datesWithNotes) { datesWithNotes.toSet() },
+        datesWithEvents = datesWithEvents,
+        datesWithTasks = datesWithTasks,
+        loadEventsForDay = eventsViewModel::shownEventsForDay,
+        onEnsureMemosTab = { currentEditorTab = EditorTab.Memos }
+    )
 
     InkaTheme {
         Box(
@@ -2615,9 +2634,53 @@ fun MainScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(if (isCompactLayout || com.boox.day.ui.FullScreenState.isOn) 1f else 0.60f)
+                    .weight(
+                        if (isCompactLayout ||
+                            com.boox.day.ui.FullScreenState.isOn ||
+                            com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month
+                        ) 1f else 0.60f
+                    )
                     .fullScreenExtraProbe()  // the Memos drag's page height before full screen is opened
             ) {
+                com.boox.day.ui.calendar.MonthPlannerHeaderBar(
+                    year = currentYear,
+                    monthZeroBased = currentMonth,
+                    onPreviousMonth = {
+                        DrawCanvas.flushUIUpdates()
+                        viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
+                            add(Calendar.MONTH, -1)
+                        }
+                    },
+                    onNextMonth = {
+                        DrawCanvas.flushUIUpdates()
+                        viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
+                            add(Calendar.MONTH, 1)
+                        }
+                    },
+                    onTodayClick = {
+                        selectedDate = today
+                        viewingCalendar = Calendar.getInstance()
+                    },
+                    onAddEventClick = {
+                        editingEvent = null
+                        parsedEventData = null
+                        showAddEventDialog = true
+                    },
+                    onAddTaskClick = {
+                        com.boox.day.ui.MainScreenRequests.request(
+                            com.boox.day.ui.MainScreenRequest.ShowDay(selectedDate)
+                        )
+                    },
+                    onPreferences = { showPreferencesDialog = true },
+                    onCalendarSettings = { showCalendarSettingsDialog = true },
+                    onCalendarAccounts = { showMultiProviderSyncDialog = true },
+                    onAiSettings = { showAiSettingsDialog = true },
+                    onVoiceSettings = { showVoiceSettingsDialog = true },
+                    onDataBackup = { showDataBackupDialog = true },
+                    onBooxNotesSettings = { com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen = true },
+                    onHelp = { showHelpDialog = true },
+                    onAbout = { showAboutDialog = true }
+                )
                 // Full screen: the selected day above the toolbar (the calendar header is hidden)
                 com.boox.day.ui.FullScreenDateLine(selectedDate)
                 // Daily Summary in its own function, so it can go on after Connect OpenRouter (ui/AiKeyGate)
@@ -2724,6 +2787,7 @@ fun MainScreen(
                 // NOTE: Do NOT add pointerInteropFilter here - it interferes with toolbar's
                 // own tool selection logic (forceUnfreeze re-enables drawing after 50ms,
                 // undoing the toolbar's disable when switching to non-drawing tools like AI)
+                com.boox.day.ui.calendar.DayOnlyToolbarSection {
                 com.boox.day.editor.ui.toolbar.SharedToolbar(
                     navController = navController,
                     tabManager = tabManager,
@@ -3091,6 +3155,7 @@ fun MainScreen(
                     canvasHeight = actualCanvasHeight,
                     onScreenRefresh = { refreshScreen() }
                 )
+                } // end DayOnlyToolbarSection
 
                 // Canvas container
                 Box(
@@ -3325,6 +3390,24 @@ fun MainScreen(
                             } }
                             memoToTasksSelectionRun = run
                             run()
+                        }
+                    )
+                }
+                if (com.boox.day.ui.calendar.PlannerNavigationState.mode ==
+                    com.boox.day.ui.calendar.PlannerViewMode.Month
+                ) {
+                    com.boox.day.ui.calendar.MonthGridTouchOverlay(
+                        grid = com.boox.day.ui.calendar.MonthPlannerGridState.currentGrid,
+                        onDayCellTapped = { cell ->
+                            DrawCanvas.flushUIUpdates()
+                            selectedDate = cell.dateStr
+                            viewingCalendar = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, cell.date.year)
+                                set(Calendar.MONTH, cell.date.monthValue - 1)
+                                set(Calendar.DAY_OF_MONTH, cell.date.dayOfMonth)
+                            }
+                            com.boox.day.ui.calendar.PlannerNavigationState.mode =
+                                com.boox.day.ui.calendar.PlannerViewMode.Day
                         }
                     )
                 }
@@ -7414,7 +7497,9 @@ private fun SplitOutDialogs(content: @Composable () -> Unit) {
  */
 @Composable
 private fun ColumnScope.CalendarSection(content: @Composable ColumnScope.() -> Unit) {
-    if (!com.boox.day.ui.FullScreenState.isOn) content()
+    if (!com.boox.day.ui.FullScreenState.isOn &&
+        com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Day
+    ) content()
 }
 
 /**

@@ -21,29 +21,53 @@ object MonthPlannerCanvasRenderer {
     const val WEEKDAY_HEADER_HEIGHT_PX = 48f
 
     private val gridBorderPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#1E293B") // Crisp Slate/Navy
         style = Paint.Style.STROKE
         strokeWidth = 1.5f
         isAntiAlias = true
     }
 
     private val headerDividerPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A") // Deep Navy
         style = Paint.Style.STROKE
         strokeWidth = 2.5f
         isAntiAlias = true
     }
 
+    private val headerBgPaint = Paint().apply {
+        color = Color.parseColor("#1E3A8A") // Deep Navy Header Banner
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val headerWeekendBgPaint = Paint().apply {
+        color = Color.parseColor("#B91C1C") // Crimson Red Weekend Header Accent
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val spilloverCellBgPaint = Paint().apply {
+        color = Color.parseColor("#F1F5F9") // Soft Slate Tint for spillover days
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val todayCellBgPaint = Paint().apply {
+        color = Color.parseColor("#FFFBEB") // Warm Amber Tint for Today's cell
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
     private val weekdayTextPaint = Paint().apply {
-        color = Color.BLACK
-        textSize = 24f
+        color = Color.WHITE
+        textSize = 23f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
         isAntiAlias = true
     }
 
     private val dayNumberCurrentPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 24f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
@@ -51,7 +75,7 @@ object MonthPlannerCanvasRenderer {
     }
 
     private val dayNumberSpilloverPaint = Paint().apply {
-        color = Color.parseColor("#555555")
+        color = Color.parseColor("#64748B")
         textSize = 22f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
@@ -59,7 +83,7 @@ object MonthPlannerCanvasRenderer {
     }
 
     private val todayPillFillPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#D32F2F") // Crimson Red Today Badge
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -73,7 +97,7 @@ object MonthPlannerCanvasRenderer {
     }
 
     private val eventTextPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 20f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
@@ -81,23 +105,41 @@ object MonthPlannerCanvasRenderer {
     }
 
     private val eventAllDayPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 20f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
     }
 
+    private val taskPillFillPaint = Paint().apply {
+        color = Color.parseColor("#D1FAE5") // Emerald Green Tint
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val taskStripeFillPaint = Paint().apply {
+        color = Color.parseColor("#10B981") // Emerald Green Stripe
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
     private val taskTextPaint = Paint().apply {
-        color = Color.parseColor("#222222")
+        color = Color.parseColor("#064E3B") // Deep Emerald Text
         textSize = 19f
-        typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+        typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
     }
 
+    private val noteBadgeFillPaint = Paint().apply {
+        color = Color.parseColor("#FEF3C7") // Warm Amber Fill
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
     private val noteBadgePaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#B45309") // Amber Gold Border
         style = Paint.Style.STROKE
         strokeWidth = 2f
         isAntiAlias = true
@@ -127,12 +169,37 @@ object MonthPlannerCanvasRenderer {
         val gridTop = WEEKDAY_HEADER_HEIGHT_PX
         val rowHeight = (height - gridTop) / 6f
 
-        // 1. Draw SUN..SAT weekday header row
+        // 1. Draw SUN..SAT weekday header row with Deep Navy & Crimson Weekend accents
         val headerBaselineY = (WEEKDAY_HEADER_HEIGHT_PX / 2f) - ((weekdayTextPaint.descent() + weekdayTextPaint.ascent()) / 2f)
         for (col in 0..6) {
-            val centerX = col * colWidth + colWidth / 2f
-            canvas.drawText(headers.getOrElse(col) { "" }, centerX, headerBaselineY, weekdayTextPaint)
+            val colLeft = col * colWidth
+            val colRight = colLeft + colWidth
+            val label = headers.getOrElse(col) { "" }
+            val isWeekend = label == "SUN" || label == "SAT"
+            canvas.drawRect(colLeft, 0f, colRight, gridTop, if (isWeekend) headerWeekendBgPaint else headerBgPaint)
+            val centerX = colLeft + colWidth / 2f
+            canvas.drawText(label, centerX, headerBaselineY, weekdayTextPaint)
         }
+
+        // Pre-fill cell backgrounds (Spillover slate tint or Today warm amber tint) before grid lines
+        val cells = grid?.cells
+        if (cells != null) {
+            for (row in 0 until 6) {
+                for (col in 0 until 7) {
+                    val cell = cells.getOrNull(row * 7 + col) ?: continue
+                    val cellLeft = col * colWidth
+                    val cellTop = gridTop + row * rowHeight
+                    val cellRight = cellLeft + colWidth
+                    val cellBottom = cellTop + rowHeight
+                    if (cell.isToday) {
+                        canvas.drawRect(cellLeft, cellTop, cellRight, cellBottom, todayCellBgPaint)
+                    } else if (!cell.isCurrentMonth) {
+                        canvas.drawRect(cellLeft, cellTop, cellRight, cellBottom, spilloverCellBgPaint)
+                    }
+                }
+            }
+        }
+
         canvas.drawLine(0f, gridTop, width, gridTop, headerDividerPaint)
 
         // 2. Draw vertical column lines (including through header)
@@ -147,7 +214,7 @@ object MonthPlannerCanvasRenderer {
             canvas.drawLine(0f, y, width, y, gridBorderPaint)
         }
 
-        val cells = grid?.cells ?: return
+        if (cells == null) return
         val cellPaddingX = 10f
         val lineHeight = 25f
 
@@ -189,6 +256,7 @@ object MonthPlannerCanvasRenderer {
                     val iconLeft = iconRight - 16f
                     val iconTop = cellTop + 10f
                     val iconBottom = iconTop + 20f
+                    canvas.drawRect(iconLeft, iconTop, iconRight, iconBottom, noteBadgeFillPaint)
                     canvas.drawRect(iconLeft, iconTop, iconRight, iconBottom, noteBadgePaint)
                     canvas.drawLine(iconLeft + 3f, iconTop + 6f, iconRight - 3f, iconTop + 6f, noteBadgePaint)
                     canvas.drawLine(iconLeft + 3f, iconTop + 11f, iconRight - 3f, iconTop + 11f, noteBadgePaint)
@@ -260,8 +328,21 @@ object MonthPlannerCanvasRenderer {
                     } else {
                         "☐ ${cell.openTaskCount} task${if (cell.openTaskCount == 1) "" else "s"}"
                     }
-                    val fittedTask = ellipsizeToWidth(taskLine, taskTextPaint, maxTextWidth)
-                    canvas.drawText(fittedTask, cellLeft + cellPaddingX, currentY, taskTextPaint)
+                    val pillRect = RectF(
+                        cellLeft + 6f,
+                        currentY - 18f,
+                        cellRight - 6f,
+                        currentY + 5f
+                    )
+                    canvas.drawRoundRect(pillRect, 4f, 4f, taskPillFillPaint)
+                    canvas.drawRoundRect(
+                        RectF(cellLeft + 6f, currentY - 18f, cellLeft + 12f, currentY + 5f),
+                        3f,
+                        3f,
+                        taskStripeFillPaint
+                    )
+                    val fittedTask = ellipsizeToWidth(taskLine, taskTextPaint, (maxTextWidth - 10f).coerceAtLeast(16f))
+                    canvas.drawText(fittedTask, cellLeft + 16f, currentY, taskTextPaint)
                 }
             }
         }

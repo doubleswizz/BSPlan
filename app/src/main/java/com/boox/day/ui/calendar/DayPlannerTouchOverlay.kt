@@ -290,6 +290,8 @@ fun DayPlannerHeaderBar(
             ) {
                 PlannerHeaderActionButton(
                     label = "Event",
+                    accentColor = Color(0xFF2563EB), // Royal Blue
+                    tintBgColor = Color(0xFFDBEAFE),
                     onClick = {
                         DrawCanvas.forceUnfreeze()
                         onAddEventClick()
@@ -298,6 +300,8 @@ fun DayPlannerHeaderBar(
 
                 PlannerHeaderActionButton(
                     label = "Task",
+                    accentColor = Color(0xFF059669), // Emerald Green
+                    tintBgColor = Color(0xFFD1FAE5),
                     onClick = {
                         DrawCanvas.forceUnfreeze()
                         onAddTaskClick()

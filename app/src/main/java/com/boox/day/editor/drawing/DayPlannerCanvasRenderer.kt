@@ -31,36 +31,46 @@ object DayPlannerCanvasRenderer {
     private const val WRITING_LINE_SPACING_PX = 54f
 
     private val strongBorderPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A") // Deep Navy
         style = Paint.Style.STROKE
         strokeWidth = 2.5f
         isAntiAlias = true
     }
 
     private val thinBorderPaint = Paint().apply {
-        color = Color.parseColor("#888888")
+        color = Color.parseColor("#475569")
         style = Paint.Style.STROKE
-        strokeWidth = 1f
+        strokeWidth = 1.5f
         isAntiAlias = true
     }
 
     private val writingLinePaint = Paint().apply {
-        color = Color.parseColor("#CCCCCC")
+        color = Color.parseColor("#BFDBFE") // Classic sky-blue notebook ruling lines
         style = Paint.Style.STROKE
-        strokeWidth = 1f
+        strokeWidth = 1.3f
         isAntiAlias = true
     }
 
     private val sectionHeaderPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 23f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
     }
 
+    private val sectionHeaderBgPaint = Paint().apply {
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val sectionHeaderStripePaint = Paint().apply {
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
     private val rowTimePaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 21f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
@@ -68,7 +78,7 @@ object DayPlannerCanvasRenderer {
     }
 
     private val rowTitlePaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#0F172A")
         textSize = 21f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
@@ -76,7 +86,7 @@ object DayPlannerCanvasRenderer {
     }
 
     private val rowCompletedTitlePaint = Paint().apply {
-        color = Color.parseColor("#666666")
+        color = Color.parseColor("#64748B")
         textSize = 21f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
@@ -85,7 +95,7 @@ object DayPlannerCanvasRenderer {
     }
 
     private val chevronPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#1E3A8A")
         textSize = 20f
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         textAlign = Paint.Align.RIGHT
@@ -93,14 +103,14 @@ object DayPlannerCanvasRenderer {
     }
 
     private val checkboxStrokePaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#059669") // Emerald Green checkbox border
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 2.2f
         isAntiAlias = true
     }
 
     private val checkboxFillPaint = Paint().apply {
-        color = Color.BLACK
+        color = Color.parseColor("#10B981") // Emerald Green filled checkbox
         style = Paint.Style.FILL
         isAntiAlias = true
     }
@@ -138,8 +148,24 @@ object DayPlannerCanvasRenderer {
         // ═══════════════════════════════════════════════════════════════════════════
         // 1. TOP 25% DASHBOARD: TODAY'S SCHEDULE (Left) | GOOGLE TASKS (Right)
         // ═══════════════════════════════════════════════════════════════════════════
-        drawSectionHeader(canvas, 0f, 0f, midX, "TODAY'S SCHEDULE")
-        drawSectionHeader(canvas, midX, 0f, width, "GOOGLE TASKS")
+        drawSectionHeader(
+            canvas = canvas,
+            left = 0f,
+            top = 0f,
+            right = midX,
+            title = "TODAY'S SCHEDULE",
+            bgColor = Color.parseColor("#DBEAFE"),
+            stripeColor = Color.parseColor("#2563EB")
+        )
+        drawSectionHeader(
+            canvas = canvas,
+            left = midX,
+            top = 0f,
+            right = width,
+            title = "GOOGLE TASKS",
+            bgColor = Color.parseColor("#D1FAE5"),
+            stripeColor = Color.parseColor("#10B981")
+        )
 
         // Vertical divider between Schedule and Tasks
         canvas.drawLine(midX, 0f, midX, dashboardBottomY, strongBorderPaint)
@@ -241,22 +267,76 @@ object DayPlannerCanvasRenderer {
             val row2BottomY = notesTopY + remainingHeight * 0.66f
 
             // Row 1: CALENDAR (left) | OLD BUSINESS (right)
-            drawSectionBoxWithLines(canvas, 0f, notesTopY, midX, row1BottomY, "CALENDAR")
-            drawSectionBoxWithLines(canvas, midX, notesTopY, width, row1BottomY, "OLD BUSINESS")
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = 0f,
+                top = notesTopY,
+                right = midX,
+                bottom = row1BottomY,
+                title = "CALENDAR",
+                bgColor = Color.parseColor("#DBEAFE"),
+                stripeColor = Color.parseColor("#1E3A8A")
+            )
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = midX,
+                top = notesTopY,
+                right = width,
+                bottom = row1BottomY,
+                title = "OLD BUSINESS",
+                bgColor = Color.parseColor("#FEF3C7"),
+                stripeColor = Color.parseColor("#D97706")
+            )
 
             // Row 2: NEW BUSINESS (left) | ROUNDTABLE (right)
-            drawSectionBoxWithLines(canvas, 0f, row1BottomY, midX, row2BottomY, "NEW BUSINESS")
-            drawSectionBoxWithLines(canvas, midX, row1BottomY, width, row2BottomY, "ROUNDTABLE")
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = 0f,
+                top = row1BottomY,
+                right = midX,
+                bottom = row2BottomY,
+                title = "NEW BUSINESS",
+                bgColor = Color.parseColor("#D1FAE5"),
+                stripeColor = Color.parseColor("#059669")
+            )
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = midX,
+                top = row1BottomY,
+                right = width,
+                bottom = row2BottomY,
+                title = "ROUNDTABLE",
+                bgColor = Color.parseColor("#EDE9FE"),
+                stripeColor = Color.parseColor("#7C3AED")
+            )
 
             // Row 3: ACTION ITEMS (full width)
-            drawSectionBoxWithLines(canvas, 0f, row2BottomY, width, height, "ACTION ITEMS")
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = 0f,
+                top = row2BottomY,
+                right = width,
+                bottom = height,
+                title = "ACTION ITEMS",
+                bgColor = Color.parseColor("#FEE2E2"),
+                stripeColor = Color.parseColor("#D32F2F")
+            )
 
             // Bold section dividers
             canvas.drawLine(midX, notesTopY, midX, row2BottomY, strongBorderPaint)
             canvas.drawLine(0f, row1BottomY, width, row1BottomY, strongBorderPaint)
             canvas.drawLine(0f, row2BottomY, width, row2BottomY, strongBorderPaint)
         } else {
-            drawSectionBoxWithLines(canvas, 0f, notesTopY, width, height, "NOTES")
+            drawSectionBoxWithLines(
+                canvas = canvas,
+                left = 0f,
+                top = notesTopY,
+                right = width,
+                bottom = height,
+                title = "NOTES",
+                bgColor = Color.parseColor("#FEF3C7"),
+                stripeColor = Color.parseColor("#F59E0B")
+            )
         }
     }
 
@@ -265,11 +345,17 @@ object DayPlannerCanvasRenderer {
         left: Float,
         top: Float,
         right: Float,
-        title: String
+        title: String,
+        bgColor: Int = Color.parseColor("#F1F5F9"),
+        stripeColor: Int = Color.parseColor("#1E3A8A")
     ) {
         val headerBottom = top + SECTION_HEADER_HEIGHT_PX
+        sectionHeaderBgPaint.color = bgColor
+        canvas.drawRect(left, top, right, headerBottom, sectionHeaderBgPaint)
+        sectionHeaderStripePaint.color = stripeColor
+        canvas.drawRect(left, top, left + 10f, headerBottom, sectionHeaderStripePaint)
         val baselineY = top + 29f
-        canvas.drawText(title, left + 16f, baselineY, sectionHeaderPaint)
+        canvas.drawText(title, left + 22f, baselineY, sectionHeaderPaint)
         canvas.drawLine(left, headerBottom, right, headerBottom, thinBorderPaint)
     }
 
@@ -279,9 +365,11 @@ object DayPlannerCanvasRenderer {
         top: Float,
         right: Float,
         bottom: Float,
-        title: String
+        title: String,
+        bgColor: Int = Color.parseColor("#F1F5F9"),
+        stripeColor: Int = Color.parseColor("#1E3A8A")
     ) {
-        drawSectionHeader(canvas, left, top, right, title)
+        drawSectionHeader(canvas, left, top, right, title, bgColor, stripeColor)
         var lineY = top + SECTION_HEADER_HEIGHT_PX + WRITING_LINE_SPACING_PX
         while (lineY < bottom - 14f) {
             canvas.drawLine(left + 16f, lineY, right - 16f, lineY, writingLinePaint)

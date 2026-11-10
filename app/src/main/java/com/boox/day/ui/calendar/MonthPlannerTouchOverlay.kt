@@ -208,6 +208,8 @@ fun MonthPlannerHeaderBar(
             ) {
                 PlannerHeaderActionButton(
                     label = "Event",
+                    accentColor = Color(0xFF2563EB), // Royal Blue
+                    tintBgColor = Color(0xFFDBEAFE),
                     onClick = {
                         DrawCanvas.forceUnfreeze()
                         onAddEventClick()
@@ -216,6 +218,8 @@ fun MonthPlannerHeaderBar(
 
                 PlannerHeaderActionButton(
                     label = "Task",
+                    accentColor = Color(0xFF059669), // Emerald Green
+                    tintBgColor = Color(0xFFD1FAE5),
                     onClick = {
                         DrawCanvas.forceUnfreeze()
                         onAddTaskClick()
@@ -400,17 +404,19 @@ fun MonthYearPickerPopup(
                         for (col in 0 until 3) {
                             val mIdx = row * 3 + col
                             val isSelected = pickerYear == currentYear && mIdx == currentMonthZeroBased
+                            val monthAccent = MONTH_ACCENT_COLORS.getOrElse(mIdx) { EInkTheme.Colors.primary }
+                            val monthTint = MONTH_TINT_COLORS.getOrElse(mIdx) { EInkTheme.Colors.background }
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(44.dp)
                                     .border(
-                                        width = EInkTheme.Global.borderWidth,
-                                        color = EInkTheme.Colors.borderStrong,
+                                        width = if (isSelected) 2.dp else EInkTheme.Global.borderWidth,
+                                        color = if (isSelected) Color(0xFF0F172A) else monthAccent,
                                         shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
                                     )
                                     .background(
-                                        color = if (isSelected) EInkTheme.Colors.primary else EInkTheme.Colors.background,
+                                        color = if (isSelected) monthAccent else monthTint,
                                         shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
                                     )
                                     .noRippleClickable {
@@ -421,8 +427,8 @@ fun MonthYearPickerPopup(
                                 Text(
                                     text = monthLabels[mIdx],
                                     fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) Color.White else EInkTheme.Colors.primary,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (isSelected) Color.White else Color(0xFF0F172A),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -442,11 +448,11 @@ fun MonthYearPickerPopup(
                         .height(42.dp)
                         .border(
                             width = EInkTheme.Global.borderWidth,
-                            color = EInkTheme.Colors.borderStrong,
+                            color = Color(0xFFD32F2F),
                             shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
                         )
                         .background(
-                            color = EInkTheme.Colors.background,
+                            color = Color(0xFFD32F2F),
                             shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
                         )
                         .noRippleClickable { onJumpToToday() },
@@ -455,8 +461,8 @@ fun MonthYearPickerPopup(
                     Text(
                         text = "Today",
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = EInkTheme.Colors.primary
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
                     )
                 }
 
@@ -492,18 +498,20 @@ fun MonthYearPickerPopup(
 fun PlannerHeaderActionButton(
     label: String,
     onClick: () -> Unit,
+    accentColor: Color = Color(0xFF1E3A8A),
+    tintBgColor: Color = Color(0xFFDBEAFE),
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .height(38.dp)
             .border(
-                width = EInkTheme.Global.borderWidth,
-                color = EInkTheme.Colors.borderStrong,
+                width = 1.8.dp,
+                color = accentColor,
                 shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
             )
             .background(
-                color = EInkTheme.Colors.background,
+                color = tintBgColor,
                 shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
             )
             .noRippleClickable(onClick = onClick)
@@ -513,15 +521,15 @@ fun PlannerHeaderActionButton(
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = EInkTheme.Colors.primary,
+            tint = accentColor,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = label,
             fontSize = EInkTheme.Typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = EInkTheme.Colors.primary
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF0F172A)
         )
     }
 }

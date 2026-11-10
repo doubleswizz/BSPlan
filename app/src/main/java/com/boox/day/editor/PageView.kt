@@ -718,13 +718,22 @@ class PageView(
         val canvasWidth = windowedCanvas.width
         val canvasHeight = windowedCanvas.height
 
-        // Dynamic planner templates (month_grid) always draw live calendar events/tasks rather than stale disk previews
+        // Dynamic planner templates (month_grid and day_planner) always draw live calendar events/tasks rather than stale disk previews
         if (pageFromDb?.background == "month_grid" ||
             com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month
         ) {
             drawBg(
                 context, windowedCanvas, BackgroundType.Native,
                 "month_grid", scroll, 1f, this
+            )
+            return false
+        }
+        if (pageFromDb?.notebookId == null &&
+            com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Day
+        ) {
+            drawBg(
+                context, windowedCanvas, BackgroundType.Native,
+                "day_planner", scroll, 1f, this
             )
             return false
         }

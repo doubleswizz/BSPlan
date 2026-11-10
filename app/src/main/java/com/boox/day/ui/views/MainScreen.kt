@@ -2172,6 +2172,11 @@ fun MainScreen(
         loadEventsForDay = eventsViewModel::shownEventsForDay,
         onEnsureMemosTab = { currentEditorTab = EditorTab.Memos }
     )
+    com.boox.day.ui.calendar.DayPlannerEffects(
+        selectedDate = selectedDate,
+        currentTasks = currentTasks,
+        eventsViewModel = eventsViewModel
+    )
 
     InkaTheme {
         Box(
@@ -2634,17 +2639,13 @@ fun MainScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(
-                        if (isCompactLayout ||
-                            com.boox.day.ui.FullScreenState.isOn ||
-                            com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month
-                        ) 1f else 0.60f
-                    )
+                    .weight(1f)
                     .fullScreenExtraProbe()  // the Memos drag's page height before full screen is opened
             ) {
-                com.boox.day.ui.calendar.MonthPlannerHeaderBar(
+                com.boox.day.ui.calendar.UnifiedPlannerHeaderBar(
                     year = currentYear,
                     monthZeroBased = currentMonth,
+                    selectedDate = selectedDate,
                     onPreviousMonth = {
                         DrawCanvas.flushUIUpdates()
                         viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
@@ -2657,19 +2658,29 @@ fun MainScreen(
                             add(Calendar.MONTH, 1)
                         }
                     },
+                    onPreviousDay = {
+                        DrawCanvas.flushUIUpdates()
+                        val prev = LocalDate.parse(selectedDate).minusDays(1)
+                        selectedDate = prev.toString()
+                        viewingCalendar = Calendar.getInstance().apply {
+                            set(Calendar.YEAR, prev.year)
+                            set(Calendar.MONTH, prev.monthValue - 1)
+                            set(Calendar.DAY_OF_MONTH, prev.dayOfMonth)
+                        }
+                    },
+                    onNextDay = {
+                        DrawCanvas.flushUIUpdates()
+                        val next = LocalDate.parse(selectedDate).plusDays(1)
+                        selectedDate = next.toString()
+                        viewingCalendar = Calendar.getInstance().apply {
+                            set(Calendar.YEAR, next.year)
+                            set(Calendar.MONTH, next.monthValue - 1)
+                            set(Calendar.DAY_OF_MONTH, next.dayOfMonth)
+                        }
+                    },
                     onTodayClick = {
                         selectedDate = today
                         viewingCalendar = Calendar.getInstance()
-                    },
-                    onAddEventClick = {
-                        editingEvent = null
-                        parsedEventData = null
-                        showAddEventDialog = true
-                    },
-                    onAddTaskClick = {
-                        com.boox.day.ui.MainScreenRequests.request(
-                            com.boox.day.ui.MainScreenRequest.ShowDay(selectedDate)
-                        )
                     },
                     onPreferences = { showPreferencesDialog = true },
                     onCalendarSettings = { showCalendarSettingsDialog = true },
@@ -3409,6 +3420,10 @@ fun MainScreen(
                             com.boox.day.ui.calendar.PlannerNavigationState.mode =
                                 com.boox.day.ui.calendar.PlannerViewMode.Day
                         }
+                    )
+                } else {
+                    com.boox.day.ui.calendar.DayPlannerTouchOverlay(
+                        dayModel = com.boox.day.ui.calendar.DayPlannerState.currentDayModel
                     )
                 }
                 }  // Close canvas Box
@@ -7497,9 +7512,8 @@ private fun SplitOutDialogs(content: @Composable () -> Unit) {
  */
 @Composable
 private fun ColumnScope.CalendarSection(content: @Composable ColumnScope.() -> Unit) {
-    if (!com.boox.day.ui.FullScreenState.isOn &&
-        com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Day
-    ) content()
+    // Hidden in BSPlan: both Month View and Day View use the unified full-page layout.
+    if (false) content()
 }
 
 /**

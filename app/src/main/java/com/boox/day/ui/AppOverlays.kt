@@ -14,6 +14,8 @@ import com.boox.day.proposals.ScheduleHost
 import com.boox.day.proposals.ScheduleUi
 import com.boox.day.share.ShareHost
 import com.boox.day.share.ShareUi
+import com.boox.day.ui.dialogs.QuickWriteHost
+import com.boox.day.ui.dialogs.QuickWriteUi
 import com.boox.day.week.WeekHost
 import com.boox.day.week.WeekUi
 
@@ -22,7 +24,7 @@ import com.boox.day.week.WeekUi
  * and new overlays are added here, not to MainScreen.
  */
 object AppOverlays {
-    val isOpen: Boolean get() = WeekUi.isOpen || ScheduleUi.isOpen || MeetingRecapUi.isOpen || MeetingPrepUi.isOpen || ShareUi.isOpen
+    val isOpen: Boolean get() = WeekUi.isOpen || ScheduleUi.isOpen || MeetingRecapUi.isOpen || MeetingPrepUi.isOpen || ShareUi.isOpen || QuickWriteUi.isOpen
 }
 
 @Composable
@@ -32,6 +34,7 @@ fun AppOverlaysHost() {
     MeetingRecapHost()
     MeetingPrepHost()
     ShareHost()
+    QuickWriteHost()
 }
 
 /**

@@ -408,9 +408,7 @@ fun MonthPlannerEffects(
 
     var lastMode by remember { mutableStateOf(mode) }
     LaunchedEffect(mode) {
-        if (mode == PlannerViewMode.Month) {
-            onEnsureMemosTab()
-        }
+        onEnsureMemosTab()
         if (mode == lastMode) return@LaunchedEffect
         lastMode = mode
         val before = DrawCanvas.surfaceSize.value
@@ -424,11 +422,12 @@ fun MonthPlannerEffects(
 }
 
 /**
- * Hides the legacy SharedToolbar when in Full-Page Month View (and moves the lambda out of MainScreen).
+ * Hides the legacy SharedToolbar in BSPlan's unified Month View and Day View (and moves the lambda out of MainScreen).
  */
 @Composable
 fun DayOnlyToolbarSection(content: @Composable () -> Unit) {
-    if (PlannerNavigationState.mode == PlannerViewMode.Day) {
+    // Hidden in BSPlan: both Month View and Day View use the unified full-page planner header & canvas.
+    if (false) {
         content()
     }
 }

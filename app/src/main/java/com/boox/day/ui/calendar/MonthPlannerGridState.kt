@@ -28,7 +28,8 @@ import java.util.Locale
 data class MonthCellEventItem(
     val id: String,
     val displayLine: String,
-    val isAllDay: Boolean
+    val isAllDay: Boolean,
+    val colorHex: String? = null
 )
 
 /**
@@ -149,7 +150,8 @@ object MonthPlannerGridState {
                 MonthCellEventItem(
                     id = event.id,
                     displayLine = "$prefix${event.title}".trim(),
-                    isAllDay = event.isAllDay
+                    isAllDay = event.isAllDay,
+                    colorHex = event.colorHex
                 )
             }
 

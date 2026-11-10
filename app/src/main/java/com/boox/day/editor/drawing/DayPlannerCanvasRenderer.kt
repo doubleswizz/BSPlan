@@ -112,6 +112,16 @@ object DayPlannerCanvasRenderer {
         isAntiAlias = true
     }
 
+    private val eventStripePaint = Paint().apply {
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private fun parseEventColor(colorHex: String?): Int? {
+        if (colorHex.isNullOrBlank()) return null
+        return runCatching { Color.parseColor(colorHex) }.getOrNull()
+    }
+
     fun drawDayPlannerBg(canvas: Canvas) {
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
@@ -152,8 +162,31 @@ object DayPlannerCanvasRenderer {
             }
             val item = scheduleRows.getOrNull(i) ?: continue
             val baselineY = rowTop + (rowHeight * 0.66f)
-            val timeStr = "• ${item.timeText}"
-            canvas.drawText(timeStr, 16f, baselineY, rowTimePaint)
+            val colorInt = parseEventColor(item.event.colorHex)
+            if (colorInt != null) {
+                // Google Calendar color stripe + tinted row highlight on Kaleido 3 color screen
+                val r = Color.red(colorInt)
+                val g = Color.green(colorInt)
+                val b = Color.blue(colorInt)
+                eventStripePaint.color = Color.argb(40, r, g, b)
+                canvas.drawRoundRect(
+                    RectF(12f, rowTop + 3f, midX - 12f, rowBottom - 3f),
+                    4f,
+                    4f,
+                    eventStripePaint
+                )
+                eventStripePaint.color = colorInt
+                canvas.drawRoundRect(
+                    RectF(12f, rowTop + 3f, 20f, rowBottom - 3f),
+                    3f,
+                    3f,
+                    eventStripePaint
+                )
+                canvas.drawText(item.timeText, 28f, baselineY, rowTimePaint)
+            } else {
+                val timeStr = "• ${item.timeText}"
+                canvas.drawText(timeStr, 16f, baselineY, rowTimePaint)
+            }
 
             val titleStartX = 148f
             val maxTitleWidth = (midX - titleStartX - 58f).coerceAtLeast(20f)

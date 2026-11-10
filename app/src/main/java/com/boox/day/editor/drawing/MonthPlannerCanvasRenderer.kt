@@ -103,6 +103,16 @@ object MonthPlannerCanvasRenderer {
         isAntiAlias = true
     }
 
+    private val eventColorPaint = Paint().apply {
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private fun parseEventColor(colorHex: String?): Int? {
+        if (colorHex.isNullOrBlank()) return null
+        return runCatching { Color.parseColor(colorHex) }.getOrNull()
+    }
+
     fun drawMonthPlannerBg(canvas: Canvas) {
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
@@ -202,14 +212,45 @@ object MonthPlannerCanvasRenderer {
                 val eventsToShow = cell.events.take(maxEventLines)
                 eventsToShow.forEachIndexed { idx, ev ->
                     val isLastEventSlot = idx == eventsToShow.lastIndex && cell.events.size > eventsToShow.size
-                    val rawText = if (isLastEventSlot && cell.events.size - idx > 1) {
-                        "+${cell.events.size - idx} more"
+                    val isOverflowLine = isLastEventSlot && cell.events.size - idx > 1
+                    val paint = if (ev.isAllDay && !isOverflowLine) eventAllDayPaint else eventTextPaint
+                    val eventColorInt = if (!isOverflowLine) parseEventColor(ev.colorHex) else null
+
+                    if (isOverflowLine) {
+                        val fitted = ellipsizeToWidth("+${cell.events.size - idx} more", eventTextPaint, maxTextWidth)
+                        canvas.drawText(fitted, cellLeft + cellPaddingX, currentY, eventTextPaint)
+                    } else if (ev.isAllDay && eventColorInt != null) {
+                        // Google Calendar style: soft tinted pill + solid left color bar + crisp black text
+                        val r = Color.red(eventColorInt)
+                        val g = Color.green(eventColorInt)
+                        val b = Color.blue(eventColorInt)
+                        val pillRect = RectF(
+                            cellLeft + 6f,
+                            currentY - 18f,
+                            cellRight - 6f,
+                            currentY + 5f
+                        )
+                        eventColorPaint.color = Color.argb(65, r, g, b)
+                        canvas.drawRoundRect(pillRect, 4f, 4f, eventColorPaint)
+                        eventColorPaint.color = eventColorInt
+                        canvas.drawRoundRect(
+                            RectF(cellLeft + 6f, currentY - 18f, cellLeft + 12f, currentY + 5f),
+                            3f,
+                            3f,
+                            eventColorPaint
+                        )
+                        val fitted = ellipsizeToWidth(ev.displayLine, paint, (maxTextWidth - 10f).coerceAtLeast(16f))
+                        canvas.drawText(fitted, cellLeft + 16f, currentY, paint)
+                    } else if (eventColorInt != null) {
+                        // Timed event with Google Calendar color: vivid colored dot + crisp black text
+                        eventColorPaint.color = eventColorInt
+                        canvas.drawCircle(cellLeft + cellPaddingX + 5f, currentY - 7f, 5.5f, eventColorPaint)
+                        val fitted = ellipsizeToWidth(ev.displayLine, paint, (maxTextWidth - 16f).coerceAtLeast(16f))
+                        canvas.drawText(fitted, cellLeft + cellPaddingX + 15f, currentY, paint)
                     } else {
-                        "• ${ev.displayLine}"
+                        val fitted = ellipsizeToWidth("• ${ev.displayLine}", paint, maxTextWidth)
+                        canvas.drawText(fitted, cellLeft + cellPaddingX, currentY, paint)
                     }
-                    val paint = if (ev.isAllDay) eventAllDayPaint else eventTextPaint
-                    val fitted = ellipsizeToWidth(rawText, paint, maxTextWidth)
-                    canvas.drawText(fitted, cellLeft + cellPaddingX, currentY, paint)
                     currentY += lineHeight
                 }
 

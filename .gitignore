@@ -45,9 +45,6 @@ app/google-services.json
 upload_cert.der
 
 # Old release/CI automation tied to the commercial app
-.github/*
-!.github/FUNDING.yml
-.github/workflows/
 docs/implementation_plans/archived/
 docs/marketing/
 docs/PLAY_STORE_LISTING.md

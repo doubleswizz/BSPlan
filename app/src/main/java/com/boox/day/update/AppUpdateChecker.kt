@@ -12,15 +12,14 @@ import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
 /**
- * Finds a newer BooxDay release on GitHub (Oct 2026): `GET releases/latest` on the public API (no
- * login, 60 requests an hour per network). GitHub's "latest" is the newest published release that is
- * not a draft or prerelease. The release must carry the APK as `booxday-<version>.apk`, which GitHub
- * gives a SHA-256 digest; the download is checked against it (see CLAUDE.md "Releases").
+ * Finds a newer BSPlan release on GitHub (`doubleswizz/BSPlan`): `GET releases/latest` on the public API
+ * (no login, 60 requests an hour per network). GitHub's "latest" is the newest published release that is
+ * not a draft or prerelease. Accepts `bsplan-<version>.apk`, `BSPlan-<version>.apk`, `BSPlan.apk`, or `booxday-<version>.apk`.
  */
 object AppUpdateChecker {
     private const val TAG = "AppUpdateChecker"
-    private const val LATEST_URL = "https://api.github.com/repos/fortolano/booxday/releases/latest"
-    private const val TAG_URL_PREFIX = "https://api.github.com/repos/fortolano/booxday/releases/tags/v"
+    private const val LATEST_URL = "https://api.github.com/repos/doubleswizz/BSPlan/releases/latest"
+    private const val TAG_URL_PREFIX = "https://api.github.com/repos/doubleswizz/BSPlan/releases/tags/v"
     private const val MAX_NOTES = 6
 
     /** A release newer than the installed app. [sha256] is lower-case hex. */
@@ -58,7 +57,7 @@ object AppUpdateChecker {
     )
 
     private val json = Json { ignoreUnknownKeys = true }
-    private val apkName = Regex("""^booxday-[0-9][0-9A-Za-z.\-]*\.apk$""")
+    private val apkName = Regex("""^(?i)(?:bsplan|booxday)(?:-[0-9][0-9A-Za-z.\-]*)?\.apk$""")
     private val versionPrefix = Regex("""^[vV]?(\d+(?:\.\d+)*)""")
     private val sha256Hex = Regex("^[0-9a-f]{64}$")
 

@@ -51,8 +51,8 @@ object AppUpdateDownloader {
     suspend fun download(context: Context, info: AppUpdateChecker.UpdateInfo, onProgress: (Int) -> Unit): Result =
         withContext(Dispatchers.IO) {
             val dir = updatesDir(context).apply { mkdirs() }
-            val finalFile = File(dir, "booxday-${info.version}.apk")
-            val partFile = File(dir, "booxday-${info.version}.apk.part")
+            val finalFile = File(dir, "bsplan-${info.version}.apk")
+            val partFile = File(dir, "bsplan-${info.version}.apk.part")
             dir.listFiles()?.filter { it != finalFile && it != partFile }?.forEach { it.delete() }
 
             if (finalFile.exists()) {

@@ -2160,6 +2160,27 @@ fun MainScreen(
                 .fillMaxSize()
                 .background(Color.White)
         ) {
+            com.boox.day.ui.calendar.PlannerRootWithMonthRail(
+                selectedMonth = currentMonth,
+                onMonthSelected = { monthIndex ->
+                    DrawCanvas.flushUIUpdates()
+                    viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
+                        set(Calendar.MONTH, monthIndex)
+                    }
+                    com.boox.day.ui.calendar.PlannerNavigationState.mode =
+                        com.boox.day.ui.calendar.PlannerViewMode.Month
+                    if (isSignedIn || hasAnyExternalAccount) {
+                        if (hasAnyExternalAccount) {
+                            scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
+                        } else if (isSignedIn) {
+                            syncViewModel.syncMonthIfNeeded(
+                                viewingCalendar.get(Calendar.YEAR),
+                                viewingCalendar.get(Calendar.MONTH) + 1
+                            )
+                        }
+                    }
+                }
+            ) {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -3310,6 +3331,7 @@ fun MainScreen(
                 }  // Close canvas Box
             }  // Close Column (SharedToolbar + Canvas)
         }
+        } // Close PlannerRootWithMonthRail
 
             // ========== EXPANDED EVENTS PANEL ==========
             // Expands from events area downward into canvas (not full screen)

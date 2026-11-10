@@ -284,12 +284,12 @@ fun Router() {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.splash_icon),
-                            contentDescription = "BooxDay Logo",
+                            contentDescription = "BSPlan Logo",
                             modifier = Modifier.size(248.dp)
                         )
                         Spacer(modifier = Modifier.height(28.dp))
                         Text(
-                            text = "BooxDay",
+                            text = "BSPlan",
                             fontSize = 42.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.Black,

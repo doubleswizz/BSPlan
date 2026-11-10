@@ -125,9 +125,10 @@ class EditorState(
     private val log = TaggedLog("EditorState")
     private val persistedEditorSettings = EditorSettingCacheManager.getEditorSettings()
 
-    var mode by mutableStateOf(persistedEditorSettings?.mode ?: Mode.Draw) // should save
-    var pen by mutableStateOf(persistedEditorSettings?.pen ?: Pen.BALLPEN) // should save
-    var eraser by mutableStateOf(persistedEditorSettings?.eraser ?: Eraser.PEN) // should save
+    // BSPlan: Always use standard pen (Pen.BALLPEN) in Draw mode; physical stylus tail eraser handles erasing automatically via RawInputCallback
+    var mode by mutableStateOf(Mode.Draw)
+    var pen by mutableStateOf(Pen.BALLPEN)
+    var eraser by mutableStateOf(Eraser.PEN)
     var isDrawing by mutableStateOf(true) // gives information if pen touch will be drawn or not
     // For debugging:
 //    var isDrawing: Boolean

@@ -490,9 +490,9 @@ private fun DayTaskManagePopup(
 
     // Pause raw drawing while modal popup is open
     androidx.compose.runtime.DisposableEffect(Unit) {
-        DrawCanvas.isModalOverlayOpen.value = true
+        DrawCanvas.mainScreenModalVisible.value = true
         onDispose {
-            DrawCanvas.isModalOverlayOpen.value = false
+            DrawCanvas.mainScreenModalVisible.value = false
         }
     }
 

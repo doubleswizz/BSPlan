@@ -68,7 +68,6 @@ data class MonthGridModel(
  * read the exact same cell coordinates and data.
  */
 object MonthPlannerGridState {
-    @Volatile
     var currentGrid by mutableStateOf<MonthGridModel?>(null)
 
     private val shortMonthFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())

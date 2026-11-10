@@ -73,7 +73,7 @@ fun MonthIndexRail(
             MONTH_LABELS.forEachIndexed { index, label ->
                 val isSelected = index == selectedMonth
                 val bgColor = if (isSelected) EInkTheme.Colors.primary else EInkTheme.Colors.background
-                val textColor = if (isSelected) EInkTheme.Colors.onPrimary else EInkTheme.Colors.primary
+                val textColor = if (isSelected) EInkTheme.Colors.white else EInkTheme.Colors.primary
 
                 Column(
                     modifier = Modifier
@@ -106,7 +106,7 @@ fun MonthIndexRail(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(EInkTheme.Global.borderWidthThin)
+                                .height(1.dp)
                                 .background(EInkTheme.Colors.borderStrong)
                         )
                     }

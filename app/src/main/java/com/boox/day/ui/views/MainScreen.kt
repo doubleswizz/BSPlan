@@ -2170,7 +2170,7 @@ fun MainScreen(
         datesWithEvents = datesWithEvents,
         datesWithTasks = datesWithTasks,
         loadEventsForDay = eventsViewModel::shownEventsForDay,
-        onEnsureMemosTab = { currentEditorTab = EditorTab.Memos }
+        onEnsureMemosTab = { tabManager.currentTab.value = EditorTab.Memos }
     )
     com.boox.day.ui.calendar.DayPlannerEffects(
         selectedDate = selectedDate,

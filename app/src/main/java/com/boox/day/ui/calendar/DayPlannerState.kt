@@ -42,7 +42,6 @@ data class DayPlannerModel(
  * ([DayPlannerTouchOverlay]) use identical row coordinates and items.
  */
 object DayPlannerState {
-    @Volatile
     var currentDayModel by mutableStateOf<DayPlannerModel?>(null)
 
     fun buildModel(

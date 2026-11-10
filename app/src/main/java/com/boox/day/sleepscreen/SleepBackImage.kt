@@ -119,8 +119,8 @@ internal fun SleepTurnOnCard(onCancel: () -> Unit, onSkip: () -> Unit, onPick: (
             color = EInkTheme.Colors.primary
         )
         Text(
-            text = "BooxDay's page will replace your BOOX sleep screen. BOOX doesn't let apps read what you " +
-                "have now, so BooxDay can't bring it back by itself.",
+            text = "BSPlan's page will replace your BOOX sleep screen. BOOX doesn't let apps read what you " +
+                "have now, so BSPlan can't bring it back by itself.",
             fontSize = EInkTheme.Typography.bodyMedium,
             color = EInkTheme.Colors.primary
         )

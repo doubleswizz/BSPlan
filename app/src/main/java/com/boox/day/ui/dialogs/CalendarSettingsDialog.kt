@@ -447,7 +447,7 @@ private fun DisplayModeTabContent(
                 color = EInkTheme.Colors.darkGray
             )
             Text(
-                text = "• Use BooxDay as your only calendar",
+                text = "• Use BSPlan as your only calendar",
                 fontSize = EInkTheme.Typography.bodySmall,
                 color = EInkTheme.Colors.darkGray
             )

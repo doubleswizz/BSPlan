@@ -310,7 +310,7 @@ fun ShareCard(
     onFind: () -> Unit = {}
 ) {
     Frame(modifier) {
-        Title("Add to BooxDay", null)
+        Title("Add to BSPlan", null)
         Box(Modifier.fillMaxWidth().border(1.dp, Ink, RoundedCornerShape(4.dp)).padding(12.dp)) {
             if (picture != null) picture() else Text(text = preview, fontSize = EInkTheme.Typography.bodyLarge, color = Ink, maxLines = 5, overflow = TextOverflow.Ellipsis)
         }

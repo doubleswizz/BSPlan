@@ -118,7 +118,7 @@ private sealed interface Screen {
 const val FROM_HANDWRITING = "handwriting"
 
 private const val NO_DATE = "No date or time found."
-private const val OFFLINE = "BooxDay needs a connection to read this. Your notes are safe."
+private const val OFFLINE = "BSPlan needs a connection to read this. Your notes are safe."
 private const val NO_STROKES = "Select some handwriting first."
 
 @Composable

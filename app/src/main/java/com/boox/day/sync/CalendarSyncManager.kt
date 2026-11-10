@@ -105,7 +105,7 @@ class CalendarSyncManager(
 ) {
     companion object {
         private const val TAG = "CalendarSyncManager"
-        private const val APP_NAME = "BooxDay"
+        private const val APP_NAME = "BSPlan"
     }
 
     private val smartLinkRefreshCoordinator by lazy {

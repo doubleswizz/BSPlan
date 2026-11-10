@@ -39,7 +39,7 @@ class DriveBackupService(private val context: Context) {
             GsonFactory.getDefaultInstance(),
             credential
         )
-            .setApplicationName("BooxDay")
+            .setApplicationName("BSPlan")
             .build()
     }
 
@@ -115,7 +115,7 @@ class DriveBackupService(private val context: Context) {
                 name = localFile.name
                 parents = listOf(folderId)
                 mimeType = "application/json"
-                description = "BooxDay backup - ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date())}"
+                description = "BSPlan backup - ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date())}"
             }
 
             // Upload the file
@@ -549,7 +549,7 @@ class DriveBackupService(private val context: Context) {
                 name = databaseFile.name
                 parents = listOf(folderId)
                 mimeType = MIME_TYPE_SQLITE
-                description = "BooxDay full database backup"
+                description = "BSPlan full database backup"
             }
             val dbMediaContent = FileContent(MIME_TYPE_SQLITE, databaseFile)
             val uploadedDb = drive.files().create(dbMetadata, dbMediaContent)
@@ -565,7 +565,7 @@ class DriveBackupService(private val context: Context) {
                 name = metadataFile.name
                 parents = listOf(folderId)
                 mimeType = "application/json"
-                description = "BooxDay full backup metadata"
+                description = "BSPlan full backup metadata"
             }
             val metaMediaContent = FileContent("application/json", metadataFile)
             val uploadedMeta = drive.files().create(metaMetadata, metaMediaContent)
@@ -727,7 +727,7 @@ class DriveBackupService(private val context: Context) {
 
     companion object {
         private const val TAG = "DriveBackupService"
-        private const val BACKUP_FOLDER_NAME = "BooxDay Backups"
+        private const val BACKUP_FOLDER_NAME = "BSPlan Backups"
         private const val FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
         private const val MIME_TYPE_SQLITE = "application/x-sqlite3"
 
@@ -821,7 +821,7 @@ class DriveBackupService(private val context: Context) {
                 val folderMetadata = File().apply {
                     name = BACKUP_FOLDER_NAME
                     mimeType = FOLDER_MIME_TYPE
-                    description = "Backup folder for BooxDay app data"
+                    description = "Backup folder for BSPlan app data"
                 }
 
                 val folder = drive.files().create(folderMetadata)

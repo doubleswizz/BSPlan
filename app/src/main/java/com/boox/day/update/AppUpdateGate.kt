@@ -273,7 +273,7 @@ object AppUpdateGate {
             }
             if (notes.isEmpty()) {
                 SnackState.globalSnackFlow.tryEmit(
-                    SnackConf(text = "BooxDay was updated to ${BuildConfig.VERSION_NAME}.", duration = SnackConf.DURATION_STANDARD)
+                    SnackConf(text = "BSPlan was updated to ${BuildConfig.VERSION_NAME}.", duration = SnackConf.DURATION_STANDARD)
                 )
                 return@launch
             }
@@ -310,7 +310,7 @@ object AppUpdateGate {
         }
         if (!AppUpdateInstaller.canInstall(app)) {
             AppUpdateInstaller.openInstallPermission(app)
-            state = State.Failed(null, "Allow installs from BooxDay, then tap the debug button again.")
+            state = State.Failed(null, "Allow installs from BSPlan, then tap the debug button again.")
             return
         }
         job?.cancel()

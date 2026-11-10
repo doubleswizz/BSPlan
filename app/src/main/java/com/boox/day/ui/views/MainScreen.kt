@@ -483,8 +483,10 @@ fun MainScreen(
 
     // Notification permission: the reminder card asks by itself (ui/permissions/PermissionAsk, Oct 2026)
 
-    // State for selected date - starts with today
-    var selectedDate by remember { mutableStateOf(today) }
+    // State for selected date - starts with saved session date (or today on first launch)
+    var selectedDate by remember {
+        mutableStateOf(com.boox.day.ui.calendar.PlannerNavigationState.savedSelectedDate ?: today)
+    }
 
     // PERFORMANCE: Use count-specific flow for badge (avoids full list collection)
     // eventsPanelEventsCount is now an Int directly, not List.size
@@ -879,6 +881,13 @@ fun MainScreen(
             try {
                 time = dateFormat.parse(selectedDate) ?: time
             } catch (e: Exception) { }
+            val savedY = com.boox.day.ui.calendar.PlannerNavigationState.savedViewingYear
+            val savedM = com.boox.day.ui.calendar.PlannerNavigationState.savedViewingMonthZeroBased
+            if (savedY != null && savedM != null) {
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.YEAR, savedY)
+                set(Calendar.MONTH, savedM)
+            }
         })
     }
     val currentYear = viewingCalendar.get(Calendar.YEAR)
@@ -2105,11 +2114,11 @@ fun MainScreen(
     com.boox.day.meetings.MeetingNotesHost()
     // In-app update popup (Oct 2026, update/AppUpdateGate)
     com.boox.day.ui.dialogs.AppUpdateHost()
-    // "Support BooxDay" (Oct 2026): from the Settings menu, About and Help
+    // "Support BSPlan" (Oct 2026): from the Settings menu, About and Help
     com.boox.day.ui.dialogs.SupportPopupHost()
     // "Reminders and sync on BOOX", once (Nov 2026, owner decision 73)
     com.boox.day.ui.dialogs.BooxFreezeTipHost()
-    // "BooxDay closed unexpectedly" after a crash (Oct 2026, diagnostics/CrashReportGate)
+    // "BSPlan closed unexpectedly" after a crash (Oct 2026, diagnostics/CrashReportGate)
     com.boox.day.ui.dialogs.CrashReportHost()
     // Week view and later overlays (Nov 2026): new ones go in AppOverlays, not here
     com.boox.day.ui.AppOverlaysHost()
@@ -2170,7 +2179,21 @@ fun MainScreen(
         datesWithEvents = datesWithEvents,
         datesWithTasks = datesWithTasks,
         loadEventsForDay = eventsViewModel::shownEventsForDay,
-        onEnsureMemosTab = { tabManager.currentTab.value = EditorTab.Memos }
+        onEnsureMemosTab = { tabManager.currentTab.value = EditorTab.Memos },
+        onMonthYearSelected = { newYear, newMonth ->
+            DrawCanvas.flushUIUpdates()
+            viewingCalendar = Calendar.getInstance().apply {
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.YEAR, newYear)
+                set(Calendar.MONTH, newMonth)
+            }
+            selectedDate = String.format(
+                java.util.Locale.getDefault(),
+                "%04d-%02d-01",
+                newYear,
+                newMonth + 1
+            )
+        }
     )
     com.boox.day.ui.calendar.DayPlannerEffects(
         selectedDate = selectedDate,

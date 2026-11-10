@@ -34,7 +34,7 @@ class ShareReceiverActivity : ComponentActivity() {
                     false
                 }
             }
-            if (!kept) Toast.makeText(applicationContext, "BooxDay couldn't read this. Pictures can be up to 20 MB.", Toast.LENGTH_LONG).show()
+            if (!kept) Toast.makeText(applicationContext, "BSPlan couldn't read this. Pictures can be up to 20 MB.", Toast.LENGTH_LONG).show()
             startActivity(backToApp())
             finish()
         }

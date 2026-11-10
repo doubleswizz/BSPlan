@@ -309,7 +309,7 @@ class TaskExportService(private val context: Context) {
             // Get content URI via FileProvider
             val contentUri = FileProvider.getUriForFile(
                 context,
-                "com.boox.day.provider",
+                "com.bsplan.app.provider",
                 file
             )
 

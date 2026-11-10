@@ -194,7 +194,7 @@ internal fun TaskSyncCardContent(state: TaskSyncCardState, actions: TaskSyncCard
         }
 
         Section("New tasks go to") {
-            Note("Tasks you write in BooxDay. Tasks from $name stay in their own list.")
+            Note("Tasks you write in BSPlan. Tasks from $name stay in their own list.")
             NewTasksToPicker(state, actions)
         }
 

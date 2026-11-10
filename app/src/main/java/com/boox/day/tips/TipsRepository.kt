@@ -81,7 +81,7 @@ object TipsRepository {
         ),
         Tip(
             id = "memos_paste",
-            message = "Two-finger tap pastes ink or an image copied in BooxDay, or text copied in another app.",
+            message = "Two-finger tap pastes ink or an image copied in BSPlan, or text copied in another app.",
             contexts = setOf(TipContext.MEMOS)
         ),
         Tip(
@@ -243,7 +243,7 @@ object TipsRepository {
         ),
         Tip(
             id = "general_share_in",
-            message = "In another app, tap Share, then Add to BooxDay to keep text or a picture here.",
+            message = "In another app, tap Share, then Add to BSPlan to keep text or a picture here.",
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(
@@ -416,7 +416,7 @@ object TipsRepository {
         ),
         Tip(
             id = "general_daily_notes_kept",
-            message = "Daily notes keep what you write around BooxDay's part of the file, so you can add to them in Obsidian.",
+            message = "Daily notes keep what you write around BSPlan's part of the file, so you can add to them in Obsidian.",
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(
@@ -426,7 +426,7 @@ object TipsRepository {
         ),
         Tip(
             id = "general_updates",
-            message = "BooxDay checks for new versions itself. Settings → About → Check for Updates looks now.",
+            message = "BSPlan checks for new versions itself. Settings → About → Check for Updates looks now.",
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(
@@ -457,7 +457,7 @@ object TipsRepository {
         ),
         Tip(
             id = "ai_models",
-            message = "Pick the model for each AI job in Settings → AI Settings → AI Models, or keep BooxDay's choice.",
+            message = "Pick the model for each AI job in Settings → AI Settings → AI Models, or keep BSPlan's choice.",
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(

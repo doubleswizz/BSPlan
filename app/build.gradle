@@ -22,7 +22,7 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.boox.day"
+        applicationId "com.bsplan.app"
         minSdk 31
         targetSdk 35
 

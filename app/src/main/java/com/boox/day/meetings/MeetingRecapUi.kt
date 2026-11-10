@@ -281,7 +281,7 @@ internal suspend fun exportNow(context: android.content.Context, meeting: Meetin
     val saved = runCatching { MeetingExport.save(context, meeting) }
     SnackState.globalSnackFlow.tryEmit(
         SnackConf(
-            text = if (saved.isSuccess) "Saved to Documents/BooxDay/Meetings" else "Couldn't save the PDF",
+            text = if (saved.isSuccess) "Saved to Documents/BSPlan/Meetings" else "Couldn't save the PDF",
             duration = SnackConf.DURATION_STANDARD
         )
     )

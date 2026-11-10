@@ -199,7 +199,7 @@ fun SettingsMenu(
             }
             SettingsMenuItemWithIcon("Help", Icons.AutoMirrored.Filled.Help) { onHelp() }
             // Buy Me a Coffee (Oct 2026): the Support BooxDay popup, then the menu closes
-            SettingsMenuItemWithIcon("Support BooxDay", Icons.Default.LocalCafe) {
+            SettingsMenuItemWithIcon("Support BSPlan", Icons.Default.LocalCafe) {
                 SupportPopup.open()
                 onClose()
             }

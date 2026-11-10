@@ -38,7 +38,7 @@ object AiModelCheck {
         data class Fails(val reason: String) : Result()
     }
 
-    const val UNUSABLE_ANSWER = "The model answered, but not in the form BooxDay needs for this job."
+    const val UNUSABLE_ANSWER = "The model answered, but not in the form BSPlan needs for this job."
     private const val CANT_TAKE_INPUT = "This model can't take what this job sends."
 
     /** Sends the check for [choice] on [job] and reads the answer. */

@@ -96,14 +96,14 @@ object LastAiProblem {
     /** Puts [text] of [problem] on the clipboard (AI Settings → AI Models, owner's choice). */
     fun copy(context: Context, problem: Problem) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("BooxDay AI problem", text(problem)))
+        clipboard.setPrimaryClip(ClipData.newPlainText("BSPlan AI problem", text(problem)))
         Toast.makeText(context, "Details copied", Toast.LENGTH_SHORT).show()
     }
 
     /** [problem] as plain lines, to copy into a report. */
     fun text(problem: Problem): String = buildString {
         val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
-        appendLine("Last AI problem: ${problem.feature}, ${time.format(Date(problem.atMs))}, BooxDay ${problem.appVersion}")
+        appendLine("Last AI problem: ${problem.feature}, ${time.format(Date(problem.atMs))}, BSPlan ${problem.appVersion}")
         appendLine("It said: ${problem.message}")
         if (problem.tries.isEmpty()) {
             appendLine("Every AI request before it answered.")

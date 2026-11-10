@@ -287,7 +287,7 @@ object AiClient {
                 pickedModel.reasoning
             }
             testedLevel != null -> {
-                Log.d(TAG, "Using BooxDay's level for ${request.model.id}: $testedLevel")
+                Log.d(TAG, "Using BSPlan's level for ${request.model.id}: $testedLevel")
                 testedLevel
             }
             // If enableReasoning is set but no override, use enabled() as generic fallback

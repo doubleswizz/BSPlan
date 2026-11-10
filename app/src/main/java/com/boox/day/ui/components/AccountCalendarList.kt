@@ -605,7 +605,7 @@ private fun DisconnectAccountConfirmation(
             Text(
                 // What really happens (owner, 2 Nov 2026): it said the events stay, but removing an
                 // account deletes them (MultiAccountSyncManager.removeAccount)
-                text = "Its events are removed from BooxDay. Your calendars online don't change." +
+                text = "Its events are removed from BSPlan. Your calendars online don't change." +
                     if (com.boox.day.BuildConfig.TASK_SYNC_ENABLED && mayRunTaskSync) " If Task Sync uses this account, it stops." else "",
                 fontSize = EInkTheme.Typography.bodySmall,
                 color = EInkTheme.Colors.darkGray,

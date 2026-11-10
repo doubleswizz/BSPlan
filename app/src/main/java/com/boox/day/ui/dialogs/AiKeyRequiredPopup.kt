@@ -143,7 +143,7 @@ fun AiKeyGateHost(aiSettingsOpen: Boolean, onOpenAiSettings: () -> Unit) {
 }
 
 /**
- * "Turn on AI in BooxDay" (Oct 2026): what OpenRouter is, what it costs and what happens next, before
+ * "Turn on AI in BSPlan" (Oct 2026): what OpenRouter is, what it costs and what happens next, before
  * the browser opens. Shown when an AI feature starts without a key (or OpenRouter rejected it) and by
  * Connect OpenRouter in AI Settings. [onHaveKey] null: no "I already have a key" line (the key card
  * has its own).
@@ -230,7 +230,7 @@ internal fun OpenRouterIntroCard(
     onHaveKey: (() -> Unit)?
 ) {
     PopupColumn {
-        PopupTitle(Icons.Default.AutoAwesome, "Turn on AI in BooxDay")
+        PopupTitle(Icons.Default.AutoAwesome, "Turn on AI in BSPlan")
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
@@ -242,13 +242,13 @@ internal fun OpenRouterIntroCard(
             }
             // Wording for people who aren't technical (owner, 29 Oct 2026): no "models", "keys" or "requests"
             PopupText(
-                "BooxDay's AI can read your handwriting, plan your day and suggest tasks. " +
+                "BSPlan's AI can read your handwriting, plan your day and suggest tasks. " +
                     "To use it, connect an OpenRouter account."
             )
             QuestionAndAnswer(
                 "What is OpenRouter?",
                 "One account that gives you many AIs, from the makers of ChatGPT, Gemini and Claude. " +
-                    "BooxDay picks a good one for each job."
+                    "BSPlan picks a good one for each job."
             )
             QuestionAndAnswer(
                 "What does it cost?",
@@ -258,7 +258,7 @@ internal fun OpenRouterIntroCard(
             )
             QuestionAndAnswer(
                 "What happens next?",
-                "Your browser opens. Sign in or create an account, tap Authorize, then Open BooxDay."
+                "Your browser opens. Sign in or create an account, tap Authorize, then Open BSPlan."
             )
         }
         // The main button is wider: "Continue to OpenRouter" must fit on the Go 6 too
@@ -307,10 +307,10 @@ internal fun ConnectResultCard(
         when (status) {
             is OpenRouterConnect.Status.Connected -> {
                 PopupTitle(Icons.Default.Check, "AI is on")
-                PopupText("BooxDay is connected to your OpenRouter account.")
+                PopupText("BSPlan is connected to your OpenRouter account.")
                 when {
                     !status.checked -> PopupText(
-                        "OpenRouter couldn't be reached to check the key. It's saved; BooxDay checks it the next time you use AI."
+                        "OpenRouter couldn't be reached to check the key. It's saved; BSPlan checks it the next time you use AI."
                     )
                     status.isFreeTier -> PopupText(
                         "No credit yet: AI uses free models, up to 50 requests a day. Search indexing starts when you add credit."
@@ -377,7 +377,7 @@ fun OpenRouterKeySteps(context: Context, lastStepTitle: String, lastStepDetail: 
         KeyStep(
             number = 3,
             title = "Create a key",
-            detail = " named \"BooxDay\" and copy it. You can give it a spending limit."
+            detail = " named \"BSPlan\" and copy it. You can give it a spending limit."
         ) {
             StepLink(text = "openrouter.ai/settings/keys") { OpenRouterLinks.open(context, OpenRouterLinks.KEYS) }
         }

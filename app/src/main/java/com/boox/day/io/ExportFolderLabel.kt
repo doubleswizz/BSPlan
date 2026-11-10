@@ -6,8 +6,8 @@ import android.provider.DocumentsContract
 
 /**
  * Where an export was saved, as the tablet's file manager shows it (Oct 2026): the message said only
- * "Saved BooxDay-2026-11-08-p1.pdf", and a user couldn't find the PDF (reported 13 Dec). Now it is
- * "Saved … to Documents/BooxDay/Calendar/2026-11". Null when the folder can't be named; the message
+ * "Saved BSPlan-2026-11-08-p1.pdf", and a user couldn't find the PDF (reported 13 Dec). Now it is
+ * "Saved … to Documents/BSPlan/Calendar/2026-11". Null when the folder can't be named; the message
  * then stays as it was.
  */
 internal object ExportFolderLabel {

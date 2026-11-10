@@ -36,7 +36,7 @@ object SleepScreenSpike {
             Log.i(TAG, "Screen ${size[0]}x${size[1]}, drawing portrait ${width}x$height")
 
             val dir = when (where) {
-                Where.PICTURES -> File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BooxDay")
+                Where.PICTURES -> File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BSPlan")
                 Where.APP_FILES -> File(context.getExternalFilesDir(null), "sleep")
             }
             dir.mkdirs()
@@ -71,7 +71,7 @@ object SleepScreenSpike {
             color = Color.BLACK; isAntiAlias = true; textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD; textSize = width / 12f
         }
-        canvas.drawText("BooxDay", width / 2f, height * 0.42f, text)
+        canvas.drawText("BSPlan", width / 2f, height * 0.42f, text)
         text.typeface = Typeface.DEFAULT
         text.textSize = width / 22f
         canvas.drawText("Sleep screen test", width / 2f, height * 0.50f, text)

@@ -24,10 +24,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -35,13 +38,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.boox.day.data.datastore.AppSettings
 import com.boox.day.data.db.CalendarEvent
 import com.boox.day.editor.DrawCanvas
@@ -52,11 +60,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import java.text.DateFormatSymbols
+import java.util.Calendar
 import java.util.Locale
 import kotlin.math.hypot
 
 /**
- * Top header bar for the Full-Page Month View (`< JANUARY 2027 >` + `[+ Event]` `[+ Task]` `[⚙]`).
+ * Top header bar for the Full-Page Month View (`< JANUARY 2027 ▼ >` + `[+ Event]` `[+ Task]` `[⚙]`).
+ * Tapping `MONTH YEAR` opens an E-Ink Month & Year picker popup.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -82,6 +92,7 @@ fun MonthPlannerHeaderBar(
     if (PlannerNavigationState.mode != PlannerViewMode.Month) return
 
     var showSettingsMenu by remember { mutableStateOf(false) }
+    var showMonthYearPicker by remember { mutableStateOf(false) }
     val monthName = remember(monthZeroBased) {
         DateFormatSymbols(Locale.getDefault()).months
             .getOrElse(monthZeroBased) { "" }
@@ -107,7 +118,7 @@ fun MonthPlannerHeaderBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Left: < MONTH YEAR >
+            // Left: < MONTH YEAR ▼ >
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -129,18 +140,48 @@ fun MonthPlannerHeaderBar(
                     )
                 }
 
-                Text(
-                    text = "$monthName $year",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = EInkTheme.Colors.primary,
-                    modifier = Modifier
-                        .noRippleClickable {
-                            DrawCanvas.forceUnfreeze()
-                            onTodayClick()
-                        }
-                        .padding(horizontal = 4.dp)
-                )
+                Box {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .height(EInkTheme.Global.touchTarget)
+                            .noRippleClickable {
+                                DrawCanvas.forceUnfreeze()
+                                showMonthYearPicker = !showMonthYearPicker
+                            }
+                            .padding(horizontal = 6.dp)
+                    ) {
+                        Text(
+                            text = "$monthName $year",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = EInkTheme.Colors.primary
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select Month and Year",
+                            tint = EInkTheme.Colors.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    if (showMonthYearPicker) {
+                        MonthYearPickerPopup(
+                            currentYear = year,
+                            currentMonthZeroBased = monthZeroBased,
+                            onSelectMonthYear = { selectedYear, selectedMonth ->
+                                showMonthYearPicker = false
+                                PlannerNavigationState.onSelectMonthYear?.invoke(selectedYear, selectedMonth)
+                            },
+                            onJumpToToday = {
+                                showMonthYearPicker = false
+                                onTodayClick()
+                            },
+                            onDismiss = { showMonthYearPicker = false }
+                        )
+                    }
+                }
 
                 Box(
                     modifier = Modifier
@@ -252,6 +293,201 @@ fun MonthPlannerHeaderBar(
     }
 }
 
+/**
+ * E-Ink Month & Year picker popup opened when tapping the Month/Year title in the top left header.
+ */
+@Composable
+fun MonthYearPickerPopup(
+    currentYear: Int,
+    currentMonthZeroBased: Int,
+    onSelectMonthYear: (year: Int, monthZeroBased: Int) -> Unit,
+    onJumpToToday: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var pickerYear by remember(currentYear) { mutableIntStateOf(currentYear) }
+    val monthLabels = remember {
+        listOf("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+    }
+
+    DisposableEffect(Unit) {
+        DrawCanvas.mainScreenModalVisible.value = true
+        DrawCanvas.forceUnfreeze()
+        onDispose {
+            DrawCanvas.mainScreenModalVisible.value = false
+        }
+    }
+
+    Popup(
+        alignment = Alignment.TopStart,
+        offset = IntOffset(0, 80),
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true)
+    ) {
+        Column(
+            modifier = Modifier
+                .width(340.dp)
+                .border(
+                    width = 2.dp,
+                    color = EInkTheme.Colors.borderStrong,
+                    shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                )
+                .background(
+                    color = EInkTheme.Colors.background,
+                    shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                )
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Year selector row: [ < ]  2026  [ > ]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(EInkTheme.Global.touchTarget)
+                        .border(
+                            width = EInkTheme.Global.borderWidth,
+                            color = EInkTheme.Colors.borderStrong,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .noRippleClickable { pickerYear -= 1 },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Previous Year",
+                        tint = EInkTheme.Colors.primary,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Text(
+                    text = pickerYear.toString(),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = EInkTheme.Colors.primary
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(EInkTheme.Global.touchTarget)
+                        .border(
+                            width = EInkTheme.Global.borderWidth,
+                            color = EInkTheme.Colors.borderStrong,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .noRippleClickable { pickerYear += 1 },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Next Year",
+                        tint = EInkTheme.Colors.primary,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            }
+
+            // 12-Month Grid (3 columns x 4 rows)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (row in 0 until 4) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        for (col in 0 until 3) {
+                            val mIdx = row * 3 + col
+                            val isSelected = pickerYear == currentYear && mIdx == currentMonthZeroBased
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp)
+                                    .border(
+                                        width = EInkTheme.Global.borderWidth,
+                                        color = EInkTheme.Colors.borderStrong,
+                                        shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                                    )
+                                    .background(
+                                        color = if (isSelected) EInkTheme.Colors.primary else EInkTheme.Colors.background,
+                                        shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                                    )
+                                    .noRippleClickable {
+                                        onSelectMonthYear(pickerYear, mIdx)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = monthLabels[mIdx],
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else EInkTheme.Colors.primary,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Bottom row: [Jump to Today]  [Close]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
+                        .border(
+                            width = EInkTheme.Global.borderWidth,
+                            color = EInkTheme.Colors.borderStrong,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .background(
+                            color = EInkTheme.Colors.background,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .noRippleClickable { onJumpToToday() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Today",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = EInkTheme.Colors.primary
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
+                        .border(
+                            width = EInkTheme.Global.borderWidth,
+                            color = EInkTheme.Colors.borderStrong,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .background(
+                            color = EInkTheme.Colors.background,
+                            shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
+                        )
+                        .noRippleClickable { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Close",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = EInkTheme.Colors.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun PlannerHeaderActionButton(
     label: String,
@@ -359,8 +595,8 @@ fun MonthGridTouchOverlay(
 
 /**
  * Handles background loading of the 42-day Month Grid (including spillover days, Google Calendar
- * events, and Google Tasks), Back-button navigation from Day View to Month View, and E-Ink canvas
- * redraw synchronization when switching between Month View and Day View.
+ * events, and Google Tasks), Back-button navigation from Day View to Month View, E-Ink canvas
+ * redraw synchronization, and session state persistence.
  */
 @Composable
 fun MonthPlannerEffects(
@@ -372,10 +608,32 @@ fun MonthPlannerEffects(
     datesWithEvents: Set<String>,
     datesWithTasks: Set<String>,
     loadEventsForDay: suspend (String) -> List<CalendarEvent>,
-    onEnsureMemosTab: () -> Unit
+    onEnsureMemosTab: () -> Unit,
+    onMonthYearSelected: (newYear: Int, newMonthZeroBased: Int) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val mode = PlannerNavigationState.mode
+    val latestOnMonthYearSelected = rememberUpdatedState(onMonthYearSelected)
+
+    DisposableEffect(Unit) {
+        PlannerNavigationState.onSelectMonthYear = { newYear, newMonth ->
+            latestOnMonthYearSelected.value(newYear, newMonth)
+        }
+        onDispose {
+            PlannerNavigationState.onSelectMonthYear = null
+        }
+    }
+
+    // Persist the active mode, selected date, and viewing month/year so BSPlan opens right where it left off
+    LaunchedEffect(mode, selectedDate, year, monthZeroBased) {
+        PlannerNavigationState.saveState(
+            context = context,
+            currentMode = mode,
+            selectedDate = selectedDate,
+            viewingYear = year,
+            viewingMonthZeroBased = monthZeroBased
+        )
+    }
 
     BackHandler(enabled = mode == PlannerViewMode.Day) {
         DrawCanvas.flushUIUpdates()
@@ -431,5 +689,3 @@ fun DayOnlyToolbarSection(content: @Composable () -> Unit) {
         content()
     }
 }
-
-

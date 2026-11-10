@@ -105,7 +105,7 @@ object AppUpdateChecker {
     private fun gitHubRequest(url: String): Request = Request.Builder()
         .url(url)
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", "BooxDay/${BuildConfig.VERSION_NAME}")
+        .header("User-Agent", "BSPlan/${BuildConfig.VERSION_NAME}")
         .get()
         .build()
 

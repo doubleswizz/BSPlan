@@ -27,7 +27,7 @@ private val fileUtilsLog = TaggedLog("FileUtilsLogger")
 fun getLinkedFilesDir(): File {
     val documentsDir =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-    val dbDir = File(documentsDir, "/BooxDay/Linked")
+    val dbDir = File(documentsDir, "/BSPlan/Linked")
     if (!dbDir.exists()) {
         dbDir.mkdirs()
     }

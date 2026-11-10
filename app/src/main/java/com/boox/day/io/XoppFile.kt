@@ -75,7 +75,7 @@ class XoppFile(
 
         BufferedWriter(OutputStreamWriter(FileOutputStream(tmp), Charsets.UTF_8)).use { writer ->
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-            writer.write("<xournal creator=\"BooxDay ${BuildConfig.VERSION_NAME}\" version=\"0.4\">\n")
+            writer.write("<xournal creator=\"BSPlan ${BuildConfig.VERSION_NAME}\" version=\"0.4\">\n")
             when (target) {
                 is ExportTarget.Book -> {
                     val book = BookRepository(context).getById(target.bookId)

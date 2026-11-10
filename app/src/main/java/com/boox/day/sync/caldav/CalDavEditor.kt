@@ -44,7 +44,7 @@ import java.time.temporal.ChronoUnit
  * that day's exception, a delete adds an EXDATE. Its row id stays the same ([CalDavEvents.eventId]).
  */
 internal object CalDavEditor {
-    private const val PRODID = "-//BooxDay//BooxDay//EN"
+    private const val PRODID = "-//BSPlan//BSPlan//EN"
 
     /** BooxDay's fields of an event, as its dialog gives them (one day; end on that day or none). */
     data class Fields(

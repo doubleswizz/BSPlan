@@ -275,7 +275,7 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                         item(key = "boox-day-choice") {
                             ModelRow(
-                                title = "BooxDay's choice: $defaultName",
+                                title = "BSPlan's choice: $defaultName",
                                 detail = "Tested models, with backups. Follows app updates.",
                                 selected = selectedKey == BOOX_DAY_CHOICE,
                                 inUse = currentPick == null || inUseId != currentPick.id
@@ -395,14 +395,14 @@ private fun ColumnScope.ModelSettingsStep(
         Text(text = OpenRouterModelCatalog.priceLine(model), fontSize = EInkTheme.Typography.bodyMedium, color = EInkTheme.Colors.darkGray)
         if (model.isFree) {
             Text(
-                text = "Free models can be busy or reach their daily limit. BooxDay's choice answers when they do.",
+                text = "Free models can be busy or reach their daily limit. BSPlan's choice answers when they do.",
                 fontSize = EInkTheme.Typography.bodyMedium,
                 color = EInkTheme.Colors.darkGray
             )
         }
         if (OpenRouterAccount.isFreeOnly() && !model.isFree) {
             Text(
-                text = "Your account has no credit: this model won't answer until you add credit. BooxDay's free models answer meanwhile.",
+                text = "Your account has no credit: this model won't answer until you add credit. BSPlan's free models answer meanwhile.",
                 fontSize = EInkTheme.Typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = EInkTheme.Colors.primary

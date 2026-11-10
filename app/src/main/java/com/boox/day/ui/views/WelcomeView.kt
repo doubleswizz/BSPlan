@@ -106,7 +106,7 @@ fun WelcomeView(navController: NavController) {
                 // App Icon (actual BooxDay logo)
                 Icon(
                     painter = painterResource(R.drawable.ic_launcher_foreground_vector),
-                    contentDescription = "BooxDay",
+                    contentDescription = "BSPlan",
                     modifier = Modifier.size(80.dp),
                     tint = Color.Unspecified
                 )
@@ -415,7 +415,7 @@ private fun BooxNotesHighlight(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(12.dp))
 
         // Feature bullets
-        HighlightBullet("BooxDay suggests which event each note belongs to")
+        HighlightBullet("BSPlan suggests which event each note belongs to")
         Spacer(modifier = Modifier.height(6.dp))
         HighlightBullet("Search finds the words in your handwritten notes")
     }
@@ -476,7 +476,7 @@ private fun AlsoInBooxDayCard() {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Also in BooxDay",
+                text = "Also in BSPlan",
                 fontSize = EInkTheme.Typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = EInkTheme.Colors.primary

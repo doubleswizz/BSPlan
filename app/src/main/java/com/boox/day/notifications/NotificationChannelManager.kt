@@ -12,7 +12,7 @@ import android.util.Log
  * Channels (Android O+):
  * - CHANNEL_ID_DUE_TASKS: Task due date reminders
  * - CHANNEL_ID_EVENT_REMINDERS: Calendar event reminders
- * - CHANNEL_ID_APP_UPDATES: "BooxDay updated" after an in-app update
+ * - CHANNEL_ID_APP_UPDATES: "BSPlan updated" after an in-app update
  *
  * Call createChannels() in Application.onCreate() to ensure channels exist.
  */
@@ -29,10 +29,10 @@ object NotificationChannelManager {
     private const val CHANNEL_NAME_EVENT_REMINDERS = "Event Reminders"
     private const val CHANNEL_DESC_EVENT_REMINDERS = "Reminders before calendar events"
 
-    // "BooxDay updated, tap to open" after an in-app update (Oct 2026, update/AppUpdatedReceiver)
+    // "BSPlan updated, tap to open" after an in-app update (Oct 2026, update/AppUpdatedReceiver)
     const val CHANNEL_ID_APP_UPDATES = "app_updates"
     private const val CHANNEL_NAME_APP_UPDATES = "App Updates"
-    private const val CHANNEL_DESC_APP_UPDATES = "Tells you when BooxDay has updated itself"
+    private const val CHANNEL_DESC_APP_UPDATES = "Tells you when BSPlan has updated itself"
 
     /**
      * Create all notification channels.

@@ -88,7 +88,7 @@ fun HelpDialog(
             HelpSection("E-Ink & Sleep Screen", Icons.Default.PhoneAndroid),
             HelpSection("Data & Troubleshooting", Icons.Default.Warning),
             HelpSection("Key Legends", Icons.Default.VpnKey),
-            HelpSection("Support BooxDay", Icons.Default.LocalCafe)
+            HelpSection("Support BSPlan", Icons.Default.LocalCafe)
         )
     }
 
@@ -317,7 +317,7 @@ private fun HelpContent(
 private fun QuickStartContent() {
     SectionHeader("Quick Start")
 
-    SectionSubtitle("Welcome to BooxDay.")
+    SectionSubtitle("Welcome to BSPlan.")
     BodyText("A daily planner for your Boox tablet: the calendar and the chosen day's events on top, and below them two tabs for that day.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
@@ -429,7 +429,7 @@ private fun TouchGesturesContent() {
     GestureItem(
         gesture = "Two-finger tap",
         action = "Paste",
-        details = "Pastes ink or an image you copied in BooxDay, or text copied in another app as a text box."
+        details = "Pastes ink or an image you copied in BSPlan, or text copied in another app as a text box."
     )
 
     GestureItem(
@@ -544,7 +544,7 @@ private fun TaskManagementContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Writing a Task")
-    BodyText("Write on a row with the pen. BooxDay reads handwritten tasks on the tablet, so search finds them. To type instead, tap › on an empty row.")
+    BodyText("Write on a row with the pen. BSPlan reads handwritten tasks on the tablet, so search finds them. To type instead, tap › on an empty row.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -571,7 +571,7 @@ private fun TaskManagementContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Start Your Day")
-    BodyText("The first time you open today's tasks, BooxDay lists the tasks from earlier days that aren't done. Move each to today, tomorrow or another day, mark it done or delete it, or move them all to today at once. Decide Later leaves them on their day; the task actions menu opens the list again (Start-the-day review).")
+    BodyText("The first time you open today's tasks, BSPlan lists the tasks from earlier days that aren't done. Move each to today, tomorrow or another day, mark it done or delete it, or move them all to today at once. Decide Later leaves them on their day; the task actions menu opens the list again (Start-the-day review).")
 
     // Task sync (Oct 2026): only in builds that have it (owner decision 36)
     if (TASK_SYNC_AVAILABLE) {
@@ -581,7 +581,7 @@ private fun TaskManagementContent() {
         BodyText("Keeps your tasks in step with Google Tasks or a CalDAV server (Nextcloud, Fastmail and others) on your phone. It's off until you turn it on, and it needs Cloud Sync and that account in Calendar Accounts.")
         BulletPoint("What syncs: a task's words (typed, or your handwriting as read), its done mark, its day or due date, and subtasks; with a CalDAV server also its priority and its own reminder time. Ink and time estimates stay on the tablet. Google Tasks deadlines and attachments stay on your phone: Google doesn't share them with other apps.")
         BulletPoint("Tasks from your phone come to their due day; tasks with no date come to today.")
-        BulletPoint("It syncs when you open BooxDay, about 10 seconds after you stop writing, with the cloud button, and in the background on Sync frequency while the tablet is awake (on BOOX, see Data & Troubleshooting).")
+        BulletPoint("It syncs when you open BSPlan, about 10 seconds after you stop writing, with the cloud button, and in the background on Sync frequency while the tablet is awake (on BOOX, see Data & Troubleshooting).")
         BulletPoint("Clearing or deleting a synced task deletes it on your phone's service too; more than 20 at once waits for your OK. Ticked tasks deleted on your phone stay on the tablet.")
         BulletPoint("iCloud can't be used: Apple doesn't share Reminders with other apps. Repeating tasks come to each day of the coming week with a CalDAV server, not with Google Tasks.")
     }
@@ -611,8 +611,8 @@ private fun CalendarSyncContent() {
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
-    SectionSubheader("Sharing to BooxDay")
-    BodyText("In another app, tap Share, then Add to BooxDay. Keep it as a note in today's Memos, or tap Find Events and Tasks to have your AI look for dates. Nothing goes to your AI unless you tap.")
+    SectionSubheader("Sharing to BSPlan")
+    BodyText("In another app, tap Share, then Add to BSPlan. Keep it as a note in today's Memos, or tap Find Events and Tasks to have your AI look for dates. Nothing goes to your AI unless you tap.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -634,13 +634,13 @@ private fun CalendarSyncContent() {
 
     SectionSubheader("Accounts (Settings → Calendar Accounts)")
     BulletPoint("Add Gmail Account, Add Workspace Account, Add Outlook.com Account or Add Work/School Account.")
-    BulletPoint("On the iCloud & more tab: Add iCloud, Fastmail, Nextcloud or Other Account. These sign in with a password made for BooxDay; the form says where to make it.")
+    BulletPoint("On the iCloud & more tab: Add iCloud, Fastmail, Nextcloud or Other Account. These sign in with a password made for BSPlan; the form says where to make it.")
     BulletPoint("A home server with its own security certificate asks Trust This Server? the first time.")
-    BulletPoint("Disconnect removes an account from BooxDay.")
+    BulletPoint("Disconnect removes an account from BSPlan.")
     BulletPoint("A new event goes to a Cloud Calendar when an account is connected. Under Save to, pick This device only to keep it on the tablet: it never syncs.")
     BulletPoint("Events sync from two months back to three months ahead.")
     BulletPoint(
-        "BooxDay asks Google for little access to your calendar: only your events and your list of calendars." +
+        "BSPlan asks Google for little access to your calendar: only your events and your list of calendars." +
             if (TASK_SYNC_AVAILABLE) " Task Sync asks Google separately for Google Tasks, only when you turn it on." else ""
     )
 
@@ -709,21 +709,21 @@ private fun AiFeaturesContent() {
     SectionHeader("AI Features")
 
     SectionSubtitle("Optional, on your own OpenRouter account.")
-    BodyText("AI features run on your own OpenRouter account, so OpenRouter bills you, not BooxDay. Without credit on the account, BooxDay uses free models, which OpenRouter limits to a number of requests a day.")
+    BodyText("AI features run on your own OpenRouter account, so OpenRouter bills you, not BSPlan. Without credit on the account, BSPlan uses free models, which OpenRouter limits to a number of requests a day.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Setting Up (Settings → AI Settings)")
-    BulletItem("Connect OpenRouter", "BooxDay explains OpenRouter, then opens it in the browser: sign in or create an account, tap Authorize, then Open BooxDay. BooxDay saves the key and says \"AI is on\". Have a key already? Tap I already have a key and paste it.")
+    BulletItem("Connect OpenRouter", "BSPlan explains OpenRouter, then opens it in the browser: sign in or create an account, tap Authorize, then Open BSPlan. BSPlan saves the key and says \"AI is on\". Have a key already? Tap I already have a key and paste it.")
     BulletItem("Paying for AI", "Signing up is free. Free models need no credit but allow 50 requests a day (1,000 a day once you have bought \$10 of credit), and are often busy. Other models use credit you add on OpenRouter (openrouter.ai/settings/credits) by card, AliPay or USDC, from \$5. A key can have a spending limit.")
     BulletItem("AI Features", "The switch for voice input, the AI tools and reading pages for search. With it off, none of your data goes to OpenRouter.")
-    BulletItem("AI Models", "The model for each job: Reading handwriting, Voice, Writing and summaries, Planning and suggestions, Search indexing. If a model fails, BooxDay's choice answers.")
+    BulletItem("AI Models", "The model for each job: Reading handwriting, Voice, Writing and summaries, Planning and suggestions, Search indexing. If a model fails, BSPlan's choice answers.")
     BulletItem("AI options", "How many Smart Suggestions (Fewer, Normal or More), Vacation mode for lighter plans and suggestions while you're away, and switches for health and social ideas. Smart Suggestions, Optimize My Day and Sort by Priority follow them.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("AI Tools in Memos")
-    BulletItem("Voice to Text", "Dictate; BooxDay adds punctuation and capitals, and lists where they are clear.")
+    BulletItem("Voice to Text", "Dictate; BSPlan adds punctuation and capitals, and lists where they are clear.")
     BulletItem("Recognize Handwriting", "Reads the page's ink: copy the text, replace the handwriting with it, or place it below.")
     BulletItem("Summarize and Translate", "The current page or all pages of the day.")
     BulletItem("Convert Memo to Tasks", "Finds tasks in your notes; tick the ones to add.")
@@ -741,8 +741,8 @@ private fun AiFeaturesContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("How the AI Works")
-    BodyText("When you use an AI feature, only what it needs (page images, memo text, your tasks and events, or a voice clip) is sent to OpenRouter and the company that runs the model. BooxDay has no server of its own. Some free models may keep what they are sent. The AI doesn't learn from your use: each request carries what it needs, plus your AI options.")
-    BodyText("The first time you use Optimize My Day, Daily Summary, Weekly Summary or Smart Suggestions, BooxDay tells you which calendar details it sends to OpenRouter, and how to keep them private: paid models (AI Settings → AI Models) and Zero Data Retention in your OpenRouter account's privacy settings. Free models keep working.")
+    BodyText("When you use an AI feature, only what it needs (page images, memo text, your tasks and events, or a voice clip) is sent to OpenRouter and the company that runs the model. BSPlan has no server of its own. Some free models may keep what they are sent. The AI doesn't learn from your use: each request carries what it needs, plus your AI options.")
+    BodyText("The first time you use Optimize My Day, Daily Summary, Weekly Summary or Smart Suggestions, BSPlan tells you which calendar details it sends to OpenRouter, and how to keep them private: paid models (AI Settings → AI Models) and Zero Data Retention in your OpenRouter account's privacy settings. Free models keep working.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingLarge))
 }
@@ -756,12 +756,12 @@ private fun SmartLinkContent() {
     SectionHeader("Smart Link")
 
     SectionSubtitle("Your Boox notes, linked to your events.")
-    BodyText("BooxDay reads the notes you write in the Boox Notes app and suggests which calendar event each one belongs to.")
+    BodyText("BSPlan reads the notes you write in the Boox Notes app and suggests which calendar event each one belongs to.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Setting Up (Settings → Boox Notes)")
-    BulletPoint("Boox Notes Setup has three steps: let BooxDay see your notes (Open Android Settings), connect a calendar, and, if you like, read your handwriting.")
+    BulletPoint("Boox Notes Setup has three steps: let BSPlan see your notes (Open Android Settings), connect a calendar, and, if you like, read your handwriting.")
     BulletPoint("Settings → Handwriting Search reads memos, tasks and Boox Notes so you can search them. It needs an OpenRouter key and AI Features on; up to 1,000 pages a month are read. Linking notes by hand works without them.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
@@ -819,7 +819,7 @@ private fun VoiceInputContent() {
 
     TroubleshootingItem(
         problem = "Voice not working?",
-        solution = "Check the microphone permission in Android Settings → Apps → BooxDay → Permissions."
+        solution = "Check the microphone permission in Android Settings → Apps → BSPlan → Permissions."
     )
 
     TroubleshootingItem(
@@ -837,7 +837,7 @@ private fun VoiceInputContent() {
     SectionSubheader("Privacy & Data")
     BulletPoint("Google Speech: Google's speech service on the tablet. Google may process the audio on its servers.")
     BulletPoint("AI on OpenRouter: the audio clip goes to OpenRouter, on your own account, and to the company that runs the model.")
-    BodyText("BooxDay keeps no recordings: the audio is held in memory only until it is turned into text.")
+    BodyText("BSPlan keeps no recordings: the audio is held in memory only until it is turned into text.")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -849,7 +849,7 @@ private fun EInkOptimizationContent() {
     SectionHeader("E-Ink & Sleep Screen")
 
     SectionSubtitle("Built for your Boox tablet.")
-    BodyText("BooxDay uses no animations and shows meaning in black and white only, which stays sharp in every refresh mode.")
+    BodyText("BSPlan uses no animations and shows meaning in black and white only, which stays sharp in every refresh mode.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -859,7 +859,7 @@ private fun EInkOptimizationContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Today on Sleep Screen")
-    BodyText("Shows your day as the tablet's sleep screen. Turn it on in Preferences (Boox tablets only; off at first), then choose what it shows: the month calendar, events, tasks and, on larger tablets, the memo page. It replaces your Boox sleep screen, and Boox doesn't let apps read that, so BooxDay asks for an image to go back to when you turn it off. Without one, Boox shows its own image.")
+    BodyText("Shows your day as the tablet's sleep screen. Turn it on in Preferences (Boox tablets only; off at first), then choose what it shows: the month calendar, events, tasks and, on larger tablets, the memo page. It replaces your Boox sleep screen, and Boox doesn't let apps read that, so BSPlan asks for an image to go back to when you turn it off. Without one, Boox shows its own image.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -881,28 +881,28 @@ private fun TroubleshootingContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Backup (Settings → Data & Backup)")
-    BodyText("Your data is kept in BooxDay's private storage on the tablet. Create Backup saves a copy to Google Drive or Device Storage (Downloads or an SD card); Restore Backup brings one back. Google Drive Backup can also run by itself (Auto Backup).")
+    BodyText("Your data is kept in BSPlan's private storage on the tablet. Create Backup saves a copy to Google Drive or Device Storage (Downloads or an SD card); Restore Backup brings one back. Google Drive Backup can also run by itself (Auto Backup).")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Daily Notes (Markdown)")
-    BodyText("Turn it on in Preferences: each day's events, tasks and memo text go into a Markdown file in Documents/BooxDay/Daily Notes, or a folder you choose, for other notes apps. Text you add outside BooxDay's part of the file is kept.")
+    BodyText("Turn it on in Preferences: each day's events, tasks and memo text go into a Markdown file in Documents/BSPlan/Daily Notes, or a folder you choose, for other notes apps. Text you add outside BSPlan's part of the file is kept.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Updates")
-    BodyText("A while after it starts, BooxDay checks for a new version: Update Now installs it, Not Now asks again the next day. You can also check in Settings → About → Check for Updates. After an update, What's new shows once.")
+    BodyText("A while after it starts, BSPlan checks for a new version: Update Now installs it, Not Now asks again the next day. You can also check in Settings → About → Check for Updates. After an update, What's new shows once.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
-    SectionSubheader("If BooxDay Closes Unexpectedly")
-    BodyText("At the next start, \"BooxDay closed unexpectedly\" offers Copy Report and Report on GitHub. Email addresses in the report are shortened.")
+    SectionSubheader("If BSPlan Closes Unexpectedly")
+    BodyText("At the next start, \"BSPlan closed unexpectedly\" offers Copy Report and Report on GitHub. Email addresses in the report are shortened.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     TroubleshootingItem(
         problem = "Pen not writing?",
-        solution = "Close any open popup or menu: the pen doesn't write while one is open. If it still doesn't write, close BooxDay and open it again."
+        solution = "Close any open popup or menu: the pen doesn't write while one is open. If it still doesn't write, close BSPlan and open it again."
     )
 
     TroubleshootingItem(
@@ -912,13 +912,13 @@ private fun TroubleshootingContent() {
 
     // BOOX freezing (Nov 2026, owner decision 73)
     TroubleshootingItem(
-        problem = "Reminders missing, or nothing syncs while BooxDay is closed?",
-        solution = "BOOX freezes apps it thinks you're done with, and a frozen BooxDay can't remind you or sync. Open Apps, tap the snowflake at the top and switch BooxDay off. Leave BooxDay with Home, not the ✕ in Recents. While the tablet sleeps, BOOX turns Wi-Fi off, so syncing waits until it wakes."
+        problem = "Reminders missing, or nothing syncs while BSPlan is closed?",
+        solution = "BOOX freezes apps it thinks you're done with, and a frozen BSPlan can't remind you or sync. Open Apps, tap the snowflake at the top and switch BSPlan off. Leave BSPlan with Home, not the ✕ in Recents. While the tablet sleeps, BOOX turns Wi-Fi off, so syncing waits until it wakes."
     )
 
     TroubleshootingItem(
         problem = "Can't find an export?",
-        solution = "Look in Documents/BooxDay/Calendar, in the folder of that month, or in the folder you picked with Change. The message after an export names the folder, and its Share button sends the file to another app."
+        solution = "Look in Documents/BSPlan/Calendar, in the folder of that month, or in the folder you picked with Change. The message after an export names the folder, and its Share button sends the file to another app."
     )
 
     TroubleshootingItem(
@@ -936,14 +936,14 @@ private fun TroubleshootingContent() {
 
 @Composable
 private fun SupportContent() {
-    SectionHeader("Support BooxDay")
+    SectionHeader("Support BSPlan")
 
     SectionSubtitle("For the price of a cup of coffee, you help keep the best calendar for BOOX growing.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
-    SectionSubheader("Why BooxDay Is Free")
-    BodyText("BooxDay has no ads, no subscription and nothing to unlock. It's open source and made by one person, for people who plan their days on a BOOX.")
+    SectionSubheader("Why BSPlan Is Free")
+    BodyText("BSPlan has no ads, no subscription and nothing to unlock. It's open source and made by one person, for people who plan their days on a BOOX.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -951,7 +951,7 @@ private fun SupportContent() {
     BulletPoint("Time for new features, like the ones in each update")
     BulletPoint("Fixes for new BOOX tablets and firmware updates")
     BulletPoint("Fixes for the bugs you report")
-    BulletPoint("The OpenRouter credit used to test BooxDay's AI")
+    BulletPoint("The OpenRouter credit used to test BSPlan's AI")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -963,12 +963,12 @@ private fun SupportContent() {
         contentDescription = "QR code for ${ProjectInfo.SUPPORT_URL}",
         modifier = Modifier.size(132.dp)
     )
-    BodyText("It's never required: BooxDay stays free for everyone, with or without a coffee.")
+    BodyText("It's never required: BSPlan stays free for everyone, with or without a coffee.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Other Ways to Help")
-    BodyText("Tell a friend with a BOOX about BooxDay, or report a bug or an idea on GitHub (Settings → About → Report a Bug).")
+    BodyText("Tell a friend with a BOOX about BSPlan, or report a bug or an idea on GitHub (Settings → About → Report a Bug).")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingLarge))
 }

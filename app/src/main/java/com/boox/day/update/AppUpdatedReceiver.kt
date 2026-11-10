@@ -39,7 +39,7 @@ class AppUpdatedReceiver : BroadcastReceiver() {
             )
             val notification = NotificationCompat.Builder(context, NotificationChannelManager.CHANNEL_ID_APP_UPDATES)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("BooxDay updated to ${BuildConfig.VERSION_NAME}")
+                .setContentTitle("BSPlan updated to ${BuildConfig.VERSION_NAME}")
                 .setContentText("Tap to open.")
                 .setContentIntent(open)
                 .setAutoCancel(true)

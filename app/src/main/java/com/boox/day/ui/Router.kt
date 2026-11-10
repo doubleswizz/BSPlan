@@ -164,22 +164,33 @@ fun Router() {
                 }
             }
 
-            // 3. Pre-create today's pages
+            // 3. Pre-create the saved session's page (or today's pages)
             val pagesJob = launch(Dispatchers.IO) {
                 try {
+                    com.boox.day.ui.calendar.PlannerNavigationState.init(context)
                     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    val targetDate = com.boox.day.ui.calendar.PlannerNavigationState.savedSelectedDate ?: today
                     val dayPageRepo = DayPageRepository(context)
                     val taskRepo = TaskRepository(context)
 
-                    val memosPageId = dayPageRepo.getOrCreatePageForDate(today)
-                    logRouter.i("PERF: Memos page pre-created: $memosPageId")
+                    val activeKey = if (com.boox.day.ui.calendar.PlannerNavigationState.mode == com.boox.day.ui.calendar.PlannerViewMode.Month) {
+                        val nowCal = java.util.Calendar.getInstance()
+                        val y = com.boox.day.ui.calendar.PlannerNavigationState.savedViewingYear ?: nowCal.get(java.util.Calendar.YEAR)
+                        val m = com.boox.day.ui.calendar.PlannerNavigationState.savedViewingMonthZeroBased ?: nowCal.get(java.util.Calendar.MONTH)
+                        com.boox.day.ui.calendar.MonthPlannerGridState.monthPageKey(y, m)
+                    } else {
+                        targetDate
+                    }
 
-                    val (tasks, _) = taskRepo.getOrCreateTasksForPage(today, 0)
+                    val memosPageId = dayPageRepo.getOrCreatePageForDate(activeKey)
+                    logRouter.i("PERF: Memos page pre-created ($activeKey): $memosPageId")
+
+                    val (tasks, _) = taskRepo.getOrCreateTasksForPage(targetDate, 0)
                     val tasksPageId = tasks.firstOrNull()?.pageId
                     logRouter.i("PERF: Tasks page pre-created: $tasksPageId")
 
                     if (memosPageId != null && tasksPageId != null) {
-                        GlobalAppSettings.setPreloadedPageIds(today, memosPageId, tasksPageId)
+                        GlobalAppSettings.setPreloadedPageIds(activeKey, memosPageId, tasksPageId)
                         logRouter.i("PERF: Page IDs stored in GlobalAppSettings")
                     }
                 } catch (e: Exception) {
@@ -264,7 +275,7 @@ fun Router() {
             }
         }
 
-        // Custom splash overlay with icon and "BooxDay" text
+        // Custom splash overlay with icon and "BSPlan" text
         // E-INK FIX: Use instant transition instead of fadeOut() to prevent ghosting artifacts
         AnimatedVisibility(
             visible = showSplash,

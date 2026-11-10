@@ -92,7 +92,7 @@ object CrashReporter {
         penBackend: String = OnyxCompat.penBackend
     ): String = maskEmails(
         buildString {
-            appendLine("BooxDay stopped unexpectedly.")
+            appendLine("BSPlan stopped unexpectedly.")
             appendLine()
             appendLine("Exception: ${error.javaClass.name}")
             appendLine("Message: ${error.message ?: "<none>"}")

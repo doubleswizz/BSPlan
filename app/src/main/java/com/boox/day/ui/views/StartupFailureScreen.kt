@@ -53,7 +53,7 @@ fun StartupFailureScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "BooxDay couldn't finish opening on this device.",
+            text = "BSPlan couldn't finish opening on this device.",
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -67,7 +67,7 @@ fun StartupFailureScreen(
             Text(text = "Message: $it")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "BooxDay is free, open-source software provided as is, with no support service. You can copy this report and post it on the project's GitHub Issues page.")
+        Text(text = "BSPlan is free, open-source software provided as is, with no support service. You can copy this report and post it on the project's GitHub Issues page.")
         Spacer(modifier = Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),

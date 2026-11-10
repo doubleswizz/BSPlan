@@ -351,7 +351,7 @@ class ReportData(
             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
             ClipData.newPlainText(
-                "BooxDay Report",
+                "BSPlan Report",
                 rapportMarkdown(includeLogs, description.ifBlank { "_No description provided_" })
             )
         )

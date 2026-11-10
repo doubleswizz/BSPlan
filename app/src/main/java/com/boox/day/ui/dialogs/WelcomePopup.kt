@@ -104,7 +104,7 @@ fun WelcomePopup(
 
                         // Main title
                         Text(
-                            text = "Welcome to BooxDay",
+                            text = "Welcome to BSPlan",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = EInkTheme.Colors.primary

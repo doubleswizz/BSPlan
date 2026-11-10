@@ -550,7 +550,7 @@ class CompactExportEngine(
             color = Color.LTGRAY
             strokeWidth = 0.5f
         }
-        canvas.drawText("BooxDay notes", CONTENTS_SIDE, 78f, title)
+        canvas.drawText("BSPlan notes", CONTENTS_SIDE, 78f, title)
         dates?.let { canvas.drawText(it, CONTENTS_SIDE, 102f, Paint(body).apply { textSize = CONTENTS_SUBTITLE_SIZE }) }
 
         val right = PDF_A4_WIDTH - CONTENTS_SIDE

@@ -146,7 +146,7 @@ internal fun BooxNotesSuggestionsView(
                 host.items.isEmpty() -> {
                     ScopeRow(host)
                     CenterMessage(
-                        "No suggestions right now. BooxDay looks for events within " +
+                        "No suggestions right now. BSPlan looks for events within " +
                             "${BooxNoteIndexer.BULK_MODE_SEARCH_DAYS} days of each note. You can still link a note " +
                             "yourself: open it and tap Choose Event."
                     )
@@ -495,7 +495,7 @@ private fun SuggestionsBlocked(status: SmartLinkPreflightStatus, onBack: () -> U
         )
         else -> Triple(
             "No calendar events",
-            "Suggestions match your Boox Notes to calendar events. Connect a calendar account (Google, Outlook, iCloud and more), or add events in BooxDay.",
+            "Suggestions match your Boox Notes to calendar events. Connect a calendar account (Google, Outlook, iCloud and more), or add events in BSPlan.",
             "Open Calendar Accounts and tap Add Account"
         )
     }

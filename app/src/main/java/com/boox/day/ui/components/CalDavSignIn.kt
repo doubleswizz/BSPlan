@@ -174,7 +174,7 @@ internal fun calDavFormText(type: AccountType): CalDavFormText = when (type) {
         steps = listOf(
             "On a phone or computer, sign in at account.apple.com.",
             "Sign-In and Security → App-Specific Passwords.",
-            "Make one named BooxDay and type it here."
+            "Make one named BSPlan and type it here."
         )
     )
     AccountType.CALDAV_FASTMAIL -> CalDavFormText(
@@ -197,7 +197,7 @@ internal fun calDavFormText(type: AccountType): CalDavFormText = when (type) {
         howTitle = "Use an app password, not your usual password:",
         steps = listOf(
             "In Nextcloud: your picture → Settings → Security.",
-            "Devices & sessions: type BooxDay, then Create new app password.",
+            "Devices & sessions: type BSPlan, then Create new app password.",
             "Type it here."
         )
     )

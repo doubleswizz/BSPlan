@@ -70,7 +70,7 @@ object AppUpdateDownloader {
             }
 
             val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
-                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BooxDay:update-download")
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BSPlan:update-download")
             wakeLock.acquire(WAKE_LOCK_MS)
             try {
                 val request = Request.Builder()
@@ -151,7 +151,7 @@ object AppUpdateDownloader {
         val flags = PackageManager.GET_SIGNING_CERTIFICATES or PackageManager.GET_SIGNATURES
         val archive = pm.getPackageArchiveInfo(apk.path, flags)
             ?: return "The downloaded file is not a valid app. Try again."
-        if (archive.packageName != context.packageName) return "The downloaded file is not BooxDay."
+        if (archive.packageName != context.packageName) return "The downloaded file is not BSPlan."
         val installed = pm.getPackageInfo(context.packageName, flags)
         if (archive.longVersionCode <= installed.longVersionCode) {
             return "This update is not newer than the version you have."
@@ -159,7 +159,7 @@ object AppUpdateDownloader {
         val archiveSigners = signerDigests(archive)
         val installedSigners = signerDigests(installed)
         if (archiveSigners.isEmpty() || archiveSigners != installedSigners) {
-            return "This update is not signed like your installed BooxDay, so it was not installed."
+            return "This update is not signed like your installed BSPlan, so it was not installed."
         }
         return null
     }

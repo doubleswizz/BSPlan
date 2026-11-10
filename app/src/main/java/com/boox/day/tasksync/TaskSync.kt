@@ -33,7 +33,7 @@ object TaskSync {
     private const val KEY_LAST_RUN_AT = "last_run_at"
     private const val KEY_ACCOUNT_GONE = "account_gone"
     /** Debug builds start with this list instead of the main one (owner decision 42). */
-    internal const val DEBUG_TEST_LIST = "BooxDay test"
+    internal const val DEBUG_TEST_LIST = "BSPlan test"
     private const val KEY_LAST_SYNCED_AT = "last_synced_at"
     private const val KEY_NEEDS_RECONNECT = "needs_reconnect"
     // The service (plan step 4.0): "google" (also when missing: set before CalDAV tasks) or "caldav"

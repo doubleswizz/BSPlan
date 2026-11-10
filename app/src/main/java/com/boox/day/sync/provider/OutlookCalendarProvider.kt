@@ -603,7 +603,7 @@ class OutlookCalendarProvider(
             )
 
             is MsalDeclinedScopeException -> CalendarProviderException.PermissionException(
-                "Microsoft did not grant all required Outlook permissions. Please try again or ask your admin to approve BooxDay.",
+                "Microsoft did not grant all required Outlook permissions. Please try again or ask your admin to approve BSPlan.",
                 e
             )
 
@@ -621,7 +621,7 @@ class OutlookCalendarProvider(
                     e.primaryCause ?: e
                 )
                 e.isAllPermissionFailures -> CalendarProviderException.PermissionException(
-                    "Microsoft denied calendar access. Your organization may require admin approval for BooxDay.",
+                    "Microsoft denied calendar access. Your organization may require admin approval for BSPlan.",
                     e.primaryCause ?: e
                 )
                 e.isAllRateLimitFailures -> CalendarProviderException.RateLimitException(
@@ -644,7 +644,7 @@ class OutlookCalendarProvider(
                     "Token expired or invalid", e
                 )
                 e.isPermissionError -> CalendarProviderException.PermissionException(
-                    "Microsoft denied calendar access. Your organization may require admin approval for BooxDay.",
+                    "Microsoft denied calendar access. Your organization may require admin approval for BSPlan.",
                     e
                 )
                 e.isNotFound -> CalendarProviderException.NotFoundException(
@@ -711,14 +711,14 @@ class OutlookCalendarProvider(
                 searchable.contains("aadsts65004") ||
                 errorCode == MsalServiceException.ACCESS_DENIED.lowercase() -> {
                 CalendarProviderException.PermissionException(
-                    "Your organization requires admin approval before BooxDay can access Outlook Calendar.",
+                    "Your organization requires admin approval before BSPlan can access Outlook Calendar.",
                     e
                 )
             }
 
             searchable.contains("publisher") && searchable.contains("verify") -> {
                 CalendarProviderException.PermissionException(
-                    "Your organization is blocking BooxDay until it is admin-approved or publisher-verified.",
+                    "Your organization is blocking BSPlan until it is admin-approved or publisher-verified.",
                     e
                 )
             }

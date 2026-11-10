@@ -140,8 +140,8 @@ fun VoiceSettingsDialog(
                 Text(
                     text = when (micAsk.state) {
                         AskState.GRANTED -> "Microphone: allowed"
-                        AskState.CAN_ASK -> "Microphone: BooxDay asks the first time you speak"
-                        AskState.OPEN_SETTINGS -> "Microphone: off for BooxDay in Android settings. Tap here to open them."
+                        AskState.CAN_ASK -> "Microphone: BSPlan asks the first time you speak"
+                        AskState.OPEN_SETTINGS -> "Microphone: off for BSPlan in Android settings. Tap here to open them."
                     },
                     fontSize = EInkTheme.Typography.bodyMedium,
                     fontWeight = if (micAsk.state == AskState.OPEN_SETTINGS) FontWeight.Bold else FontWeight.Normal,
@@ -177,7 +177,7 @@ fun VoiceSettingsDialog(
                     "Runs on your own OpenRouter account"
                 }
                 val geminiDescriptionText = "Model: ${voiceModel.name}, " +
-                    (if (voiceModel.isUserChoice) "your choice" else "BooxDay's choice") +
+                    (if (voiceModel.isUserChoice) "your choice" else "BSPlan's choice") +
                     ". Change it in AI Settings → AI Models."
                 VoiceOptionCard(
                     title = "AI on OpenRouter",

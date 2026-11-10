@@ -9,7 +9,7 @@ import java.io.File
 
 /** Hands saved files to another app through the Android share sheet (Nov 2026). */
 object FileShare {
-    private const val AUTHORITY = "com.boox.day.provider"
+    private const val AUTHORITY = "com.bsplan.app.provider"
 
     /** @throws IllegalArgumentException when a file lies outside the folders res/xml/file_paths.xml shares. */
     fun share(context: Context, uris: List<Uri>, mimeType: String) {

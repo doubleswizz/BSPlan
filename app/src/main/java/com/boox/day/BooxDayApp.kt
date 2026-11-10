@@ -51,6 +51,7 @@ class BooxDayApp : Application() {
         super.onCreate()
         // First, so a crash anywhere after this leaves a report for the next start
         com.boox.day.diagnostics.CrashReporter.install(this)
+        com.boox.day.ui.calendar.PlannerNavigationState.init(this)
         com.boox.day.share.TasksFeedNotifier.start(this, applicationScope)
         PerfProbe.install(this)  // TEMPORARY: MainScreen JIT measurement
         if (!runFatalStartupStep(

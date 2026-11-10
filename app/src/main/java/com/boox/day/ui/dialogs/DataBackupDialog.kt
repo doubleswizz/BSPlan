@@ -964,7 +964,7 @@ private fun MaintenanceContent(
             if (showClearSyncedOption) {
                 SettingCard(
                     title = "Clear All Synced Data",
-                    description = "Remove all Google Calendar events that BooxDay has cached locally. Your events on Google Calendar will not be deleted."
+                    description = "Remove all Google Calendar events that BSPlan has cached locally. Your events on Google Calendar will not be deleted."
                 ) {
                     Box(
                         modifier = Modifier
@@ -988,7 +988,7 @@ private fun MaintenanceContent(
             if (onWipeAllData != null) {
                 SettingCard(
                     title = "Wipe All App Data",
-                    description = "Erase everything BooxDay keeps on this tablet: memos, tasks, events, Boox Notes links, settings and your OpenRouter key. BooxDay then closes. This CANNOT be undone."
+                    description = "Erase everything BSPlan keeps on this tablet: memos, tasks, events, Boox Notes links, settings and your OpenRouter key. BSPlan then closes. This CANNOT be undone."
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1104,7 +1104,7 @@ private fun WipeAllDataConfirmationDialog(
                             "Google Drive backups and " +
                             "Android's own backup, files saved to Documents or Downloads (exports, backups, " +
                             "daily notes), and your OpenRouter key in your OpenRouter account " +
-                            "(delete it at openrouter.ai/settings/keys).\n\nBooxDay closes when it's done.",
+                            "(delete it at openrouter.ai/settings/keys).\n\nBSPlan closes when it's done.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     color = EInkTheme.Colors.darkGray,
                     textAlign = TextAlign.Start,
@@ -1271,7 +1271,7 @@ private fun ClearSyncedDataConfirmationDialog(
                 Spacer(modifier = Modifier.height(EInkTheme.Global.spacingLarge))
 
                 Text(
-                    text = "This will remove all Google Calendar events that BooxDay has cached locally.\n\n" +
+                    text = "This will remove all Google Calendar events that BSPlan has cached locally.\n\n" +
                             "Your events on Google Calendar will not be deleted.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     color = EInkTheme.Colors.primary,

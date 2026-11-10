@@ -16,7 +16,7 @@ object ExportFolders {
     private const val KEY_FILES = "files_tree"
     private const val KEY_NOTES = "notes_tree"
 
-    const val DEFAULT_FILES_LABEL = "Documents/BooxDay"
+    const val DEFAULT_FILES_LABEL = "Documents/BSPlan"
 
     private fun key(kind: ExportKind) = if (kind == ExportKind.MARKDOWN) KEY_NOTES else KEY_FILES
 

@@ -175,9 +175,9 @@ class ExportEngine(
     }
 
     private fun pdfTitleOf(target: ExportTarget): String? = when (target) {
-        is ExportTarget.Days -> "BooxDay notes, ${datesLabel(target.from, target.to)}"
-        is ExportTarget.DayPages -> "BooxDay notes, ${longDate(target.date)}"
-        is ExportTarget.Page -> dayPageRepo.getDateByPageId(target.pageId)?.let { "BooxDay notes, ${longDate(it)}" }
+        is ExportTarget.Days -> "BSPlan notes, ${datesLabel(target.from, target.to)}"
+        is ExportTarget.DayPages -> "BSPlan notes, ${longDate(target.date)}"
+        is ExportTarget.Page -> dayPageRepo.getDateByPageId(target.pageId)?.let { "BSPlan notes, ${longDate(it)}" }
         is ExportTarget.Book -> null
     }
 
@@ -340,7 +340,7 @@ class ExportEngine(
         getDefaultExportDirectoryUri(createSubfolderName(target, format))
 
     /**
-     * Builds a subfolder path relative to the "BooxDay" export root.
+     * Builds a subfolder path relative to the "BSPlan" export root.
      *
      * Rules:
      * - Book (PDF/XOPP): folder hierarchy of the book.
@@ -423,7 +423,7 @@ class ExportEngine(
         val documentsDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
 
-        val targetPath = listOfNotBlank("BooxDay", subfolderPath).joinToString(File.separator)
+        val targetPath = listOfNotBlank("BSPlan", subfolderPath).joinToString(File.separator)
         val dir = File(documentsDir, targetPath)
         if (!dir.exists()) dir.mkdirs()
         return dir.toUri()
@@ -465,7 +465,7 @@ class ExportEngine(
                     if (dayDate != null) {
                         // Day page - use date and page index
                         val pageIndex = dayPageRepo.getPageIndexForDay(target.pageId)?.plus(1) ?: 1
-                        "BooxDay $dayDate p$pageIndex"
+                        "BSPlan $dayDate p$pageIndex"
                     } else {
                         // Quick page (neither book nor day)
                         val timeStamp = getReadableUtcTimestamp()
@@ -476,10 +476,10 @@ class ExportEngine(
 
             is ExportTarget.DayPages -> {
                 // Multi-page day export - use date as base name
-                "BooxDay ${target.date}"
+                "BSPlan ${target.date}"
             }
 
-            is ExportTarget.Days -> "BooxDay ${target.from} to ${target.to}"
+            is ExportTarget.Days -> "BSPlan ${target.from} to ${target.to}"
         }
     }
 
@@ -599,19 +599,19 @@ class ExportEngine(
     private fun copyPagePngLink(context: Context, pageId: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = """
-            [[../attachments/BooxDay/Pages/booxday-page-$pageId.png]]
-            [[BooxDay Link][booxday://page-$pageId]]
+            [[../attachments/BSPlan/Pages/booxday-page-$pageId.png]]
+            [[BSPlan Link][booxday://page-$pageId]]
         """.trimIndent()
-        clipboard.setPrimaryClip(ClipData.newPlainText("BooxDay Page Link", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText("BSPlan Page Link", text))
     }
 
     private fun copyBookPdfLink(context: Context, bookId: String, bookName: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = """
-            [[../attachments/BooxDay/Notebooks/$bookName.pdf]]
-            [[BooxDay Book Link][booxday://book-$bookId]]
+            [[../attachments/BSPlan/Notebooks/$bookName.pdf]]
+            [[BSPlan Book Link][booxday://book-$bookId]]
         """.trimIndent()
-        clipboard.setPrimaryClip(ClipData.newPlainText("BooxDay Book PDF Link", text))
+        clipboard.setPrimaryClip(ClipData.newPlainText("BSPlan Book PDF Link", text))
     }
 
     /* -------------------- Utilities -------------------- */

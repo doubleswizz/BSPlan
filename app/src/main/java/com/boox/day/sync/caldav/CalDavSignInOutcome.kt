@@ -49,7 +49,7 @@ internal fun calDavSignInOutcome(result: Result<CalDavSignedIn>, type: AccountTy
 
 /** A failed sign-in in plain words, with the hint the service needs. */
 internal fun calDavFailureMessage(failure: Throwable?, type: AccountType): String = when (failure) {
-    is CalDavConnection.Failure.NotHttps -> "This address isn't secure (http). BooxDay connects only over https."
+    is CalDavConnection.Failure.NotHttps -> "This address isn't secure (http). BSPlan connects only over https."
     is CalDavConnection.Failure.BadAddress -> "That isn't a server address. Check it and try again."
     is CalDavConnection.Failure.WrongPassword -> when (type) {
         AccountType.CALDAV_ICLOUD -> "iCloud refused this password. Use an app-specific password, not your Apple Account password."

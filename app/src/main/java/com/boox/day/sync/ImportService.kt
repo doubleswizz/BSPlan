@@ -211,7 +211,7 @@ class ImportService(
                     else -> reader.skipValue()
                 }
             }
-            val meta = metadata ?: throw BackupRejected("This file is not a BooxDay backup.")
+            val meta = metadata ?: throw BackupRejected("This file is not a BSPlan backup.")
             if (meta.version > BackupData.CURRENT_VERSION) {
                 throw BackupRejected("Backup version ${meta.version} is newer than supported version ${BackupData.CURRENT_VERSION}")
             }
@@ -429,10 +429,10 @@ class ImportService(
         }
 
         fun finish() {
-            if (!sawMetadata) throw BackupRejected("This file is not a BooxDay backup.")
+            if (!sawMetadata) throw BackupRejected("This file is not a BSPlan backup.")
             if (version > BackupData.CURRENT_VERSION) {
                 throw BackupRejected(
-                    "Backup version $version is newer than this app supports (${BackupData.CURRENT_VERSION}). Please update BooxDay."
+                    "Backup version $version is newer than this app supports (${BackupData.CURRENT_VERSION}). Please update BSPlan."
                 )
             }
             for ((parent, referenced) in references) {

@@ -29,7 +29,7 @@ object MeetingExport {
     fun fileName(date: String, title: String): String =
         "$date ${title.replace(Regex("""[\\/:*?"<>|]"""), " ").trim().take(80)}.pdf"
 
-    /** Saves to Documents/BooxDay/Meetings/2026-11. */
+    /** Saves to Documents/BSPlan/Meetings/2026-11. */
     internal suspend fun save(context: Context, meeting: Meeting): ExportFiles.Saved {
         val folder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "BooxDay/Meetings/${meeting.date.take(7)}")
         return ExportFiles.save(context, folder.toUri(), fileName(meeting.date, meeting.title), "application/pdf", overwrite = false) { write(context, meeting, it) }

@@ -46,7 +46,7 @@ object SleepScreenPublisher {
     private val mutex = Mutex()
 
     /** The folder BooxDay writes the image to; BOOX reads it from there. */
-    fun folder(): File = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BooxDay")
+    fun folder(): File = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BSPlan")
 
     /** The day the image on the sleep screen shows, or null when none was handed over. */
     fun shownDate(context: Context): String? = prefs(context).getString(KEY_DATE, null)

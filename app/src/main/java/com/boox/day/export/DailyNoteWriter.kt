@@ -18,7 +18,7 @@ object DailyNoteWriter {
     private const val KEY_TREE = "tree_uri"
 
     fun defaultFolder(): File =
-        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "BooxDay/Daily Notes")
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "BSPlan/Daily Notes")
 
     fun chosenFolder(context: Context): Uri? =
         prefs(context).getString(KEY_TREE, null)?.let(Uri::parse)
@@ -44,9 +44,9 @@ object DailyNoteWriter {
         prefs(context).edit().remove(KEY_TREE).apply()
     }
 
-    /** "Documents/BooxDay/Daily Notes" or the picked folder's name, for Settings. */
+    /** "Documents/BSPlan/Daily Notes" or the picked folder's name, for Settings. */
     fun folderLabel(context: Context): String {
-        val tree = chosenFolder(context) ?: return "Documents/BooxDay/Daily Notes"
+        val tree = chosenFolder(context) ?: return "Documents/BSPlan/Daily Notes"
         return runCatching { DocumentsContract.getTreeDocumentId(tree).substringAfter(':').ifEmpty { "Chosen folder" } }
             .getOrDefault("Chosen folder")
     }

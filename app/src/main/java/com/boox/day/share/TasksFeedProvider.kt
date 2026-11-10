@@ -122,7 +122,7 @@ class TasksFeedProvider : ContentProvider() {
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = throw readOnly()
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = throw readOnly()
 
-    private fun readOnly() = UnsupportedOperationException("The BooxDay tasks feed is read-only")
+    private fun readOnly() = UnsupportedOperationException("The BSPlan tasks feed is read-only")
 
     private companion object {
         const val DUE = 1

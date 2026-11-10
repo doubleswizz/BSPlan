@@ -151,12 +151,12 @@ internal fun BooxFreezeTipCard(onClose: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.paddingMedium)
         ) {
             TipText(
-                "BOOX freezes apps it thinks you're done with. While BooxDay is frozen, its reminders " +
+                "BOOX freezes apps it thinks you're done with. While BSPlan is frozen, its reminders " +
                     "and background sync stop until you open it again."
             )
             TipText("To keep them working:", bold = true)
-            TipText("1. Open Apps, tap the snowflake at the top, and switch BooxDay off.")
-            TipText("2. Leave BooxDay with the Home button, not the ✕ in Recents.")
+            TipText("1. Open Apps, tap the snowflake at the top, and switch BSPlan off.")
+            TipText("2. Leave BSPlan with the Home button, not the ✕ in Recents.")
             Text(
                 text = "While the tablet sleeps, BOOX turns Wi-Fi off, so syncing waits until it wakes. " +
                     "This is also in Help → Data & Troubleshooting.",

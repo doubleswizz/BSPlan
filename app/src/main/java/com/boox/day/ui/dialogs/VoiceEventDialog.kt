@@ -120,7 +120,7 @@ fun VoiceEventDialog(
 
     // Status message - use correct state based on activeSource (technical message only)
     val statusMessage = when {
-        !hasPermission -> if (micAsk.state == AskState.OPEN_SETTINGS) "Microphone is off for BooxDay. Tap to open Android settings." else "Tap to grant microphone permission"
+        !hasPermission -> if (micAsk.state == AskState.OPEN_SETTINGS) "Microphone is off for BSPlan. Tap to open Android settings." else "Tap to grant microphone permission"
         isAiProcessing -> aiProcessingStage.ifEmpty { "Processing..." }
         aiError != null -> aiError!!
         transcriptionState == TranscriptionState.PROCESSING -> "Processing transcription..."

@@ -86,11 +86,11 @@ private fun AppUpdatePopup(state: State) {
                     State.Idle -> Unit
                     State.Checking -> {
                         Title("Checking for updates")
-                        Body("Asking for the latest version of BooxDay…")
+                        Body("Asking for the latest version of BSPlan…")
                         Buttons(escape = "Close" to { AppUpdateGate.close() })
                     }
                     State.UpToDate -> {
-                        Title("BooxDay is up to date")
+                        Title("BSPlan is up to date")
                         Body(stringResource(R.string.app_latest_version) + " (version ${BuildConfig.VERSION_NAME})")
                         Buttons(main = "Close" to { AppUpdateGate.close() })
                     }
@@ -104,7 +104,7 @@ private fun AppUpdatePopup(state: State) {
                             ) {
                                 // Oct 2026: the notes below say what changed (it said "performance improvements
                         // and bug fixes" for every release)
-                        Body("BooxDay ${state.info.version} is ready.")
+                        Body("BSPlan ${state.info.version} is ready.")
                                 if (state.info.notes.isNotEmpty()) {
                                     Text(
                                         text = "What's new",
@@ -125,10 +125,10 @@ private fun AppUpdatePopup(state: State) {
                     }
                     is State.NeedsPermission -> {
                         Title("One-time permission")
-                        Body("To install updates, BooxDay needs your permission once:")
+                        Body("To install updates, BSPlan needs your permission once:")
                         Bullet("Tap Open Settings.")
                         Bullet("Turn on \"Allow from this source\".")
-                        Bullet("Come back to BooxDay. The update then starts by itself.")
+                        Bullet("Come back to BSPlan. The update then starts by itself.")
                         Buttons(
                             escape = "Not Now" to { AppUpdateGate.notNow(context) },
                             main = "Open Settings" to { AppUpdateGate.openInstallPermission(context) }
@@ -136,7 +136,7 @@ private fun AppUpdatePopup(state: State) {
                     }
                     is State.Downloading -> {
                         Title("Downloading update")
-                        Body("BooxDay ${state.info.version}: ${state.percent}%")
+                        Body("BSPlan ${state.info.version}: ${state.percent}%")
                         ProgressBar(state.percent)
                         Body("This takes a minute or two on Wi-Fi.")
                         Buttons(escape = "Cancel" to { AppUpdateGate.cancel() })
@@ -144,14 +144,14 @@ private fun AppUpdatePopup(state: State) {
                     is State.Installing -> {
                         Title("Installing update")
                         Body(
-                            "BooxDay will close and update itself. If Android asks, tap Update. " +
-                                "Then open BooxDay again."
+                            "BSPlan will close and update itself. If Android asks, tap Update. " +
+                                "Then open BSPlan again."
                         )
                         Buttons(escape = "Close" to { AppUpdateGate.close() })
                     }
                     is State.WhatsNew -> {
                         // The first start after an update (Oct 2026): that release's notes, once
-                        Title("BooxDay ${state.version}")
+                        Title("BSPlan ${state.version}")
                         val notesScroll = rememberScrollState()
                         Box(modifier = Modifier.weight(1f, fill = false)) {
                             Column(
@@ -169,7 +169,7 @@ private fun AppUpdatePopup(state: State) {
                             ScrollMoreBar(notesScroll)
                         }
                         // Buy Me a Coffee (Oct 2026): one plain line, Close stays the main button
-                        TextLink("Enjoying BooxDay? Buy me a coffee") {
+                        TextLink("Enjoying BSPlan? Buy me a coffee") {
                             runCatching {
                                 context.startActivity(
                                     Intent(Intent.ACTION_VIEW, Uri.parse(ProjectInfo.SUPPORT_URL))

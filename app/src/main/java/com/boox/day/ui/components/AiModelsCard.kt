@@ -68,20 +68,20 @@ fun AiModelsCard(aiEnabled: Boolean, modifier: Modifier = Modifier) {
 
     SettingCard(
         title = "AI Models",
-        description = "Choose the model for each job. If it fails, BooxDay uses its own.",
+        description = "Choose the model for each job. If it fails, BSPlan uses its own.",
         modifier = modifier
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacingSmall)) {
             // Oct 2026 (owner): picking is allowed, results are not promised
             Text(
-                text = "You can pick any model in the list, but BooxDay is tested with its own choices. " +
+                text = "You can pick any model in the list, but BSPlan is tested with its own choices. " +
                     "Another model may give different or weaker results, or no answer at all.",
                 fontSize = EInkTheme.Typography.bodyMedium,
                 color = EInkTheme.Colors.darkGray
             )
             if (OpenRouterAccount.isFreeOnly()) {
                 Text(
-                    text = "No credit: BooxDay's choice uses free models.",
+                    text = "No credit: BSPlan's choice uses free models.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = textColor
@@ -92,7 +92,7 @@ fun AiModelsCard(aiEnabled: Boolean, modifier: Modifier = Modifier) {
                 val source = when {
                     inUse.waitsForCredit -> "waits for credit"
                     inUse.isUserChoice -> "Your choice"
-                    else -> "BooxDay's choice"
+                    else -> "BSPlan's choice"
                 }
                 Row(
                     modifier = Modifier
@@ -119,10 +119,10 @@ fun AiModelsCard(aiEnabled: Boolean, modifier: Modifier = Modifier) {
                                 // settings block said "no longer available")
                                 text = when (inUse.unavailableReason) {
                                     ModelConfigProvider.PickProblem.BLOCKED ->
-                                        "Your OpenRouter privacy settings block $pick, so BooxDay's choice is used."
+                                        "Your OpenRouter privacy settings block $pick, so BSPlan's choice is used."
                                     ModelConfigProvider.PickProblem.CANT_DO_JOB ->
-                                        "$pick can't do this job, so BooxDay's choice is used."
-                                    else -> "$pick is no longer on OpenRouter, so BooxDay's choice is used."
+                                        "$pick can't do this job, so BSPlan's choice is used."
+                                    else -> "$pick is no longer on OpenRouter, so BSPlan's choice is used."
                                 },
                                 fontSize = EInkTheme.Typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
@@ -135,7 +135,7 @@ fun AiModelsCard(aiEnabled: Boolean, modifier: Modifier = Modifier) {
                         } else null
                         failure?.let {
                             Text(
-                                text = "Didn't answer last time (${it.reason}), so BooxDay's choice was used.",
+                                text = "Didn't answer last time (${it.reason}), so BSPlan's choice was used.",
                                 fontSize = EInkTheme.Typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = textColor

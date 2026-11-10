@@ -450,10 +450,10 @@ fun PreferencesDialog(
                                 title = "Reminders need notifications",
                                 why = when {
                                     notificationAsk.state == AskState.OPEN_SETTINGS ->
-                                        "Notifications are turned off for BooxDay in Android settings. Turn them on there, then choose your reminders here."
+                                        "Notifications are turned off for BSPlan in Android settings. Turn them on there, then choose your reminders here."
                                     anyNotificationsEnabled ->
-                                        "Your reminders are on, but Android doesn't let BooxDay show notifications yet."
-                                    else -> "Allow BooxDay to show notifications, then choose which reminders you want."
+                                        "Your reminders are on, but Android doesn't let BSPlan show notifications yet."
+                                    else -> "Allow BSPlan to show notifications, then choose which reminders you want."
                                 },
                                 buttonText = if (notificationAsk.state == AskState.OPEN_SETTINGS) "Open Settings" else "Allow Notifications",
                                 onClick = { notificationAsk.request() }
@@ -554,7 +554,7 @@ fun PreferencesDialog(
                             Spacer(modifier = Modifier.height(EInkTheme.Global.paddingSmall))
                             SetupStep(
                                 title = "Turned off in Android settings",
-                                why = "$disabledChannelsText ${if (disabledChannels.size > 1) "are" else "is"} off for BooxDay in Android's notification settings, so they don't show.",
+                                why = "$disabledChannelsText ${if (disabledChannels.size > 1) "are" else "is"} off for BSPlan in Android's notification settings, so they don't show.",
                                 buttonText = "Open Settings",
                                 onClick = { NotificationPermissionHelper.openNotificationSettings(context) }
                             )
@@ -566,7 +566,7 @@ fun PreferencesDialog(
                                 step = 2,
                                 steps = reminderSteps,
                                 title = "Let reminders arrive on time",
-                                why = "BOOX pauses apps in the background to save battery. Allow BooxDay to run in the background so reminders come on time.",
+                                why = "BOOX pauses apps in the background to save battery. Allow BSPlan to run in the background so reminders come on time.",
                                 buttonText = "Allow in Android",
                                 onClick = { NotificationPermissionHelper.requestBatteryExemption(context) }
                             )
@@ -995,7 +995,7 @@ private fun BatteryExemptionExplanationDialog(
                         )
 
                         Text(
-                            text = "To fix this, Android will ask you to allow BooxDay to run in the background.",
+                            text = "To fix this, Android will ask you to allow BSPlan to run in the background.",
                             fontSize = EInkTheme.Typography.bodyMedium,
                             color = EInkTheme.Colors.darkGray
                         )
@@ -1016,7 +1016,7 @@ private fun BatteryExemptionExplanationDialog(
                                 .padding(EInkTheme.Global.paddingMedium)
                         ) {
                             Text(
-                                text = "This will NOT drain your battery. BooxDay only wakes briefly " +
+                                text = "This will NOT drain your battery. BSPlan only wakes briefly " +
                                         "to deliver scheduled notifications.",
                                 fontSize = EInkTheme.Preferences.explanationFontSize,
                                 fontWeight = FontWeight.Medium,
@@ -1025,7 +1025,7 @@ private fun BatteryExemptionExplanationDialog(
                         }
 
                         Text(
-                            text = "On the next screen, tap \"Allow\" so BooxDay can send reminders on time.",
+                            text = "On the next screen, tap \"Allow\" so BSPlan can send reminders on time.",
                             fontSize = EInkTheme.Typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = EInkTheme.Colors.darkGray
@@ -1091,7 +1091,7 @@ private fun BatteryExemptionExplanationDialog(
  */
 internal fun reminderStatus(on: Boolean, notificationsAllowed: Boolean, channelOn: Boolean, batteryOk: Boolean): String = when {
     !on -> "Off"
-    !notificationsAllowed -> "On, but notifications are off for BooxDay"
+    !notificationsAllowed -> "On, but notifications are off for BSPlan"
     !channelOn -> "On, but this reminder type is off in Android settings"
     !batteryOk -> "On, but reminders may be late (battery saving)"
     else -> "On"

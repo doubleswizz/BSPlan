@@ -45,7 +45,7 @@ import java.time.format.DateTimeFormatter
  *   (Google's Retry-After when it sends one); no connection, or a reply lost on the way, means
  *   offline. Anything else reaches the sender as it is, which retries it with growing waits.
  *
- * Not in Google's docs, checked on the "BooxDay test" list (plan step 2.9): whether deleting a
+ * Not in Google's docs, checked on the "BSPlan test" list (plan step 2.9): whether deleting a
  * parent deletes its subtasks (the sender moves them out first, TaskSyncSender), and whether
  * "completed": null and "due": null clear those fields.
  */
@@ -304,7 +304,7 @@ internal class GoogleTasksProvider(
     }
 
     companion object {
-        private const val APP_NAME = "BooxDay"
+        private const val APP_NAME = "BSPlan"
 
         /** Google's maximum page sizes (tasks.list 100, tasklists.list 1,000). */
         private const val TASKS_PAGE_SIZE = 100

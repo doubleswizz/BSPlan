@@ -4,7 +4,7 @@ import android.net.Uri
 
 /** Public, read-only contract other apps can copy to read BooxDay tasks. */
 object TasksFeedContract {
-    const val AUTHORITY = "com.boox.day.tasks"
+    const val AUTHORITY = "com.bsplan.app.tasks"
     const val PATH_DUE = "due"
     const val PATH_TODAY = "today"
     const val PATH_OPEN = "open"

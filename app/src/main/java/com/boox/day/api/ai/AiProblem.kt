@@ -56,7 +56,7 @@ enum class AiProblem(val message: String, val shortText: String, val indexingWai
 
     /** BooxDay's own cap on AI page reads for search (OcrQuotaManager): the rest wait for next month */
     MONTHLY_LIMIT(
-        "BooxDay reads up to $MONTHLY_READS pages a month with AI. The rest are read next month.",
+        "BSPlan reads up to $MONTHLY_READS pages a month with AI. The rest are read next month.",
         "monthly limit of $MONTHLY_READS AI page reads reached",
         indexingWaits = true
     ),

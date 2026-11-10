@@ -23,6 +23,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -168,10 +169,13 @@ fun DayPlannerHeaderBar(
     if (PlannerNavigationState.mode != PlannerViewMode.Day) return
 
     var showSettingsMenu by remember { mutableStateOf(false) }
-    val formattedDate = remember(selectedDate) {
-        val parsed = runCatching { LocalDate.parse(selectedDate) }.getOrDefault(LocalDate.now())
+    var showMonthYearPicker by remember { mutableStateOf(false) }
+    val parsedLocalDate = remember(selectedDate) {
+        runCatching { LocalDate.parse(selectedDate) }.getOrDefault(LocalDate.now())
+    }
+    val formattedDate = remember(parsedLocalDate) {
         val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy", Locale.getDefault())
-        parsed.format(formatter).uppercase(Locale.getDefault())
+        parsedLocalDate.format(formatter).uppercase(Locale.getDefault())
     }
 
     Column(
@@ -193,7 +197,7 @@ fun DayPlannerHeaderBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Left: < DAY_OF_WEEK, MONTH DAY, YEAR >
+            // Left: < DAY_OF_WEEK, MONTH DAY, YEAR ▼ >
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -215,20 +219,51 @@ fun DayPlannerHeaderBar(
                     )
                 }
 
-                Text(
-                    text = formattedDate,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = EInkTheme.Colors.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .noRippleClickable {
-                            DrawCanvas.forceUnfreeze()
-                            onTodayClick()
-                        }
-                        .padding(horizontal = 4.dp)
-                )
+                Box {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .height(EInkTheme.Global.touchTarget)
+                            .noRippleClickable {
+                                DrawCanvas.forceUnfreeze()
+                                showMonthYearPicker = !showMonthYearPicker
+                            }
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            text = formattedDate,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = EInkTheme.Colors.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select Month and Year",
+                            tint = EInkTheme.Colors.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    if (showMonthYearPicker) {
+                        MonthYearPickerPopup(
+                            currentYear = parsedLocalDate.year,
+                            currentMonthZeroBased = parsedLocalDate.monthValue - 1,
+                            onSelectMonthYear = { selectedYear, selectedMonth ->
+                                showMonthYearPicker = false
+                                PlannerNavigationState.onSelectMonthYear?.invoke(selectedYear, selectedMonth)
+                                PlannerNavigationState.mode = PlannerViewMode.Month
+                            },
+                            onJumpToToday = {
+                                showMonthYearPicker = false
+                                onTodayClick()
+                            },
+                            onDismiss = { showMonthYearPicker = false }
+                        )
+                    }
+                }
 
                 Box(
                     modifier = Modifier

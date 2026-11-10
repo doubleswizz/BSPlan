@@ -38,8 +38,8 @@ import com.boox.day.ui.theme.EInkTheme
 
 /** What the files are for: the one sentence of why. */
 enum class FileAccessPurpose(val why: String) {
-    INSERT_IMAGE("To insert pictures, BooxDay needs to see the tablet's files (Pictures, Downloads, Documents, Camera)."),
-    LINK_FILE("To link files to your notes, BooxDay needs to see the tablet's files (Library, Books, Documents, Downloads).")
+    INSERT_IMAGE("To insert pictures, BSPlan needs to see the tablet's files (Pictures, Downloads, Documents, Camera)."),
+    LINK_FILE("To link files to your notes, BSPlan needs to see the tablet's files (Library, Books, Documents, Downloads).")
 }
 
 /**

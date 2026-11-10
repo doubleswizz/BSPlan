@@ -223,9 +223,9 @@ internal inline fun drawWithOnyxPen(
 internal fun onyxPenFailed(pen: Pen, e: Throwable) {
     if (e is LinkageError) {
         onyxPenLibraryFailed = true
-        penStrokesLog.e("Onyx pen library failed to load; BooxDay draws its pens until restart ($pen)", e)
+        penStrokesLog.e("Onyx pen library failed to load; BSPlan draws its pens until restart ($pen)", e)
     } else {
-        penStrokesLog.e("Onyx pen library failed on a $pen stroke; BooxDay drew it: $e")
+        penStrokesLog.e("Onyx pen library failed on a $pen stroke; BSPlan drew it: $e")
     }
 }
 

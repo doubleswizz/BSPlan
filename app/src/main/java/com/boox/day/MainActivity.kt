@@ -63,7 +63,7 @@ var SCREEN_HEIGHT = OnyxCompat.DEFAULT_SCREEN_HEIGHT
 
 var TAG = "MainActivity"
 const val APP_SETTINGS_KEY = "APP_SETTINGS"
-const val PACKAGE_NAME = "com.boox.day"
+const val PACKAGE_NAME = "com.bsplan.app"
 
 // Fast SharedPreferences for routing decision (avoids Room query on startup)
 const val QUICK_SETTINGS_PREFS = "quick_settings"
@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        Log.i(TAG, "BooxDay started")
+        Log.i(TAG, "BSPlan started")
 
 
         val snackState = SnackState()

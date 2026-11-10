@@ -69,7 +69,7 @@ internal fun CalDavUseForContent(
             color = EInkTheme.PopupOverlay.titleColor
         )
         Text(
-            text = "This server has calendars and task lists. Pick what BooxDay uses; you can change it later in Calendar Accounts.",
+            text = "This server has calendars and task lists. Pick what BSPlan uses; you can change it later in Calendar Accounts.",
             fontSize = EInkTheme.Typography.bodyMedium,
             color = EInkTheme.Colors.primary
         )

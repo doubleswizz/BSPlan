@@ -178,7 +178,7 @@ fun ApiKeySettingsCard(modifier: Modifier = Modifier) {
                     )
                     check is OpenRouterKeyCheck.Result.Accepted -> StatusLine(Icons.Default.Check, "Connected. AI is ready.")
                     check == OpenRouterKeyCheck.Result.Rejected -> StatusLine(Icons.Default.Info, "OpenRouter did not accept this key. Replace it with a working one.", bold = true)
-                    check is OpenRouterKeyCheck.Result.Unreachable -> StatusLine(Icons.Default.Info, "Connected (not checked yet). OpenRouter couldn't be reached; BooxDay checks again next time.")
+                    check is OpenRouterKeyCheck.Result.Unreachable -> StatusLine(Icons.Default.Info, "Connected (not checked yet). OpenRouter couldn't be reached; BSPlan checks again next time.")
                     else -> StatusLine(Icons.Default.Info, "Key saved. Checking with OpenRouter...")
                 }
                 if (!GlobalAppSettings.current.aiEnabled) {

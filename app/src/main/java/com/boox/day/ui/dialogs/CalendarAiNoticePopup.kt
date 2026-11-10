@@ -121,7 +121,7 @@ fun CalendarAiNoticePopup(
                     NoticeText("Free models may keep what they are sent. To keep your calendar private:")
                     NoticeStep(
                         lead = "1. Use paid models.",
-                        detail = " With credit on your OpenRouter account, BooxDay uses paid models. You can " +
+                        detail = " With credit on your OpenRouter account, BSPlan uses paid models. You can " +
                             "also pick a model in AI Settings → AI Models."
                     )
                     NoticeStep(
@@ -132,7 +132,7 @@ fun CalendarAiNoticePopup(
                     NoticeLink(text = "openrouter.ai/settings/privacy", icon = true) {
                         OpenRouterLinks.open(context, OPENROUTER_PRIVACY_URL)
                     }
-                    NoticeText("Or keep using free models. BooxDay shows this once.")
+                    NoticeText("Or keep using free models. BSPlan shows this once.")
                 }
 
                 Row(

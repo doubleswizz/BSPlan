@@ -25,7 +25,7 @@ object DailyNoteMarkdown {
     fun fileName(digest: DayDigest): String = "${digest.date}.md"
 
     /** The note's front matter, for a new file. */
-    fun frontMatter(digest: DayDigest): String = "---\ndate: ${digest.date}\nsource: BooxDay\n---\n"
+    fun frontMatter(digest: DayDigest): String = "---\ndate: ${digest.date}\nsource: BSPlan\n---\n"
 
     /**
      * BooxDay's part of the note, markers included. [memoWaitReason]: why handwriting is not read

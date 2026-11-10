@@ -333,7 +333,7 @@ internal fun BooxNotesSetupContent(
     onSeeNotes: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.paddingMedium)) {
-        SetupPlaceStep(number = 1, done = hasPermission, title = "Let BooxDay see your notes") {
+        SetupPlaceStep(number = 1, done = hasPermission, title = "Let BSPlan see your notes") {
             if (hasPermission) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -354,9 +354,9 @@ internal fun BooxNotesSetupContent(
             } else {
                 SetupStepText(
                     if (BooxNotesAccess.usesRuntimePermission) {
-                        "BooxDay reads your Boox notes from the tablet's storage, so they show on the days you wrote them. Allow storage access when Android asks."
+                        "BSPlan reads your Boox notes from the tablet's storage, so they show on the days you wrote them. Allow storage access when Android asks."
                     } else {
-                        "BooxDay reads your Boox notes from the tablet's storage, so they show on the days you wrote them. On the next screen, turn on Allow access to manage all files, then come back."
+                        "BSPlan reads your Boox notes from the tablet's storage, so they show on the days you wrote them. On the next screen, turn on Allow access to manage all files, then come back."
                     }
                 )
                 ActionButton(
@@ -530,7 +530,7 @@ internal fun OcrSettingsSection(
     }
 
     Text(
-        text = "BooxDay reads your handwritten pages with AI, so you can search them and notes can be matched to events by what they say.",
+        text = "BSPlan reads your handwritten pages with AI, so you can search them and notes can be matched to events by what they say.",
         fontSize = EInkTheme.Preferences.explanationFontSize,
         color = EInkTheme.Colors.darkGray
     )
@@ -943,7 +943,7 @@ private fun ClearIndexConfirmationPopup(
                 Spacer(modifier = Modifier.height(EInkTheme.Global.spacingLarge))
 
                 Text(
-                    text = "This removes what BooxDay has read from your handwritten pages:\n\n" +
+                    text = "This removes what BSPlan has read from your handwritten pages:\n\n" +
                             "• Recognized text from your handwriting\n" +
                             "• Discovered keywords and topics\n" +
                             "• Smart summaries and insights",

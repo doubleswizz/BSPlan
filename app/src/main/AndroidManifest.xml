@@ -85,14 +85,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="booxday" />
+                <data android:scheme="bsplan" />
             </intent-filter>
         </activity>
 
         <!-- Connect OpenRouter (Oct 2026): the return page's button opens
              booxday-connect://openrouter?code=...&state=... Its own scheme and screen, so the
              browser never starts a second MainActivity. -->
-        <!-- Share to BooxDay: no canvas here; it brings the running app forward -->
+        <!-- Share to BSPlan: no canvas here; it brings the running app forward -->
         <activity
             android:name=".ShareReceiverActivity"
             android:configChanges="orientation|screenSize"
@@ -100,7 +100,7 @@
             android:exported="true"
             android:noHistory="true"
             android:excludeFromRecents="true"
-            android:label="Add to BooxDay"
+            android:label="Add to BSPlan"
             android:theme="@style/Theme.Inka">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -127,7 +127,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="booxday-connect"
+                    android:scheme="bsplan-connect"
                     android:host="openrouter" />
             </intent-filter>
         </activity>
@@ -135,12 +135,12 @@
         <!-- Read-only tasks feed for launchers and other apps (see share/TasksFeedProvider.kt). -->
         <provider
             android:name="com.boox.day.share.TasksFeedProvider"
-            android:authorities="com.boox.day.tasks"
+            android:authorities="com.bsplan.app.tasks"
             android:exported="true" />
 
         <provider
             android:name="com.boox.day.editor.utils.Provider"
-            android:authorities="com.boox.day.provider"
+            android:authorities="com.bsplan.app.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

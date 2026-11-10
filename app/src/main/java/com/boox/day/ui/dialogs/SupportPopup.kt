@@ -39,7 +39,7 @@ import com.boox.day.ui.components.EinkSecondaryButton
 import com.boox.day.ui.theme.EInkTheme
 
 /**
- * "Support BooxDay" (Oct 2026): a short thank-you pitch with the Buy Me a Coffee link and its QR code.
+ * "Support BSPlan" (Oct 2026): a short thank-you pitch with the Buy Me a Coffee link and its QR code.
  * Opened from the Settings menu, About's header and Help's Support BooxDay topic; shown by
  * [SupportPopupHost] in MainScreen, so it stays up after the Settings menu closes and opens above
  * About or Help.
@@ -108,7 +108,7 @@ internal fun SupportCard(
                 modifier = Modifier.size(24.dp)
             )
             Text(
-                text = "Support BooxDay",
+                text = "Support BSPlan",
                 fontSize = EInkTheme.PopupOverlay.titleFontSize,
                 fontWeight = FontWeight.Bold,
                 color = EInkTheme.PopupOverlay.titleColor
@@ -121,7 +121,7 @@ internal fun SupportCard(
             verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.paddingMedium)
         ) {
             SupportText(
-                "BooxDay is free: no ads, no subscription, nothing to unlock. It's made by one person, " +
+                "BSPlan is free: no ads, no subscription, nothing to unlock. It's made by one person, " +
                     "for people who plan their days on a BOOX."
             )
             SupportText(
@@ -129,7 +129,7 @@ internal fun SupportCard(
                     "you help keep the best calendar for BOOX growing: new features, support for new tablets " +
                     "and firmware, and fixes when something breaks."
             )
-            SupportText("It's never required, and BooxDay stays free for everyone. Thank you for using it.")
+            SupportText("It's never required, and BSPlan stays free for everyone. Thank you for using it.")
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

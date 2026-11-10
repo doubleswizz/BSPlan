@@ -64,7 +64,7 @@ import java.time.temporal.ChronoUnit
  * categories, start dates, other apps' properties) stays as the server has it.
  */
 internal object CalDavTasks {
-    private const val PRODID = "-//BooxDay//BooxDay//EN"
+    private const val PRODID = "-//BSPlan//BSPlan//EN"
 
     /** A task file's fields as BooxDay reads them. */
     data class Read(

@@ -55,7 +55,7 @@ object OpenRouterConnect {
     const val EXCHANGE_URL = "https://openrouter.ai/api/v1/auth/keys"
     const val CALLBACK_SCHEME = "booxday-connect"
     const val CALLBACK_HOST = "openrouter"
-    const val KEY_LABEL = "BooxDay"
+    const val KEY_LABEL = "BSPlan"
 
     /**
      * How long a started connection counts as pending, to tell a pasted code from a key (Oct 2026).

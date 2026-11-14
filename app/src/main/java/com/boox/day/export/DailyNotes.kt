@@ -42,7 +42,7 @@ object DailyNotes {
     private var appContext: Context? = null
     private var scope: CoroutineScope? = null
 
-    fun isEnabled(context: Context): Boolean = SleepAgenda.settings(context).dailyNotesEnabled
+    fun isEnabled(context: Context): Boolean = false
 
     /** BooxDayApp.onCreate. */
     fun onAppStart(context: Context, appScope: CoroutineScope) {

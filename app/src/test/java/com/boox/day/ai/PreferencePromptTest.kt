@@ -70,43 +70,34 @@ class PreferencePromptTest {
         assertNull("crunch and holiday are gone", plan.activeMode)
     }
 
-    // ── The kept options reach every prompt ──
+    // ── Removed AI options reach no prompt ──
 
     @Test
-    fun keptOptionsReachEveryPrompt() {
-        val options = oldAnswers.copy(vacationMode = true, includeHealthReminders = false, includeSocialReminders = false)
+    fun removedAiOptionsReachNoPrompt() {
+        val options = oldAnswers.copy(
+            suggestionCount = SuggestionCount.MINIMAL,
+            vacationMode = true,
+            vacationUntil = "2030-01-01",
+            includeHealthReminders = false,
+            includeSocialReminders = false
+        )
         val userContext = TaskAiContextBuilderV1.preferenceLines(options).joinToString("\n")
-        assertTrue(userContext.contains("Vacation mode: on"))
-        assertTrue(userContext.contains("Health and wellness suggestions: off"))
-        assertTrue(userContext.contains("Social suggestions: off"))
-        val suggestions = TaskAiService.buildSuggestionPreferenceGuidance(options, 4)
-        assertTrue(suggestions.contains("Target suggestion count: 4"))
-        assertTrue(suggestions.contains("Vacation mode is active"))
-        assertTrue(suggestions.contains("Avoid health suggestions"))
-        assertTrue(suggestions.contains("Avoid social suggestions"))
+        assertFalse(userContext.contains("Vacation mode"))
+        assertFalse(userContext.contains("Health and wellness suggestions: off"))
+        assertFalse(userContext.contains("Social suggestions: off"))
+
+        val suggestions = TaskAiService.buildSuggestionPreferenceGuidance(options, 6)
+        assertFalse(suggestions.contains("Vacation mode is active"))
+        assertFalse(suggestions.contains("Avoid health suggestions"))
+        assertFalse(suggestions.contains("Avoid social suggestions"))
+
         val plan = PreferenceInterpreter.interpret(options)
-        assertEquals(SpecialMode.VACATION, plan.activeMode)
-        assertFalse(plan.includeHealthReminders)
-        assertFalse(plan.includeSocialReminders)
-    }
+        assertNull(plan.activeMode)
+        assertTrue(plan.includeHealthReminders)
+        assertTrue(plan.includeSocialReminders)
 
-    @Test
-    fun onlyTheKeptOptionsAreSaved() {
-        val kept = oldAnswers.copy(suggestionCount = SuggestionCount.MINIMAL, vacationMode = true).keptOptions()
-        assertEquals(AiPreferences(suggestionCount = SuggestionCount.MINIMAL, vacationMode = true, setupComplete = true), kept)
-    }
-
-    @Test
-    fun vacationEndsAfterItsLastDay() {
-        val today = LocalDate.of(2026, 10, 29)
-        val away = AiPreferences(vacationMode = true, vacationUntil = "2026-11-02")
-        assertTrue(away.keptOptions(today).vacationMode)
-        assertTrue("the last day still counts", away.keptOptions(LocalDate.of(2026, 11, 2)).vacationMode)
-        val after = away.keptOptions(LocalDate.of(2026, 11, 3))
-        assertFalse("off the day after", after.vacationMode)
-        assertNull(after.vacationUntil)
-        assertTrue("no date: until turned off", AiPreferences(vacationMode = true).keptOptions(LocalDate.of(2030, 1, 1)).vacationMode)
-        assertNull(PreferenceInterpreter.interpret(away.copy(vacationUntil = "2020-01-01")).activeMode)
+        val kept = options.keptOptions()
+        assertEquals(AiPreferences(setupComplete = true), kept)
     }
 
     @Test

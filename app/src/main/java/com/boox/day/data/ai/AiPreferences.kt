@@ -76,35 +76,20 @@ data class AiPreferences(
 ) {
     companion object {
         /**
-         * The AI options BooxDay still uses (29 Oct 2026). A measured test of every AI Preferences
-         * answer (252 AI answers) found only these change what the AI says: how many suggestions,
-         * Vacation, and the Health and Social suggestion switches. The owner chose to keep these
-         * three and remove the rest, so every other stored answer is dropped here and never reaches
-         * a prompt or a score. The other fields stay in the class only so older saved data still loads.
+         * Returns neutral defaults: AI Options (suggestionCount, vacationMode, health and social
+         * toggles) were removed, so stored values from older versions no longer affect prompts or
+         * scoring. The fields remain in the class only so older saved JSON still deserializes.
          */
-        fun AiPreferences?.keptOptions(today: java.time.LocalDate = java.time.LocalDate.now()): AiPreferences {
-            // Vacation turns itself off after its last day, so it can't stay on unnoticed
-            val onVacation = (this?.vacationMode ?: false) && vacationLasts(this?.vacationUntil, today)
-            return AiPreferences(
-                suggestionCount = this?.suggestionCount ?: SuggestionCount.MODERATE,
-                includeHealthReminders = this?.includeHealthReminders ?: true,
-                includeSocialReminders = this?.includeSocialReminders ?: true,
-                vacationMode = onVacation,
-                vacationUntil = if (onVacation) this?.vacationUntil else null,
-                setupComplete = true,
-                lastUpdated = this?.lastUpdated ?: 0L
-            )
-        }
+        fun AiPreferences?.keptOptions(): AiPreferences = AiPreferences(
+            setupComplete = true,
+            lastUpdated = this?.lastUpdated ?: 0L
+        )
 
-        /** True while [today] is on or before the last day [until]; no date (or an unreadable one) = no end. */
-        private fun vacationLasts(until: String?, today: java.time.LocalDate): Boolean =
-            until == null || runCatching { !today.isAfter(java.time.LocalDate.parse(until)) }.getOrDefault(true)
-
-        /** The preferences to put in AI requests: only the kept options ([keptOptions]). */
+        /** The preferences to put in AI requests: neutral defaults ([keptOptions]). */
         fun AiPreferences?.forPrompt(): AiPreferences = keptOptions()
 
-        /** The one special mode in force: Vacation, the only mode kept (29 Oct 2026). */
-        fun AiPreferences.activeMode(): SpecialMode? = if (vacationMode) SpecialMode.VACATION else null
+        /** Vacation mode was removed; always null. */
+        fun AiPreferences.activeMode(): SpecialMode? = null
     }
 }
 

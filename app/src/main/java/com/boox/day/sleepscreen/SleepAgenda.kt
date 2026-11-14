@@ -62,7 +62,7 @@ object SleepAgenda {
         runCatching { KvProxy(context.applicationContext).get(APP_SETTINGS_KEY, AppSettings.serializer()) }.getOrNull()
             ?: GlobalAppSettings.current
 
-    fun isEnabled(context: Context): Boolean = isSupported && settings(context).sleepScreenAgendaEnabled
+    fun isEnabled(context: Context): Boolean = false
 
     /** BooxDayApp.onCreate: follow the day's changes while the setting is on. */
     fun onAppStart(context: Context, appScope: CoroutineScope) {

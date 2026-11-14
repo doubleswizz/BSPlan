@@ -325,7 +325,7 @@ class ExportDaysTest {
     }
 
     @Test fun `the message says when handwriting wasn't typed or the file moved`() {
-        val saved = "Saved a.pdf to Documents/BooxDay"
+        val saved = "Saved a.pdf to Documents/BSPlan"
         assertEquals(saved, ExportOutcome.withNotes(saved, handwritingNotRead = false, movedToDefault = false))
         assertTrue(ExportOutcome.withNotes(saved, handwritingNotRead = true, movedToDefault = false).contains("language pack"))
         assertTrue(ExportOutcome.withNotes(saved, handwritingNotRead = false, movedToDefault = true).startsWith("Couldn't reach the chosen folder."))

@@ -55,7 +55,9 @@ class SleepBackImageTest {
     }
 
     @Test
-    fun cleanUpTakesOnlyBooxDaysOwnFiles() {
+    fun cleanUpTakesOnlyBSPlansOwnAndLegacyFiles() {
+        assertTrue(SleepScreenPublisher.isOurImage("bsplan-today-1793904683043.png"))
+        assertTrue(SleepScreenPublisher.isOurImage("bsplan-back-1793904683043.jpg"))
         assertTrue(SleepScreenPublisher.isOurImage("booxday-today-1793904683043.png"))
         assertTrue(SleepScreenPublisher.isOurImage("booxday-back-1793904683043.jpg"))
         assertFalse("the user's pictures in Pictures/ stay", SleepScreenPublisher.isOurImage("holiday.jpg"))

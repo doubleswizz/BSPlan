@@ -66,7 +66,7 @@ class AboutHeaderRenderTest {
                                 .background(Color.White)
                                 .onGloballyPositioned { bounds["header"] = it.boundsInRoot() }
                         ) {
-                            AboutHeader(versionLabel = "Version 1.0.48", onDismiss = {}, appName = "BooxDay", onSupport = {})
+                            AboutHeader(versionLabel = "Version 1.0.48", onDismiss = {}, appName = "BSPlan", onSupport = {})
                         }
                         Box(Modifier.padding(16.dp).onGloballyPositioned { bounds["support"] = it.boundsInRoot() }) {
                             SupportButton(onClick = {})

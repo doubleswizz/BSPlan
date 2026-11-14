@@ -84,7 +84,7 @@ fun HelpDialog(
             HelpSection("Search", Icons.Default.Search),
             HelpSection("AI Features", Icons.Default.AutoAwesome),
             HelpSection("Voice Input", Icons.Default.Mic),
-            HelpSection("E-Ink & Sleep Screen", Icons.Default.PhoneAndroid),
+            HelpSection("E-Ink Display", Icons.Default.PhoneAndroid),
             HelpSection("Data & Troubleshooting", Icons.Default.Warning),
             HelpSection("Key Legends", Icons.Default.VpnKey),
             HelpSection("Support BSPlan", Icons.Default.LocalCafe)
@@ -708,7 +708,6 @@ private fun AiFeaturesContent() {
     BulletItem("Paying for AI", "Signing up is free. Free models need no credit but allow 50 requests a day (1,000 a day once you have bought \$10 of credit), and are often busy. Other models use credit you add on OpenRouter (openrouter.ai/settings/credits) by card, AliPay or USDC, from \$5. A key can have a spending limit.")
     BulletItem("AI Features", "The switch for voice input, the AI tools and reading pages for search. With it off, none of your data goes to OpenRouter.")
     BulletItem("AI Models", "The model for each job: Reading handwriting, Voice, Writing and summaries, Planning and suggestions, Search indexing. If a model fails, BSPlan's choice answers.")
-    BulletItem("AI options", "How many Smart Suggestions (Fewer, Normal or More), Vacation mode for lighter plans and suggestions while you're away, and switches for health and social ideas. Smart Suggestions, Optimize My Day and Sort by Priority follow them.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -836,7 +835,7 @@ private fun VoiceInputContent() {
 
 @Composable
 private fun EInkOptimizationContent() {
-    SectionHeader("E-Ink & Sleep Screen")
+    SectionHeader("E-Ink Display")
 
     SectionSubtitle("Built for your Boox tablet.")
     BodyText("BSPlan uses no animations and shows meaning in black and white only, which stays sharp in every refresh mode.")
@@ -845,11 +844,6 @@ private fun EInkOptimizationContent() {
 
     SectionSubheader("Screen Refresh")
     BodyText("If traces of earlier screens remain (ghosting), tap ≡ → Screen Refresh for a full refresh.")
-
-    Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
-
-    SectionSubheader("Today on Sleep Screen")
-    BodyText("Shows your day as the tablet's sleep screen. Turn it on in Preferences (Boox tablets only; off at first), then choose what it shows: the month calendar, events, tasks and, on larger tablets, the memo page. It replaces your Boox sleep screen, and Boox doesn't let apps read that, so BSPlan asks for an image to go back to when you turn it off. Without one, Boox shows its own image.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -872,11 +866,6 @@ private fun TroubleshootingContent() {
 
     SectionSubheader("Backup (Settings → Data & Backup)")
     BodyText("Your data is kept in BSPlan's private storage on the tablet. Create Backup saves a copy to Google Drive or Device Storage (Downloads or an SD card); Restore Backup brings one back. Google Drive Backup can also run by itself (Auto Backup).")
-
-    Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
-
-    SectionSubheader("Daily Notes (Markdown)")
-    BodyText("Turn it on in Preferences: each day's events, tasks and memo text go into a Markdown file in Documents/BSPlan/Daily Notes, or a folder you choose, for other notes apps. Text you add outside BSPlan's part of the file is kept.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 

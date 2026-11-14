@@ -419,17 +419,10 @@ fun MainScreen(
     val dateFormatSetting by remember { derivedStateOf { GlobalAppSettings.current.dateFormat } }
     val timeFormatSetting by remember { derivedStateOf { GlobalAppSettings.current.timeFormat } }
     val showWeekNumbers by remember { derivedStateOf { GlobalAppSettings.current.showWeekNumbers } }
-    val startTabSetting by remember { derivedStateOf { GlobalAppSettings.current.startTab } }
     val tipsEnabled by remember { derivedStateOf { GlobalAppSettings.current.tipsEnabled } }
     val tipInterval by remember { derivedStateOf { GlobalAppSettings.current.tipInterval } }
     val aiEnabled by remember { derivedStateOf { GlobalAppSettings.current.aiEnabled } }
     var booxNotesEnabled by remember { mutableStateOf(true) }
-    // Notification settings - decoupled task and event toggles
-    val taskNotificationsEnabled by remember { derivedStateOf { GlobalAppSettings.current.taskNotificationsEnabled } }
-    val eventNotificationsEnabled by remember { derivedStateOf { GlobalAppSettings.current.eventNotificationsEnabled } }
-    val defaultTaskReminderHour by remember { derivedStateOf { GlobalAppSettings.current.defaultTaskReminderHour } }
-    val defaultTaskReminderMinute by remember { derivedStateOf { GlobalAppSettings.current.defaultTaskReminderMinute } }
-    val defaultEventReminderMinutes by remember { derivedStateOf { GlobalAppSettings.current.defaultEventReminderMinutes } }
     val syncModeSetting by remember { derivedStateOf { GlobalAppSettings.current.syncMode } }
     val defaultSyncEnabled by remember { derivedStateOf { GlobalAppSettings.current.defaultSyncEnabled } }
 
@@ -607,15 +600,6 @@ fun MainScreen(
     // Load connected accounts on startup (for source filter icons)
     LaunchedEffect(Unit) {
         multiAccountSyncViewModel.loadAccounts()
-    }
-
-    // Startup auto-sync for multi-account system.
-    // Fires once when hasAnyExternalAccount becomes true after loadAccounts() completes.
-    // Replaces legacy CalendarSyncViewModel startup sync for users with connected accounts.
-    LaunchedEffect(hasAnyExternalAccount) {
-        if (hasAnyExternalAccount) {
-            multiAccountSyncViewModel.syncAllAccounts()
-        }
     }
 
     // Clean up legacy events with empty accountId on startup.
@@ -886,6 +870,30 @@ fun MainScreen(
     val currentYear = viewingCalendar.get(Calendar.YEAR)
     val currentMonth = viewingCalendar.get(Calendar.MONTH)
 
+    // Startup auto-sync for multi-account system.
+    // Fires once when hasAnyExternalAccount becomes true after loadAccounts() completes.
+    // Replaces legacy CalendarSyncViewModel startup sync for users with connected accounts.
+    LaunchedEffect(hasAnyExternalAccount) {
+        if (hasAnyExternalAccount) {
+            multiAccountSyncViewModel.syncAllAccounts(
+                viewedYearMonth = java.time.YearMonth.of(currentYear, currentMonth + 1)
+            )
+        }
+    }
+
+    // Sliding-window calendar sync for whichever month/year the user navigates to (any distance
+    // forward or backward, matching Google Calendar behavior).
+    LaunchedEffect(currentYear, currentMonth, hasAnyExternalAccount, isSignedIn, syncModeSetting) {
+        if (syncModeSetting != AppSettings.SyncMode.HYBRID) return@LaunchedEffect
+        if (!hasAnyExternalAccount && !isSignedIn) return@LaunchedEffect
+        kotlinx.coroutines.delay(150L)
+        if (hasAnyExternalAccount) {
+            multiAccountSyncViewModel.syncMonthWindowIfNeeded(currentYear, currentMonth + 1)
+        } else if (isSignedIn) {
+            syncViewModel.syncMonthIfNeeded(currentYear, currentMonth + 1)
+        }
+    }
+
     // ========== COMPACT LAYOUT (plan Phase 1.5: narrow screens such as the Go 6) ==========
     // A one-week strip + Events/Due chips stay above the page; the month grid and the lists open
     // as popups over it. Fixed per device — Regular screens never enter these paths.
@@ -923,17 +931,12 @@ fun MainScreen(
         null
     }
 
-    // Shows a month and syncs it, like the header's month arrows do
+    // Shows a month (on-demand sync is driven by LaunchedEffect on currentYear/currentMonth)
     fun showCompactMonth(year: Int, monthIndex: Int) {
         viewingCalendar = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, monthIndex)
             set(Calendar.DAY_OF_MONTH, 1)
-        }
-        if (hasAnyExternalAccount) {
-            scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-        } else if (isSignedIn) {
-            syncViewModel.syncMonthIfNeeded(year, monthIndex + 1)
         }
     }
 
@@ -1689,7 +1692,7 @@ fun MainScreen(
     }
 
     // Refresh events dates after sync completes, and when the source filter changes: the dots follow it (off main thread)
-    LaunchedEffect(syncInProgress, multiAccountUiState.isSyncing, sourceFilter) {
+    LaunchedEffect(syncInProgress, multiAccountUiState.isSyncing, multiAccountUiState.syncRevision, sourceFilter) {
         val anySyncComplete = !syncInProgress && !multiAccountUiState.isSyncing
         val hasAccounts = isSignedIn || hasAnyExternalAccount
         if (anySyncComplete && hasAccounts) {
@@ -1958,6 +1961,7 @@ fun MainScreen(
         datesWithTasks = datesWithTasks,
         loadEventsForDay = eventsViewModel::shownEventsForDay,
         onEnsureMemosTab = { tabManager.currentTab.value = EditorTab.Memos },
+        syncRevision = multiAccountUiState.syncRevision,
         onMonthYearSelected = { newYear, newMonth ->
             DrawCanvas.flushUIUpdates()
             viewingCalendar = Calendar.getInstance().apply {
@@ -1995,14 +1999,6 @@ fun MainScreen(
                     com.boox.day.ui.calendar.PlannerNavigationState.mode =
                         com.boox.day.ui.calendar.PlannerViewMode.Month
                     if (isSignedIn || hasAnyExternalAccount) {
-                        if (hasAnyExternalAccount) {
-                            scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-                        } else if (isSignedIn) {
-                            syncViewModel.syncMonthIfNeeded(
-                                viewingCalendar.get(Calendar.YEAR),
-                                viewingCalendar.get(Calendar.MONTH) + 1
-                            )
-                        }
                         com.boox.day.tasksync.TaskSyncTriggers.onReturn(context)
                     }
                 }
@@ -2036,14 +2032,6 @@ fun MainScreen(
                     selectedDate = today
                     viewingCalendar = Calendar.getInstance()
                     if (isSignedIn || hasAnyExternalAccount) {
-                        if (hasAnyExternalAccount) {
-                            scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-                        } else if (isSignedIn) {
-                            syncViewModel.syncMonthIfNeeded(
-                                viewingCalendar.get(Calendar.YEAR),
-                                viewingCalendar.get(Calendar.MONTH) + 1
-                            )
-                        }
                         com.boox.day.tasksync.TaskSyncTriggers.onReturn(context)
                     }
                     SnackState.tryEmitRateLimited(
@@ -2066,18 +2054,6 @@ fun MainScreen(
                             viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
                                 add(Calendar.MONTH, -1)
                             }
-                            if (isSignedIn || hasAnyExternalAccount) {
-                                if (hasAnyExternalAccount) {
-                                    // Multi-account path handles all connected accounts (Google + Outlook)
-                                    scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-                                } else if (isSignedIn) {
-                                    // Legacy path only when no multi-account records exist
-                                    syncViewModel.syncMonthIfNeeded(
-                                        viewingCalendar.get(Calendar.YEAR),
-                                        viewingCalendar.get(Calendar.MONTH) + 1
-                                    )
-                                }
-                            }
                         
                             }
                         },
@@ -2091,16 +2067,6 @@ fun MainScreen(
                             DrawCanvas.flushUIUpdates()
                             viewingCalendar = (viewingCalendar.clone() as Calendar).apply {
                                 add(Calendar.MONTH, 1)
-                            }
-                            if (isSignedIn || hasAnyExternalAccount) {
-                                if (hasAnyExternalAccount) {
-                                    scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-                                } else if (isSignedIn) {
-                                    syncViewModel.syncMonthIfNeeded(
-                                        viewingCalendar.get(Calendar.YEAR),
-                                        viewingCalendar.get(Calendar.MONTH) + 1
-                                    )
-                                }
                             }
                         
                             }
@@ -2134,9 +2100,11 @@ fun MainScreen(
                                     duration = SnackConf.DURATION_QUICK
                                 )
                             )
-                            // Trigger sync via multi-account system (handles both Google and Outlook)
+                            // Trigger sync via multi-account system
                             // Legacy Google sign-ins are auto-migrated to database on loadAccounts()
-                            multiAccountSyncViewModel.syncAllAccounts()
+                            multiAccountSyncViewModel.syncAllAccounts(
+                                viewedYearMonth = java.time.YearMonth.of(currentYear, currentMonth + 1)
+                            )
                             com.boox.day.tasksync.TaskSyncTriggers.syncNow(context)  // tasks too, when on
                         } else {
                             showCalendarSettingsDialog = true
@@ -2188,13 +2156,6 @@ fun MainScreen(
                             newYear,
                             newMonth + 1
                         )
-                        if (isSignedIn || hasAnyExternalAccount) {
-                            if (hasAnyExternalAccount) {
-                                scope.launch { multiAccountSyncViewModel.syncAllAccounts() }
-                            } else if (isSignedIn) {
-                                syncViewModel.syncMonthIfNeeded(newYear, newMonth + 1)
-                            }
-                        }
                     },
                     // Combine sync states from both systems
                     isSyncing = syncInProgress || multiAccountUiState.isSyncing,
@@ -3488,7 +3449,9 @@ fun MainScreen(
                 onDismiss = { showCalendarSettingsDialog = false },
                 onSyncNow = {
                     // Use multi-account sync for proper accountId/providerId tagging
-                    multiAccountSyncViewModel.syncAllAccounts()
+                    multiAccountSyncViewModel.syncAllAccounts(
+                        viewedYearMonth = java.time.YearMonth.of(currentYear, currentMonth + 1)
+                    )
                 },
                 onOpenCalendarAccounts = {
                     // Open the Calendar Accounts dialog
@@ -3653,12 +3616,6 @@ fun MainScreen(
                     appRepository.kvProxy.setAppSettings(newSettings)
                     markSetupComplete { it.copy(preferencesReviewed = true) }
                 },
-                startTab = startTabSetting,
-                onStartTabChanged = { newValue ->
-                    val newSettings = GlobalAppSettings.current.copy(startTab = newValue)
-                    appRepository.kvProxy.setAppSettings(newSettings)
-                    markSetupComplete { it.copy(preferencesReviewed = true) }
-                },
                 tipsEnabled = tipsEnabled,
                 onTipsEnabledChanged = { newValue ->
                     val newSettings = GlobalAppSettings.current.copy(tipsEnabled = newValue)
@@ -3673,47 +3630,6 @@ fun MainScreen(
                         TipsService.start()
                     }
                     markSetupComplete { it.copy(preferencesReviewed = true) }
-                },
-                // Notification settings - decoupled task and event toggles
-                taskNotificationsEnabled = taskNotificationsEnabled,
-                onTaskNotificationsEnabledChanged = { newValue ->
-                    val newSettings = GlobalAppSettings.current.copy(taskNotificationsEnabled = newValue)
-                    appRepository.kvProxy.setAppSettings(newSettings)
-                    if (newValue) {
-                        scope.launch(Dispatchers.IO) {
-                            appRepository.taskRepository.scheduleNotificationsForExistingTasks()
-                        }
-                    }
-                },
-                eventNotificationsEnabled = eventNotificationsEnabled,
-                onEventNotificationsEnabledChanged = { newValue ->
-                    val newSettings = GlobalAppSettings.current.copy(eventNotificationsEnabled = newValue)
-                    appRepository.kvProxy.setAppSettings(newSettings)
-                    if (newValue) {
-                        scope.launch(Dispatchers.IO) {
-                            appRepository.localEventRepository.scheduleNotificationsForUpcomingEvents()
-                        }
-                    }
-                },
-                defaultTaskReminderHour = defaultTaskReminderHour,
-                defaultTaskReminderMinute = defaultTaskReminderMinute,
-                onDefaultTaskReminderChanged = { hour, minute ->
-                    val newSettings = GlobalAppSettings.current.copy(
-                        defaultTaskReminderHour = hour,
-                        defaultTaskReminderMinute = minute
-                    )
-                    appRepository.kvProxy.setAppSettings(newSettings)
-                },
-                defaultEventReminderMinutes = defaultEventReminderMinutes,
-                onDefaultEventReminderChanged = { minutes ->
-                    val newSettings = GlobalAppSettings.current.copy(defaultEventReminderMinutes = minutes)
-                    appRepository.kvProxy.setAppSettings(newSettings)
-                },
-                onOpenAlarmSettings = {
-                    NotificationPermissionHelper.openExactAlarmSettings(context)
-                },
-                onOpenBatteryOptimizationSettings = {
-                    NotificationPermissionHelper.openBatteryOptimizationSettings(context)
                 }
             )
         }

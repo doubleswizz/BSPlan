@@ -38,7 +38,6 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.boox.day.data.datastore.SetupChecklistStore
 import com.boox.day.ui.components.AiModelsCard
-import com.boox.day.ui.components.AiOptionsCard
 import com.boox.day.ui.components.ApiKeySettingsCard
 import com.boox.day.ui.components.EInkToggle
 import com.boox.day.ui.components.ScrollableWithIndicator
@@ -53,7 +52,6 @@ import com.boox.day.ui.theme.EInkTheme
  * - OpenRouter key: every AI feature runs on the user's own key, so it comes first
  * - AI Features: master toggle
  * - AI Models: the OpenRouter model each AI job uses
- * - AI options: how many suggestions, Vacation, Health and Social suggestions (ui/components/AiOptionsCard)
  * - Privacy: where requests go, BYOK link
  *
  * E-Ink optimized: Uses Popup (not Dialog), noRippleClickable, EInkTheme constants.
@@ -192,13 +190,10 @@ fun AiSettingsDialog(
                         // Oct 2026: which OpenRouter model each AI job uses
                         AiModelsCard(aiEnabled = aiEnabled, modifier = Modifier.bringIntoViewRequester(modelsInView))
 
-                        // Oct 2026: the three AI options that measurably change answers (replaced AI Preferences)
-                        AiOptionsCard(aiEnabled = aiEnabled)
-
                         // Privacy (Oct 2026): where AI requests go. Getting a key is the key card's job
                         SettingCard(
                             title = "Privacy",
-                            description = "BSPlan sends nothing to its developer. AI requests go from this tablet to OpenRouter, on your own account, and to the company that runs the model. Reading pages for search also sends memo pages while Settings → Handwriting Search → Read my handwriting is on. Smart Suggestions and Optimize My Day also send your AI options. With AI Features off, none of your data goes to OpenRouter."
+                            description = "BSPlan sends nothing to its developer. AI requests go from this tablet to OpenRouter, on your own account, and to the company that runs the model. Reading pages for search also sends memo pages while Settings → Handwriting Search → Read my handwriting is on. With AI Features off, none of your data goes to OpenRouter."
                         ) {}
                     }
                 }

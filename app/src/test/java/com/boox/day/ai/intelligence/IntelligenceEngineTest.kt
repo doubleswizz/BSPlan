@@ -96,12 +96,12 @@ class IntelligenceEngineTest {
     // ═══════════════════════════════════════════════════════════════════════════
 
     @Test
-    fun `smart suggestions follow the AI options`() = runBlocking {
-        // Health suggestions off (AI options, 29 Oct 2026): the gym task falls below the work task
+    fun `smart suggestions ignore removed AI options`() = runBlocking {
+        // AI Options were removed: saved legacy flags no longer bias task scoring
         val preferences = com.boox.day.data.ai.AiPreferences(includeHealthReminders = false)
         val tasks = listOf(
             createTask(id = "health", text = "Go to the gym for exercise"),
-            createTask(id = "work", text = "Work on project deadline")
+            createTask(id = "work", text = "Go to the gym for exercise")
         )
 
         val result = scoreTasksForSuggestions(tasks, preferences)
@@ -109,7 +109,7 @@ class IntelligenceEngineTest {
         val healthScore = result.find { it.itemId == "health" }?.finalScore ?: 0f
         val workScore = result.find { it.itemId == "work" }?.finalScore ?: 0f
 
-        assertTrue("Health should score lower with health suggestions off", healthScore < workScore)
+        assertEquals(healthScore, workScore, 0.001f)
     }
 
     @Test

@@ -27,7 +27,7 @@ class LocalBackupService(private val context: Context) {
 
     companion object {
         private const val TAG = "LocalBackupService"
-        private const val BACKUP_FILE_PREFIX = "booxday_backup_"
+        private const val BACKUP_FILE_PREFIX = "bsplan_backup_"
         private const val BACKUP_FILE_EXTENSION = ".json"
     }
 
@@ -61,7 +61,7 @@ class LocalBackupService(private val context: Context) {
 
     /**
      * Generate a backup file name with timestamp.
-     * Format: booxday_backup_2026-01-20_153045.json
+     * Format: bsplan_backup_2026-01-20_153045.json
      */
     fun generateBackupFileName(): String {
         val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.US).format(Date())

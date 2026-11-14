@@ -29,9 +29,19 @@ object RemovedFeaturesCleanup {
     private const val DONE_PREFS = "removed_features"
     private const val AI_PREFERENCES_DONE = "ai_preferences_answers"
 
+    /** Background workers for removed Sleep Screen & Daily Notes preferences. */
+    private val REMOVED_WORK = listOf(
+        NEPHAI_SYNC_WORK,
+        "sleep_agenda_refresh",
+        "sleep_agenda_daily",
+        "daily_note_today",
+        "daily_note_nightly"
+    )
+
     fun run(context: Context) {
         val app = context.applicationContext
-        WorkManager.getInstance(app).cancelUniqueWork(NEPHAI_SYNC_WORK)
+        val wm = WorkManager.getInstance(app)
+        for (work in REMOVED_WORK) wm.cancelUniqueWork(work)
         deletePrefs(app, NEPHAI_PREFS + COMMERCIAL_PREFS)
         removeOldAiPreferencesAnswers(app)
     }

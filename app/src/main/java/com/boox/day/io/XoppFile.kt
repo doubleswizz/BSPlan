@@ -67,8 +67,8 @@ class XoppFile(
         // Build a temporary plain-XML file using existing writePage(), then gzip it into 'output'
         val tmp = File(
             context.cacheDir, when (target) {
-                is ExportTarget.Book -> "booxday_xopp_book.xml"
-                is ExportTarget.Page -> "booxday_xopp_page.xml"
+                is ExportTarget.Book -> "bsplan_xopp_book.xml"
+                is ExportTarget.Page -> "bsplan_xopp_page.xml"
                 is ExportTarget.DayPages, is ExportTarget.Days -> throw IOException("XOPP export not supported for day pages")
             }
         )

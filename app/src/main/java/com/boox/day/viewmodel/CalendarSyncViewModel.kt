@@ -645,13 +645,6 @@ class CalendarSyncViewModel(application: Application) : AndroidViewModel(applica
         val key = monthKey(year, month)
 
         val now = LocalDate.now()
-        // Limit automatic month navigation sync to a reasonable window:
-        // up to 6 months in the past and 6 months in the future.
-        val diffMonths = (year - now.year) * 12 + (month - now.monthValue)
-        if (diffMonths < -6 || diffMonths > 6) {
-            return false
-        }
-
         val currentYearMonth = now.withDayOfMonth(1)
         val targetYearMonth = LocalDate.of(year, month, 1)
 

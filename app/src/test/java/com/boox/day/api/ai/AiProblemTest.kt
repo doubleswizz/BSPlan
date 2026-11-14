@@ -74,7 +74,7 @@ class AiProblemTest {
     @Test
     fun `the monthly read limit is said as the reason indexing waits`() {
         assertEquals(
-            "BooxDay reads up to 1000 pages a month with AI. The rest are read next month.",
+            "BSPlan reads up to 1000 pages a month with AI. The rest are read next month.",
             AiProblem.MONTHLY_LIMIT.message
         )
         // The Boox Notes status line: "Waiting: <shortText> • N items will be read later"

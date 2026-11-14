@@ -18,7 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * ViewModel for multi-account calendar sync UI.
@@ -74,6 +77,9 @@ class MultiAccountSyncViewModel(
         private const val TAG = "MultiAccountSyncVM"
     }
 
+    private val syncMutex = Mutex()
+    private val syncWindowPlanner = SyncWindowPlanner()
+
     // ═══════════════════════════════════════════════════════════════════════════
     // UI State
     // ═══════════════════════════════════════════════════════════════════════════
@@ -111,6 +117,7 @@ class MultiAccountSyncViewModel(
         /** Aggregate sync progress across all accounts (driven by the most active account) */
         val syncProgress: SyncProgress? = null,
         val syncResults: Map<String, SyncResult> = emptyMap(),
+        val syncRevision: Int = 0,
         val error: String? = null,
         val errorDismissible: Boolean = true,
         /**
@@ -357,6 +364,7 @@ class MultiAccountSyncViewModel(
 
                     // AUTO-SYNC: Trigger initial sync for the newly added account
                     // This fetches events from the calendar and populates the Events grid
+                    syncWindowPlanner.clear()
                     Log.i(TAG, "Starting initial sync for newly added account: ${account.email}")
                     syncAccount(account.id)
                 } else {
@@ -417,6 +425,7 @@ class MultiAccountSyncViewModel(
 
                     // AUTO-SYNC: Trigger initial sync for the newly added account
                     // This fetches events from the calendar and populates the Events grid
+                    syncWindowPlanner.clear()
                     Log.i(TAG, "Starting initial sync for newly added account: ${account.email}")
                     syncAccount(account.id)
                 } else {
@@ -484,6 +493,7 @@ class MultiAccountSyncViewModel(
                 val result = syncManager.removeAccount(accountId)
 
                 if (result.isSuccess) {
+                    syncWindowPlanner.clear()
                     Log.i(TAG, "Account removed: $accountId")
                     loadAccounts()
                 } else {
@@ -548,6 +558,7 @@ class MultiAccountSyncViewModel(
         Log.i(TAG, "Disconnected $successCount accounts, $failCount failed")
 
         // Reload accounts (should be empty now)
+        syncWindowPlanner.clear()
         loadAccounts()
     }
 
@@ -666,63 +677,100 @@ class MultiAccountSyncViewModel(
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Sync all accounts.
-     * Each account syncs independently - one failure doesn't affect others.
+     * Sync all accounts for the rolling default window around today, plus the currently viewed
+     * month if it falls outside that window.
      */
-    fun syncAllAccounts() {
+    @JvmOverloads
+    fun syncAllAccounts(
+        viewedYearMonth: YearMonth? = null,
+        clearCache: Boolean = true
+    ) {
         viewModelScope.launch {
-            try {
-                _uiState.update { state ->
-                    state.mapAccounts { it.copy(isSyncing = true, syncProgress = null, error = null) }.copy(
-                        isSyncing = true,
-                        syncProgress = SyncProgress(SyncPhase.FETCHING),
-                        error = null
-                    )
+            syncMutex.withLock {
+                if (clearCache) {
+                    syncWindowPlanner.clear()
                 }
-
-                // Sync 16-month window: 2 months past + current + 13 months future
-                val now = LocalDate.now()
-                val startDate = now.minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong())
-                val endDate = now.plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())
-
-                val results = syncManager.syncAllAccounts(startDate, endDate) { accountId, progress ->
-                    // Update per-account progress and propagate to global state
-                    updateAccount(accountId) { it.copy(syncProgress = progress) }
-                    _uiState.update { it.copy(syncProgress = progress) }
-                }
-
-                // Update state with results, detecting auth errors and feature gating
-                _uiState.update { state ->
-                    state.mapAccounts { acc ->
-                        val result = results[acc.account.id]
-                        val needsReauth = result is SyncResult.NotSignedIn ||
-                                (result is SyncResult.Error && result.errorType == SyncErrorType.AUTHENTICATION)
-                        acc.copy(
-                            isSyncing = false,
-                            syncProgress = null,
-                            lastSyncMessage = result?.getDisplayMessage(),
-                            needsReauth = needsReauth,
-                            error = if (result?.isError() == true && !needsReauth) result.getDisplayMessage() else null
-                        )
-                    }.copy(
-                        isSyncing = false,
-                        syncProgress = null,
-                        syncResults = results
-                    )
-                }
-
-                Log.i(TAG, "Sync complete for ${results.size} accounts")
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Error syncing all accounts", e)
-                _uiState.update { state ->
-                    state.mapAccounts { it.copy(isSyncing = false, syncProgress = null) }.copy(
-                        isSyncing = false,
-                        syncProgress = null,
-                        error = "Sync failed: ${e.message}"
-                    )
+                val (defaultStart, defaultEnd) = syncWindowPlanner.defaultWindow()
+                val results = executeSyncRangeLocked(defaultStart, defaultEnd)
+                if (viewedYearMonth != null && syncWindowPlanner.shouldMarkSynced(results)) {
+                    val extraRange = syncWindowPlanner.nextFetchRangeForMonth(viewedYearMonth)
+                    if (extraRange != null) {
+                        executeSyncRangeLocked(extraRange.first, extraRange.second)
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * Ensure the viewed month (and its adjacent overflow months) are synced, fetching on demand
+     * regardless of how far forward or backward the user navigates.
+     */
+    fun syncMonthWindowIfNeeded(year: Int, month: Int) {
+        val target = YearMonth.of(year, month)
+        viewModelScope.launch {
+            syncMutex.withLock {
+                val range = syncWindowPlanner.nextFetchRangeForMonth(target) ?: return@withLock
+                executeSyncRangeLocked(range.first, range.second)
+            }
+        }
+    }
+
+    private suspend fun executeSyncRangeLocked(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Map<String, SyncResult> {
+        return try {
+            _uiState.update { state ->
+                state.mapAccounts { it.copy(isSyncing = true, syncProgress = null, error = null) }.copy(
+                    isSyncing = true,
+                    syncProgress = SyncProgress(SyncPhase.FETCHING),
+                    error = null
+                )
+            }
+
+            val results = syncManager.syncAllAccounts(startDate, endDate) { accountId, progress ->
+                updateAccount(accountId) { it.copy(syncProgress = progress) }
+                _uiState.update { it.copy(syncProgress = progress) }
+            }
+
+            if (syncWindowPlanner.shouldMarkSynced(results)) {
+                syncWindowPlanner.markSynced(startDate, endDate)
+            }
+
+            _uiState.update { state ->
+                state.mapAccounts { acc ->
+                    val result = results[acc.account.id]
+                    val needsReauth = result is SyncResult.NotSignedIn ||
+                            (result is SyncResult.Error && result.errorType == SyncErrorType.AUTHENTICATION)
+                    acc.copy(
+                        isSyncing = false,
+                        syncProgress = null,
+                        lastSyncMessage = result?.getDisplayMessage(),
+                        needsReauth = needsReauth,
+                        error = if (result?.isError() == true && !needsReauth) result.getDisplayMessage() else null
+                    )
+                }.copy(
+                    isSyncing = false,
+                    syncProgress = null,
+                    syncResults = results,
+                    syncRevision = state.syncRevision + 1
+                )
+            }
+
+            Log.i(TAG, "Sync complete ($startDate..$endDate) for ${results.size} accounts")
+            results
+        } catch (e: Exception) {
+            Log.e(TAG, "Error syncing all accounts ($startDate..$endDate)", e)
+            _uiState.update { state ->
+                state.mapAccounts { it.copy(isSyncing = false, syncProgress = null) }.copy(
+                    isSyncing = false,
+                    syncProgress = null,
+                    error = "Sync failed: ${e.message}",
+                    syncRevision = state.syncRevision + 1
+                )
+            }
+            emptyMap()
         }
     }
 
@@ -744,10 +792,7 @@ class MultiAccountSyncViewModel(
                 _uiState.update { it.copy(isSyncing = true, syncProgress = SyncProgress(SyncPhase.FETCHING), error = null) }
                 updateAccount(accountId) { it.copy(isSyncing = true, syncProgress = null, error = null, needsReauth = false) }
 
-                // Sync 16-month window: 2 months past + current + 13 months future
-                val now = LocalDate.now()
-                val startDate = now.minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong())
-                val endDate = now.plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())
+                val (startDate, endDate) = syncWindowPlanner.defaultWindow()
 
                 val result = syncManager.syncAccount(accountId, startDate, endDate) { progress ->
                     updateAccount(accountId) { it.copy(syncProgress = progress) }
@@ -774,7 +819,8 @@ class MultiAccountSyncViewModel(
                     state.copy(
                         isSyncing = false,
                         syncProgress = null,
-                        syncResults = state.syncResults + (accountId to result)
+                        syncResults = state.syncResults + (accountId to result),
+                        syncRevision = state.syncRevision + 1
                     )
                 }
 
@@ -794,7 +840,7 @@ class MultiAccountSyncViewModel(
                     )
                 }
                 // Clear GLOBAL isSyncing state on error too
-                _uiState.update { it.copy(isSyncing = false, syncProgress = null) }
+                _uiState.update { it.copy(isSyncing = false, syncProgress = null, syncRevision = it.syncRevision + 1) }
             }
         }
     }

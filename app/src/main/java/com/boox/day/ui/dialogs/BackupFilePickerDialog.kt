@@ -50,7 +50,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val BACKUP_FILE_PREFIX = "booxday_backup_"
+private val BACKUP_FILE_PREFIXES = listOf("bsplan_backup_", "booxday_backup_")
 
 private data class BackupFileItem(
     val file: File,
@@ -232,7 +232,7 @@ fun BackupFilePickerDialog(
                                     )
                                     Spacer(Modifier.height(4.dp))
                                     Text(
-                                        "Backups are saved as ${BACKUP_FILE_PREFIX}*.json",
+                                        "Backups are saved as ${BACKUP_FILE_PREFIXES.first()}*.json",
                                         fontSize = EInkTheme.Typography.bodySmall,
                                         color = EInkTheme.Colors.gray
                                     )
@@ -328,7 +328,7 @@ private fun loadBackupFiles(folder: BackupFolder): List<BackupFileItem> {
     return dir.listFiles()
         ?.filter { file ->
             file.isFile &&
-                file.name.startsWith(BACKUP_FILE_PREFIX) &&
+                BACKUP_FILE_PREFIXES.any { prefix -> file.name.startsWith(prefix) } &&
                 file.name.endsWith(".json", ignoreCase = true)
         }
         ?.map { file ->

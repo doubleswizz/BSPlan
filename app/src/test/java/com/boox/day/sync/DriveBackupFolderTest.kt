@@ -77,7 +77,7 @@ class DriveBackupFolderTest {
     private val save: (String?) -> Unit = { saved += it }
 
     @Test
-    fun `Backup Now with no saved folder makes BooxDay Backups and saves it`() {
+    fun `Backup Now with no saved folder makes BSPlan Backups and saves it`() {
         val fake = FakeDrive()
 
         val result = DriveBackupService.findOrCreateBackupFolder(fake.drive, storedFolderId = null, save)
@@ -86,7 +86,7 @@ class DriveBackupFolderTest {
         assertEquals(listOf<String?>(NEW_ID), saved)
         assertEquals(1, fake.createdBodies.size)
         val body = fake.createdBodies.single()
-        assertTrue(body, body.contains("\"name\":\"BooxDay Backups\""))
+        assertTrue(body, body.contains("\"name\":\"BSPlan Backups\""))
         assertTrue(body, body.contains("\"mimeType\":\"application/vnd.google-apps.folder\""))
     }
 

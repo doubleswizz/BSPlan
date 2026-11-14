@@ -43,18 +43,7 @@ class EditorTabManager(
 ) {
     // Current tab (source of truth)
     // StateFlow allows Compose to observe and recompose when tab changes
-    // FIX: Use startTab (user's preference from General Settings) instead of lastActiveTab
-    // The user sets their preferred default tab in General Settings, so we should respect it
-    val currentTab = MutableStateFlow(
-        run {
-            val preferredTab = GlobalAppSettings.current.startTab
-            if (preferredTab == AppSettings.StartTab.Tasks) {
-                EditorTab.Tasks
-            } else {
-                EditorTab.Memos
-            }
-        }
-    )
+    val currentTab = MutableStateFlow(EditorTab.Memos)
 
     // Control towers for each tab (set by canvas areas when they mount)
     // Nullable because canvases may not be mounted yet

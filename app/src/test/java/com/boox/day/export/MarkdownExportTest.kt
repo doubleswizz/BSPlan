@@ -84,7 +84,7 @@ class MarkdownExportTest {
         val links = DailyNoteMarkdown.imagesIn(note.readText())
         assertEquals(mapOf(1 to "attachments/$day-p1.png", 2 to "attachments/$day-p2.png"), links)
         links.values.forEach { assertTrue(it, File(DailyNoteWriter.defaultFolder(), it).length() > 0) }
-        assertEquals("Saved $day.md to Documents/BooxDay/Daily Notes", outcome.message)
+        assertEquals("Saved $day.md to Documents/BSPlan/Daily Notes", outcome.message)
         assertTrue("nothing to share", (outcome as ExportOutcome.Saved).uris.isEmpty())
     }
 

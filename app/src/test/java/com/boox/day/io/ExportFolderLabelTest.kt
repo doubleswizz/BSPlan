@@ -18,13 +18,13 @@ class ExportFolderLabelTest {
     @Test
     fun theDefaultFolderIsShownBelowTheStorageRoot() {
         // The tablet's paths (the JVM's own storage root is a Windows path on the build PC)
-        val folder = Uri.parse("file:///storage/emulated/0/Documents/BooxDay/Calendar/2026-11")
+        val folder = Uri.parse("file:///storage/emulated/0/Documents/BSPlan/Calendar/2026-11")
         val label = ExportFolderLabel.of(folder, storageRoot = "/storage/emulated/0")
 
-        assertEquals("Documents/BooxDay/Calendar/2026-11", label)
+        assertEquals("Documents/BSPlan/Calendar/2026-11", label)
         assertEquals(
-            "Saved BooxDay-2026-11-08-p1.pdf to Documents/BooxDay/Calendar/2026-11",
-            ExportFolderLabel.savedMessage("BooxDay-2026-11-08-p1.pdf", label)
+            "Saved BSPlan-2026-11-08-p1.pdf to Documents/BSPlan/Calendar/2026-11",
+            ExportFolderLabel.savedMessage("BSPlan-2026-11-08-p1.pdf", label)
         )
     }
 

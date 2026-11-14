@@ -31,13 +31,10 @@ class SettingsAttentionTest {
     }
 
     @Test
-    fun remindersCountOnlyWhenTheyAreOnAndBlocked() {
-        assertEquals(listOf(SettingsPlace.PREFERENCES), places(allFine.copy(notificationsAllowed = false)))
-        assertEquals(listOf(SettingsPlace.PREFERENCES), places(allFine.copy(reminderChannelsOn = false)))
-        assertEquals(listOf(SettingsPlace.PREFERENCES), places(allFine.copy(batteryOk = false)))
-        // Several problems with reminders are still one thing to fix
-        assertEquals(1, places(allFine.copy(notificationsAllowed = false, batteryOk = false)).size)
-        assertTrue(places(allFine.copy(remindersOn = false, notificationsAllowed = false)).isEmpty())
+    fun remindersNoLongerEmitAttention() {
+        assertTrue(places(allFine.copy(notificationsAllowed = false)).isEmpty())
+        assertTrue(places(allFine.copy(reminderChannelsOn = false)).isEmpty())
+        assertTrue(places(allFine.copy(batteryOk = false)).isEmpty())
     }
 
     @Test

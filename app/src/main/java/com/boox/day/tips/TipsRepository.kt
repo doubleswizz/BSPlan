@@ -465,16 +465,6 @@ object TipsRepository {
             message = "More privacy with AI: use paid models and turn on Zero Data Retention in your OpenRouter account.",
             contexts = setOf(TipContext.GENERAL)
         ),
-        Tip(
-            id = "ai_options_vacation",
-            message = "Going away? Turn on Vacation mode (Settings → AI Settings → AI options) for lighter plans and suggestions.",
-            contexts = setOf(TipContext.TASKS)
-        ),
-        Tip(
-            id = "ai_options_count",
-            message = "Too many or too few Smart Suggestions? Pick Fewer, Normal or More in AI Settings → AI options.",
-            contexts = setOf(TipContext.TASKS)
-        ),
     )
 
     // ═══════════════════════════════════════════════════════════════
@@ -521,12 +511,6 @@ object TipsRepository {
             id = "discover_memo_to_tasks",
             message = "Wrote a to-do in your memos? Convert Memo to Tasks in the Memos tab adds it to your list.",
             contexts = setOf(TipContext.TASKS),
-            isDiscovery = true
-        ),
-        Tip(
-            id = "discover_ai_options",
-            message = "No health or social ideas wanted? Turn them off in Settings → AI Settings → AI options.",
-            contexts = setOf(TipContext.MEMOS, TipContext.TASKS),
             isDiscovery = true
         ),
     )

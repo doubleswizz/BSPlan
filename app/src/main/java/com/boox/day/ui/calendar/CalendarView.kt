@@ -261,7 +261,7 @@ fun MonthHeaderWithToolbar(
         "July", "August", "September", "October", "November", "December"
     )
 
-    val years = (2023..2030).toList()
+    val years = remember(year) { ((minOf(2020, year - 5))..(maxOf(2035, year + 10))).toList() }
 
     // Header button groups (plan Phase 1.5): shared by the Regular row (same order as before)
     // and the compact ⋮ popup. In Regular, isOverflowOpen stays false.

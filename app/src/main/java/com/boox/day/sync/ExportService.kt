@@ -85,7 +85,7 @@ class ExportService(
     suspend fun createBackup(): ExportResult = withContext(Dispatchers.IO) {
         val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.US).format(Date())
         val backupDir = File(getDbDir(context), "backups").apply { mkdirs() }
-        val backupFile = File(backupDir, "booxday_backup_$timestamp.json")
+        val backupFile = File(backupDir, "bsplan_backup_$timestamp.json")
         val partFile = File(backupDir, "${backupFile.name}.part")
         try {
             Log.i(TAG, "Starting backup export...")

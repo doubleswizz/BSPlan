@@ -276,7 +276,7 @@ class PlanningPicturesRenderTest {
             }
             render("write-${d.name}-reading", d, dimmed = true) { ProposalReadingCard(w) }
             render("write-${d.name}-nodate", d, dimmed = true) { ProposalNothingCard("No date or time found.", w) }
-            render("write-${d.name}-offline", d, dimmed = true) { ProposalNothingCard("BooxDay needs a connection to read this. Your notes are safe.", w) }
+            render("write-${d.name}-offline", d, dimmed = true) { ProposalNothingCard("BSPlan needs a connection to read this. Your notes are safe.", w) }
         }
     }
 

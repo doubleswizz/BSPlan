@@ -39,32 +39,19 @@ class PreferenceScorerTest {
     }
 
     @Test
-    fun `vacation lowers work items only`() {
-        val result = scores(AiPreferences(vacationMode = true))
-        assertTrue(applies(AiPreferences(vacationMode = true)))
-        assertTrue(result.getValue("work") < result.getValue("other"))
-        assertEquals(result.getValue("health"), result.getValue("other"), 0.001f)
-    }
-
-    @Test
-    fun `health and social off lower those items`() {
-        val noHealth = scores(AiPreferences(includeHealthReminders = false))
-        assertTrue(noHealth.getValue("health") < noHealth.getValue("other"))
-        assertEquals(noHealth.getValue("social"), noHealth.getValue("other"), 0.001f)
-
-        val noSocial = scores(AiPreferences(includeSocialReminders = false))
-        assertTrue(noSocial.getValue("social") < noSocial.getValue("other"))
-        assertEquals(noSocial.getValue("health"), noSocial.getValue("other"), 0.001f)
-    }
-
-    @Test
-    fun `removed answers change no score`() {
-        val withOldAnswers = scores(
-            AiPreferences(
-                vacationMode = true, workPriority = 1, healthPriority = 5, familyPriority = 5,
-                crunchMode = true, isSocialButterfly = true, setupComplete = true
-            )
+    fun `removed options leave scorer non-applicable and neutral`() {
+        val oldOptions = AiPreferences(
+            vacationMode = true,
+            includeHealthReminders = false,
+            includeSocialReminders = false,
+            workPriority = 1, healthPriority = 5, familyPriority = 5,
+            crunchMode = true, isSocialButterfly = true, setupComplete = true
         )
-        assertEquals(scores(AiPreferences(vacationMode = true)), withOldAnswers)
+        assertFalse(applies(oldOptions))
+        val result = scores(oldOptions)
+        assertEquals(0.5f, result.getValue("work"), 0.001f)
+        assertEquals(0.5f, result.getValue("health"), 0.001f)
+        assertEquals(0.5f, result.getValue("social"), 0.001f)
+        assertEquals(0.5f, result.getValue("other"), 0.001f)
     }
 }

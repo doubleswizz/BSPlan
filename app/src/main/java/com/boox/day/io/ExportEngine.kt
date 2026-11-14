@@ -469,7 +469,7 @@ class ExportEngine(
                     } else {
                         // Quick page (neither book nor day)
                         val timeStamp = getReadableUtcTimestamp()
-                        "booxday-$timeStamp"
+                        "bsplan-$timeStamp"
                     }
                 }
             }
@@ -599,8 +599,8 @@ class ExportEngine(
     private fun copyPagePngLink(context: Context, pageId: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = """
-            [[../attachments/BSPlan/Pages/booxday-page-$pageId.png]]
-            [[BSPlan Link][booxday://page-$pageId]]
+            [[../attachments/BSPlan/Pages/bsplan-page-$pageId.png]]
+            [[BSPlan Link][bsplan://page-$pageId]]
         """.trimIndent()
         clipboard.setPrimaryClip(ClipData.newPlainText("BSPlan Page Link", text))
     }
@@ -609,7 +609,7 @@ class ExportEngine(
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val text = """
             [[../attachments/BSPlan/Notebooks/$bookName.pdf]]
-            [[BSPlan Book Link][booxday://book-$bookId]]
+            [[BSPlan Book Link][bsplan://book-$bookId]]
         """.trimIndent()
         clipboard.setPrimaryClip(ClipData.newPlainText("BSPlan Book PDF Link", text))
     }

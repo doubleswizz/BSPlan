@@ -78,8 +78,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Locale
 
-/** The pinned row's key: BooxDay's choice (no pick saved for the job). */
-private const val BOOX_DAY_CHOICE = ""
+/** The pinned row's key: BSPlan's choice (no pick saved for the job). */
+private const val BSPLAN_CHOICE = ""
 
 /**
  * Width that fits the Show filters (about 330 dp) and the longest Sort label ("Sort: Price: high
@@ -105,7 +105,7 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
     val loading = OpenRouterModelCatalog.loading
     val loadError = OpenRouterModelCatalog.error
     val currentPick = GlobalAppSettings.current.aiModels.forJob(job)
-    val currentKey = currentPick?.id ?: BOOX_DAY_CHOICE
+    val currentKey = currentPick?.id ?: BSPLAN_CHOICE
 
     var query by remember { mutableStateOf("") }
     var show by remember { mutableStateOf(OpenRouterModelCatalog.Show.POPULAR) }
@@ -273,13 +273,13 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
                 val canScrollForward by remember { derivedStateOf { listState.canScrollForward } }
                 Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        item(key = "boox-day-choice") {
+                        item(key = "bsplan-choice") {
                             ModelRow(
                                 title = "BSPlan's choice: $defaultName",
                                 detail = "Tested models, with backups. Follows app updates.",
-                                selected = selectedKey == BOOX_DAY_CHOICE,
+                                selected = selectedKey == BSPLAN_CHOICE,
                                 inUse = currentPick == null || inUseId != currentPick.id
-                            ) { selectedKey = BOOX_DAY_CHOICE }
+                            ) { selectedKey = BSPLAN_CHOICE }
                         }
                         // The saved pick stays in reach when it isn't among the 10 shown (Oct 2026)
                         val pickedModel = currentPick?.let { pick -> snapshot?.models?.firstOrNull { it.id == pick.id } }
@@ -332,10 +332,10 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)
                 ) {
                     EinkSecondaryButton(text = "Cancel", onClick = onDismiss, modifier = Modifier.weight(0.4f))
-                    if (selectedKey == BOOX_DAY_CHOICE) {
+                    if (selectedKey == BSPLAN_CHOICE) {
                         ActionButton(
                             text = "Use Model",
-                            enabled = currentKey != BOOX_DAY_CHOICE,
+                            enabled = currentKey != BSPLAN_CHOICE,
                             onClick = { save(null) },
                             modifier = Modifier.weight(0.6f)
                         )

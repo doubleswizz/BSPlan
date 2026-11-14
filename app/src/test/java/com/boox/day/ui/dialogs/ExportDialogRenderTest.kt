@@ -93,7 +93,7 @@ class ExportDialogRenderTest {
                             summary = "1 note, 12 pictures · about 700 KB",
                             picture = null,
                             previewWidth = device.preview.dp,
-                            folder = "Documents/BooxDay/Daily Notes",
+                            folder = "Documents/BSPlan/Daily Notes",
                             canExport = true
                         ),
                         actions = ExportDialogActions()

@@ -151,7 +151,7 @@ fun WelcomeView(navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // More features, and where Help is
-                AlsoInBooxDayCard()
+                AlsoInBSPlanCard()
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -448,7 +448,7 @@ private fun HighlightBullet(text: String) {
  * E-ink optimized with clean icons and high contrast.
  */
 @Composable
-private fun AlsoInBooxDayCard() {
+private fun AlsoInBSPlanCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -489,18 +489,6 @@ private fun AlsoInBooxDayCard() {
             icon = Icons.Outlined.Draw,
             label = "Full screen",
             description = "more room to write"
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        FeatureItem(
-            icon = Icons.Outlined.CalendarMonth,
-            label = "Sleep screen",
-            description = "your day while the tablet sleeps"
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        FeatureItem(
-            icon = Icons.Outlined.Folder,
-            label = "Daily notes",
-            description = "each day as a Markdown file"
         )
         Spacer(modifier = Modifier.height(6.dp))
         FeatureItem(

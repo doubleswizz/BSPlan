@@ -4,7 +4,6 @@ import android.app.AppOpsManager
 import android.app.Application
 import android.os.Process
 import com.boox.day.booxnotes.BooxNotesAccess
-import com.boox.day.ui.dialogs.reminderStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -38,15 +37,6 @@ class PermissionAskTest {
         // The user saw the prompt and refused or dismissed it: ask again next time
         assertFalse(PermissionAsks.isInstantDenial(granted = false, answerAfterMs = 2_500))
         assertFalse(PermissionAsks.isInstantDenial(granted = true, answerAfterMs = 40))
-    }
-
-    @Test
-    fun reminderStatusSaysWhatStandsInTheWay() {
-        assertEquals("Off", reminderStatus(on = false, notificationsAllowed = false, channelOn = false, batteryOk = false))
-        assertEquals("On", reminderStatus(on = true, notificationsAllowed = true, channelOn = true, batteryOk = true))
-        assertTrue(reminderStatus(true, false, true, true).contains("notifications are off"))
-        assertTrue(reminderStatus(true, true, false, true).contains("reminder type is off"))
-        assertTrue(reminderStatus(true, true, true, false).contains("may be late"))
     }
 
     @Test

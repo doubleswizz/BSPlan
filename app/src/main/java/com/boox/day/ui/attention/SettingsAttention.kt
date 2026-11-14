@@ -75,13 +75,6 @@ object SettingsAttentionRules {
 
     fun items(inputs: AttentionInputs): List<AttentionItem> = buildList {
         with(inputs) {
-            if (remindersOn) {
-                when {
-                    !notificationsAllowed -> add(AttentionItem(SettingsPlace.PREFERENCES, "Reminders are on, but notifications are off"))
-                    !reminderChannelsOn -> add(AttentionItem(SettingsPlace.PREFERENCES, "A reminder type is off in Android settings"))
-                    !batteryOk -> add(AttentionItem(SettingsPlace.PREFERENCES, "Reminders may be late (battery saving)"))
-                }
-            }
             taskSyncNeeds?.let { add(AttentionItem(SettingsPlace.PREFERENCES, it)) }
             if (accountsToReconnect > 0) {
                 add(AttentionItem(SettingsPlace.CALENDAR_ACCOUNTS, if (accountsToReconnect == 1) "An account needs to reconnect" else "$accountsToReconnect accounts need to reconnect"))

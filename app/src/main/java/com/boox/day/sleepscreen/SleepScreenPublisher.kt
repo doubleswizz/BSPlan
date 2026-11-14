@@ -37,9 +37,11 @@ object SleepScreenPublisher {
     private const val KEY_FINGERPRINT = "fingerprint"
     private const val KEY_DATE = "date"
     private const val KEY_FILE = "file"
-    private const val NAME_PREFIX = "booxday-today"
+    private const val NAME_PREFIX = "bsplan-today"
     /** The user's own image on its way back to BOOX ([handBack]). */
-    private const val BACK_PREFIX = "booxday-back"
+    private const val BACK_PREFIX = "bsplan-back"
+    private const val LEGACY_NAME_PREFIX = "booxday-today"
+    private const val LEGACY_BACK_PREFIX = "booxday-back"
     /** The fixed name builds before 24 Oct 2026 used. */
     private const val OLD_FIXED_NAME = "booxday-today.png"
 
@@ -170,7 +172,8 @@ object SleepScreenPublisher {
     }
 
     internal fun isOurImage(name: String): Boolean =
-        (name.startsWith(NAME_PREFIX) && name.endsWith(".png")) || (name.startsWith(BACK_PREFIX) && name.endsWith(".jpg"))
+        ((name.startsWith(NAME_PREFIX) || name.startsWith(LEGACY_NAME_PREFIX)) && name.endsWith(".png")) ||
+            ((name.startsWith(BACK_PREFIX) || name.startsWith(LEGACY_BACK_PREFIX)) && name.endsWith(".jpg"))
 
     /** The panel's portrait size in pixels and its pixels per inch. */
     internal fun panel(context: Context): Triple<Int, Int, Int> {

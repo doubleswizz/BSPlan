@@ -24,7 +24,7 @@
     <string name="paginate_pdf">Podziel strony przy eksporcie</string>
     <string name="preview_pdf_pagination">Podgląd podziału stron</string>
 
-    <string name="app_new_version">Wygląda na to, że nowa wersja BooxDay jest dostępna na GitHubie!</string>
+    <string name="app_new_version">Wygląda na to, że nowa wersja BSPlan jest dostępna na GitHubie!</string>
     <string name="app_see_release">Zobacz wersję w przeglądarce</string>
     <string name="app_latest_version">Aplikacja jest aktualna.</string>
     <string name="app_check_updates">Sprawdź dostępność aktualizacji</string>
@@ -63,7 +63,7 @@
 
 
     <!-- Welcome / guide strings -->
-    <string name="welcome_view_title">Witaj w BooxDay!</string>
+    <string name="welcome_view_title">Witaj w BSPlan!</string>
     <string name="welcome_view_subtitle">Aby uzyskać najlepsze wrażenia, wykonaj kroki konfiguracji:</string>
     <string name="welcome_view_file_access">Dostęp do plików</string>
     <string name="welcome_view_file_access_explanation">Wymagane do zapisywania i ładowania notatek</string>
@@ -76,10 +76,10 @@
     <string name="welcome_view_continue">Kontynuuj</string>
     <string name="welcome_view_complete_setup_first">Najpierw zakończ konfigurację</string>
 
-    <string name="welcome_view_prevent_frozen">⚠️ Zapobiegaj zamrażaniu BooxDay (urządzenia Onyx)</string>
-    <string name="welcome_view_prevent_frozen_details">Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BooxDay będzie ciągle zamykany w tle, co może powodować utratę pracy.</string>
+    <string name="welcome_view_prevent_frozen">⚠️ Zapobiegaj zamrażaniu BSPlan (urządzenia Onyx)</string>
+    <string name="welcome_view_prevent_frozen_details">Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BSPlan będzie ciągle zamykany w tle, co może powodować utratę pracy.</string>
     <string name="welcome_view_prevent_frozen_instructions_title">Jak zapobiec zamrażaniu:</string>
-    <string name="welcome_view_prevent_frozen_instructions">1. Przytrzymaj ikonę BooxDay na launcherze Onyx (ekran główny).\n2. Wybierz &quot;Odmrizić&quot; z menu.</string>
+    <string name="welcome_view_prevent_frozen_instructions">1. Przytrzymaj ikonę BSPlan na launcherze Onyx (ekran główny).\n2. Wybierz &quot;Odmrozić&quot; z menu.</string>
     <string name="welcome_view_prevent_frozen_recommended">Ten krok jest wysoce zalecany dla płynnego działania.</string>
 
     <string name="welcome_view_quick_start_title"><![CDATA[📖 Szybki start i przewodnik gestów]]></string>

@@ -55,9 +55,11 @@ class BackgroundSyncWorker(
         if (!manager.hasAnyAccounts()) return Result.success()
 
         val today = LocalDate.now()
+        val startMonth = java.time.YearMonth.from(today).minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong())
+        val endMonth = java.time.YearMonth.from(today).plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())
         val results = manager.syncAllAccounts(
-            today.minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong()),
-            today.plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())
+            startMonth.atDay(1),
+            endMonth.atEndOfMonth()
         )
         Log.i(TAG, "Background sync: " + results.values.groupingBy { it::class.simpleName }.eachCount())
         // Tasks too, when task sync is on (plan step 2.7); it looks at Google before sending

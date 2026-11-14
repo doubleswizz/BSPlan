@@ -91,7 +91,7 @@ fun sanitizeFileName(raw: String, maxLen: Int = 80): String {
         }
     }
     if (name.isBlank()) {
-        name = "booxday-export"
+        name = "bsplan-export"
     }
     return name
 }

@@ -615,6 +615,7 @@ fun MonthPlannerEffects(
     datesWithTasks: Set<String>,
     loadEventsForDay: suspend (String) -> List<CalendarEvent>,
     onEnsureMemosTab: () -> Unit,
+    syncRevision: Int = 0,
     onMonthYearSelected: (newYear: Int, newMonthZeroBased: Int) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
@@ -653,7 +654,8 @@ fun MonthPlannerEffects(
         firstDayOfWeek,
         datesWithNotes,
         datesWithEvents,
-        datesWithTasks
+        datesWithTasks,
+        syncRevision
     ) {
         val grid = MonthPlannerGridState.loadMonthGrid(
             context = context,

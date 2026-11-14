@@ -131,8 +131,10 @@ class SyncWorker(
                 if (authManager.isSignedIn()) {
                     Log.d(TAG, "Pulling from Google Calendar...")
                     val now = LocalDate.now()
-                    val startDate = now.minusMonths(monthsBefore.toLong())
-                    val endDate = now.plusMonths(monthsAfter.toLong())
+                    val startMonth = java.time.YearMonth.from(now).minusMonths(monthsBefore.toLong())
+                    val endMonth = java.time.YearMonth.from(now).plusMonths(monthsAfter.toLong())
+                    val startDate = startMonth.atDay(1)
+                    val endDate = endMonth.atEndOfMonth()
 
                     val pullResult = localEventService.pullFromGoogle(startDate, endDate)
                     when (pullResult) {

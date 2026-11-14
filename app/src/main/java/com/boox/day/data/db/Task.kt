@@ -776,6 +776,27 @@ interface TaskDao {
     """)
     fun getOverdueTasksCount(todayString: String): kotlinx.coroutines.flow.Flow<Int>
 
+    /**
+     * Get incomplete top-level tasks that are past due as of [todayString] ("yyyy-MM-dd"):
+     * includes both tasks with an explicit [dueDay] earlier than [todayString] and undated
+     * meaningful tasks scheduled on an earlier [dayDate].
+     */
+    @Query("""
+        SELECT * FROM task
+        WHERE parentTaskId IS NULL
+        AND isCompleted = 0
+        AND COALESCE(dueDay, dayDate) < :todayString
+        AND (
+            dueDay IS NOT NULL
+            OR (typedText IS NOT NULL AND typedText != '')
+            OR (convertedText IS NOT NULL AND convertedText != '')
+            OR (recognizedText IS NOT NULL AND recognizedText != '')
+            OR priority != ''
+        )
+        ORDER BY COALESCE(dueDay, dayDate) ASC, dayDate ASC, taskPageIndex ASC, rowIndex ASC
+    """)
+    fun getPendingPastDueTasksFlow(todayString: String): kotlinx.coroutines.flow.Flow<List<Task>>
+
     // ========== NOTIFICATION QUERIES ==========
 
     /**
@@ -5946,4 +5967,10 @@ class TaskRepository(internal val context: Context) {
      */
     fun getOverdueTasksCount(todayString: String): kotlinx.coroutines.flow.Flow<Int> =
         taskDao.getOverdueTasksCount(todayString)
+
+    /**
+     * Get incomplete top-level tasks that are past due as of [todayString] ("yyyy-MM-dd") as a Flow.
+     */
+    fun getPendingPastDueTasksFlow(todayString: String): kotlinx.coroutines.flow.Flow<List<Task>> =
+        taskDao.getPendingPastDueTasksFlow(todayString)
 }

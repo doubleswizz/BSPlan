@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
@@ -24,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +73,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.math.hypot
 
@@ -389,15 +394,24 @@ fun DayPlannerEffects(
     currentTasks: List<Task>,
     eventsViewModel: EventsViewModel
 ) {
+    val context = LocalContext.current
+    val taskRepository = remember { TaskRepository(context.applicationContext) }
+    val todayStr = LocalDate.now().toString()
+
     val eventsForDay by remember(selectedDate, eventsViewModel) {
         eventsViewModel.getEventsForDate(selectedDate)
     }.collectAsState(initial = emptyList())
 
-    LaunchedEffect(selectedDate, eventsForDay, currentTasks, PlannerNavigationState.mode) {
+    val pendingPastDueTasks by remember(todayStr, taskRepository) {
+        taskRepository.getPendingPastDueTasksFlow(todayStr)
+    }.collectAsState(initial = emptyList())
+
+    LaunchedEffect(selectedDate, eventsForDay, currentTasks, pendingPastDueTasks, PlannerNavigationState.mode) {
         val model = DayPlannerState.buildModel(
             dateStr = selectedDate,
             events = eventsForDay,
-            tasks = currentTasks
+            tasks = currentTasks,
+            pendingPastDueTasks = pendingPastDueTasks
         )
         DayPlannerState.currentDayModel = model
         if (PlannerNavigationState.mode == PlannerViewMode.Day) {
@@ -425,6 +439,8 @@ fun DayPlannerTouchOverlay(
     val currentModelState = rememberUpdatedState(dayModel)
     val taskRepository = remember { TaskRepository(context.applicationContext) }
     var managingTaskRow by remember { mutableStateOf<DayTaskRow?>(null) }
+    var showPendingTasksPopup by remember { mutableStateOf(false) }
+    var reopenPendingAfterManage by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -461,7 +477,7 @@ fun DayPlannerTouchOverlay(
                     val dashboardBottomY = DayPlannerCanvasRenderer.dashboardBottomY(heightPx)
                     val rowsTopY = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX
 
-                    // Only intercept finger taps inside the Top 25% Dashboard rows
+                    // Only intercept finger taps inside the Top Dashboard rows
                     if (upPos.y < rowsTopY || upPos.y > dashboardBottomY || widthPx <= 0f) {
                         return@awaitEachGesture
                     }
@@ -481,7 +497,15 @@ fun DayPlannerTouchOverlay(
                         MainScreenRequests.request(MainScreenRequest.ShowEvent(scheduleRow.event))
                     } else {
                         // Right column: GOOGLE TASKS
-                        val taskRow = model.taskRows.getOrNull(rowIndex) ?: return@awaitEachGesture
+                        val hasPendingEntry = model.pendingTasks.isNotEmpty()
+                        if (hasPendingEntry && rowIndex == 0) {
+                            DrawCanvas.forceUnfreeze()
+                            showPendingTasksPopup = true
+                            return@awaitEachGesture
+                        }
+
+                        val taskIndex = if (hasPendingEntry) rowIndex - 1 else rowIndex
+                        val taskRow = model.taskRows.getOrNull(taskIndex) ?: return@awaitEachGesture
                         DrawCanvas.forceUnfreeze()
                         val checkboxZoneRightX = midX + 80f
                         if (upPos.x <= checkboxZoneRightX) {
@@ -494,6 +518,7 @@ fun DayPlannerTouchOverlay(
                             }
                         } else {
                             // Open Task Management Popup
+                            reopenPendingAfterManage = false
                             managingTaskRow = taskRow
                         }
                     }
@@ -501,11 +526,34 @@ fun DayPlannerTouchOverlay(
             }
     )
 
+    if (showPendingTasksPopup) {
+        PendingTasksPopup(
+            pendingTasks = dayModel?.pendingTasks.orEmpty(),
+            taskRepository = taskRepository,
+            onManageTask = { item ->
+                showPendingTasksPopup = false
+                reopenPendingAfterManage = true
+                managingTaskRow = DayTaskRow(
+                    task = item.task,
+                    title = item.title,
+                    isCompleted = item.task.isCompleted
+                )
+            },
+            onDismiss = { showPendingTasksPopup = false }
+        )
+    }
+
     managingTaskRow?.let { taskRow ->
         DayTaskManagePopup(
             taskRow = taskRow,
             taskRepository = taskRepository,
-            onDismiss = { managingTaskRow = null }
+            onDismiss = {
+                managingTaskRow = null
+                if (reopenPendingAfterManage) {
+                    reopenPendingAfterManage = false
+                    showPendingTasksPopup = true
+                }
+            }
         )
     }
 }
@@ -739,6 +787,250 @@ private fun DayTaskManagePopup(
                     ) {
                         Text("Save", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Popup dialog showing all past-due (pending) incomplete Google/Tablet tasks.
+ * Lets the user mark tasks complete, move any task directly to Today, or edit/delete it.
+ */
+@Composable
+private fun PendingTasksPopup(
+    pendingTasks: List<PendingTaskRow>,
+    taskRepository: TaskRepository,
+    onManageTask: (PendingTaskRow) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val today = remember { LocalDate.now() }
+    val todayStr = remember(today) { today.toString() }
+    val dateFormatter = remember { DateTimeFormatter.ofPattern("EEE, MMM d", Locale.getDefault()) }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        DrawCanvas.mainScreenModalVisible.value = true
+        onDispose {
+            DrawCanvas.mainScreenModalVisible.value = false
+        }
+    }
+
+    Popup(
+        popupPositionProvider = ScreenCentre,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        Column(
+            modifier = Modifier
+                .width(560.dp)
+                .background(EInkTheme.Colors.background, RoundedCornerShape(EInkTheme.Global.cornerRadius))
+                .border(2.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(EInkTheme.Global.cornerRadius))
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "PENDING TASKS (PAST DUE)",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = EInkTheme.Colors.primary
+                    )
+                    if (pendingTasks.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFFEF3C7), RoundedCornerShape(6.dp))
+                                .border(1.dp, Color(0xFFD97706), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "${pendingTasks.size}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF92400E)
+                            )
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .border(1.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
+                        .noRippleClickable { onDismiss() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = EInkTheme.Colors.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            if (pendingTasks.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No pending past-due tasks.",
+                        fontSize = 16.sp,
+                        color = EInkTheme.Colors.darkGray
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 500.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(pendingTasks, key = { it.task.id }) { item ->
+                        val parsedDue = remember(item.dueOrDayDate) {
+                            runCatching { LocalDate.parse(item.dueOrDayDate) }.getOrNull()
+                        }
+                        val overdueLabel = remember(parsedDue, today, item.dueOrDayDate) {
+                            if (parsedDue == null) {
+                                item.dueOrDayDate
+                            } else {
+                                val daysOverdue = ChronoUnit.DAYS.between(parsedDue, today).coerceAtLeast(1)
+                                "${dateFormatter.format(parsedDue)} (${daysOverdue}d overdue)"
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(6.dp))
+                                .background(Color.White, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Checkbox to mark complete immediately
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .border(2.dp, Color(0xFF059669), RoundedCornerShape(5.dp))
+                                    .background(Color.White, RoundedCornerShape(5.dp))
+                                    .noRippleClickable {
+                                        scope.launch(Dispatchers.IO) {
+                                            taskRepository.setCompleted(item.task.id, true)
+                                            MainScreenRequests.request(MainScreenRequest.ReloadTasks)
+                                        }
+                                    }
+                            )
+
+                            // Task title & overdue date (tap to manage/edit)
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .noRippleClickable { onManageTask(item) },
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (item.priority.isNotBlank()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(EInkTheme.Colors.primary, RoundedCornerShape(3.dp))
+                                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                                        ) {
+                                            Text(
+                                                text = item.priority,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = item.title,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = EInkTheme.Colors.primary,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Text(
+                                    text = overdueLabel,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFFB45309)
+                                )
+                            }
+
+                            // Quick button to move task to Today
+                            Box(
+                                modifier = Modifier
+                                    .height(38.dp)
+                                    .border(1.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
+                                    .noRippleClickable {
+                                        scope.launch(Dispatchers.IO) {
+                                            val canvasH = GlobalAppSettings.tasksCanvasHeight.takeIf { it > 0f } ?: 1200f
+                                            val res = taskRepository.moveTaskWithStrokes(item.task, todayStr, 0, canvasH, context)
+                                            if (res.success) {
+                                                MainScreenRequests.request(MainScreenRequest.ReloadTasks)
+                                                SnackState.globalSnackFlow.tryEmit(
+                                                    SnackConf(
+                                                        text = "Moved task to today ($todayStr)",
+                                                        duration = SnackConf.DURATION_QUICK
+                                                    )
+                                                )
+                                            } else {
+                                                SnackState.globalSnackFlow.tryEmit(
+                                                    SnackConf(
+                                                        text = "Could not move task to today",
+                                                        duration = SnackConf.DURATION_QUICK
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+                                    .padding(horizontal = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "→ Today",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = EInkTheme.Colors.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Box(
+                    modifier = Modifier
+                        .height(44.dp)
+                        .background(EInkTheme.Colors.primary, RoundedCornerShape(4.dp))
+                        .noRippleClickable { onDismiss() }
+                        .padding(horizontal = 22.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Close", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

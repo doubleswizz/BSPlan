@@ -28,12 +28,21 @@ data class DayTaskRow(
 )
 
 @Immutable
+data class PendingTaskRow(
+    val task: Task,
+    val title: String,
+    val dueOrDayDate: String,
+    val priority: String
+)
+
+@Immutable
 data class DayPlannerModel(
     val dateStr: String,
     val date: LocalDate,
     val isTuesday: Boolean,
     val scheduleRows: List<DayScheduleRow>,
-    val taskRows: List<DayTaskRow>
+    val taskRows: List<DayTaskRow>,
+    val pendingTasks: List<PendingTaskRow> = emptyList()
 )
 
 /**
@@ -47,7 +56,8 @@ object DayPlannerState {
     fun buildModel(
         dateStr: String,
         events: List<CalendarEvent>,
-        tasks: List<Task>
+        tasks: List<Task>,
+        pendingPastDueTasks: List<Task> = emptyList()
     ): DayPlannerModel {
         val parsedDate = runCatching { LocalDate.parse(dateStr) }.getOrDefault(LocalDate.now())
         val isTuesday = parsedDate.dayOfWeek == DayOfWeek.TUESDAY
@@ -79,12 +89,24 @@ object DayPlannerState {
             )
         }
 
+        val pendingTasks = pendingPastDueTasks
+            .filter { !WeekLoader.text(it).isNullOrBlank() || it.priority.isNotBlank() || it.dueDay != null }
+            .map { task ->
+                PendingTaskRow(
+                    task = task,
+                    title = WeekLoader.text(task) ?: "Handwritten task",
+                    dueOrDayDate = task.dueDay ?: task.dayDate,
+                    priority = task.priority
+                )
+            }
+
         return DayPlannerModel(
             dateStr = dateStr,
             date = parsedDate,
             isTuesday = isTuesday,
             scheduleRows = scheduleRows,
-            taskRows = taskRows
+            taskRows = taskRows,
+            pendingTasks = pendingTasks
         )
     }
 

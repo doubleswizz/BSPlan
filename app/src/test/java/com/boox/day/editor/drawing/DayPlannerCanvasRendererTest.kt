@@ -10,6 +10,7 @@ import com.boox.day.ui.calendar.DayPlannerModel
 import com.boox.day.ui.calendar.DayPlannerState
 import com.boox.day.ui.calendar.DayScheduleRow
 import com.boox.day.ui.calendar.DayTaskRow
+import com.boox.day.ui.calendar.PendingTaskRow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -103,6 +104,78 @@ class DayPlannerCanvasRendererTest {
             (30 until 260).any { x -> Color.red(bitmap.getPixel(x, y)) < 0x40 }
         }
         assertTrue("Expected rendered schedule text in row 0", hasScheduleTextInk)
+
+        bitmap.recycle()
+    }
+
+    @Test
+    fun rendersPendingPastDueEntryInFirstGoogleTasksRowWhenPendingTasksExist() {
+        val width = 1800
+        val height = 2200
+        val overdue1 = Task(
+            id = "old-1",
+            dayDate = "2026-11-10",
+            taskPageIndex = 0,
+            rowIndex = 0,
+            pageId = "page-old",
+            isCompleted = false,
+            typedText = "Pay invoice",
+            dueDay = "2026-11-10"
+        )
+        val overdue2 = Task(
+            id = "old-2",
+            dayDate = "2026-11-11",
+            taskPageIndex = 0,
+            rowIndex = 1,
+            pageId = "page-old",
+            isCompleted = false,
+            typedText = "Call dentist"
+        )
+        val todayTask = Task(
+            id = "today-1",
+            dayDate = "2026-11-13",
+            taskPageIndex = 0,
+            rowIndex = 0,
+            pageId = "page-today",
+            isCompleted = false,
+            typedText = "Prepare notes"
+        )
+        DayPlannerState.currentDayModel = DayPlannerModel(
+            dateStr = "2026-11-13",
+            date = LocalDate.of(2026, 11, 13),
+            isTuesday = false,
+            scheduleRows = emptyList(),
+            taskRows = listOf(DayTaskRow(task = todayTask, title = "Prepare notes", isCompleted = false)),
+            pendingTasks = listOf(
+                PendingTaskRow(overdue1, "Pay invoice", "2026-11-10", ""),
+                PendingTaskRow(overdue2, "Call dentist", "2026-11-11", "")
+            )
+        )
+
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        DayPlannerCanvasRenderer.drawDayPlannerBg(canvas)
+
+        val headerBottom = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX.toInt()
+        val dashboardBottomFloat = DayPlannerCanvasRenderer.dashboardBottomY(height.toFloat())
+        val rowHeight = (dashboardBottomFloat - headerBottom - 4f) / DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS
+
+        // Row 0 on the right column ("GOOGLE TASKS") should show the #FEF3C7 Pending highlight pill & #D97706 stripe
+        val midX = width / 2
+        val row0CenterY = (headerBottom + rowHeight * 0.5f).toInt()
+        assertEquals(Color.parseColor("#D97706"), bitmap.getPixel(midX + 16, row0CenterY))
+        assertEquals(Color.parseColor("#FEF3C7"), bitmap.getPixel(width - 200, row0CenterY))
+
+        // Row 1 should still have today's task rendered cleanly (not tinted with the pending amber background)
+        val row1CenterY = (headerBottom + rowHeight * 1.5f).toInt()
+        assertEquals(Color.WHITE, bitmap.getPixel(width - 200, row1CenterY))
+
+        // Verify no [>] chevron text is drawn on the right edge of schedule or task rows
+        val hasRightEdgeChevron = ((headerBottom + 10)..(headerBottom + rowHeight.toInt() - 10)).any { y ->
+            (midX - 45 until midX - 10).any { x -> Color.red(bitmap.getPixel(x, y)) < 0x40 } ||
+                (width - 45 until width - 10).any { x -> Color.red(bitmap.getPixel(x, y)) < 0x40 }
+        }
+        assertTrue("Expected no [>] chevron indicator on schedule or task rows", !hasRightEdgeChevron)
 
         bitmap.recycle()
     }

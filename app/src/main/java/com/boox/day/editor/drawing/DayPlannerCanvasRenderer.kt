@@ -101,14 +101,6 @@ object DayPlannerCanvasRenderer {
         isAntiAlias = true
     }
 
-    private val chevronPaint = Paint().apply {
-        color = Color.parseColor("#1E3A8A")
-        textSize = 32f
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        textAlign = Paint.Align.RIGHT
-        isAntiAlias = true
-    }
-
     private val checkboxStrokePaint = Paint().apply {
         color = Color.parseColor("#059669") // Emerald Green checkbox border
         style = Paint.Style.STROKE
@@ -131,6 +123,26 @@ object DayPlannerCanvasRenderer {
 
     private val eventStripePaint = Paint().apply {
         style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val pendingRowBgPaint = Paint().apply {
+        color = Color.parseColor("#FEF3C7") // Warm Amber Tint for past-due tasks entry
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val pendingRowStripePaint = Paint().apply {
+        color = Color.parseColor("#D97706") // Amber Gold Accent Stripe
+        style = Paint.Style.FILL
+        isAntiAlias = true
+    }
+
+    private val pendingRowTextPaint = Paint().apply {
+        color = Color.parseColor("#92400E") // Deep Amber Text
+        textSize = 36f
+        typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+        textAlign = Paint.Align.LEFT
         isAntiAlias = true
     }
 
@@ -185,7 +197,7 @@ object DayPlannerCanvasRenderer {
         val rowsAreaHeight = (dashboardBottomY - rowsTopY - 4f).coerceAtLeast(50f)
         val rowHeight = rowsAreaHeight / DASHBOARD_MAX_ROWS
 
-        val chevronReservePx = 80f
+        val rowRightMarginPx = 20f
 
         // Draw Schedule rows (Left)
         val scheduleRows = model?.scheduleRows.orEmpty()
@@ -228,20 +240,42 @@ object DayPlannerCanvasRenderer {
             canvas.drawText(timeStr, timeStartX, baselineY, rowTimePaint)
 
             val titleStartX = maxOf(228f, timeStartX + rowTimePaint.measureText(timeStr) + 18f)
-            val maxTitleWidth = (midX - titleStartX - chevronReservePx).coerceAtLeast(20f)
+            val maxTitleWidth = (midX - titleStartX - rowRightMarginPx).coerceAtLeast(20f)
             val fittedTitle = ellipsize(item.title, rowTitlePaint, maxTitleWidth)
             canvas.drawText(fittedTitle, titleStartX, baselineY, rowTitlePaint)
-
-            canvas.drawText("[>]", midX - 14f, baselineY, chevronPaint)
         }
 
         // Draw Google Tasks rows (Right)
         val taskRows = model?.taskRows.orEmpty()
+        val pendingCount = model?.pendingTasks?.size ?: 0
+        val hasPendingEntry = pendingCount > 0
         for (i in 0 until DASHBOARD_MAX_ROWS) {
             val rowTop = rowsTopY + i * rowHeight
             val rowBottom = rowTop + rowHeight
             if (i < DASHBOARD_MAX_ROWS - 1) {
                 canvas.drawLine(midX + 12f, rowBottom, width - 12f, rowBottom, writingLinePaint)
+            }
+
+            if (hasPendingEntry && i == 0) {
+                canvas.drawRoundRect(
+                    RectF(midX + 12f, rowTop + 3f, width - 12f, rowBottom - 3f),
+                    4f,
+                    4f,
+                    pendingRowBgPaint
+                )
+                canvas.drawRoundRect(
+                    RectF(midX + 12f, rowTop + 3f, midX + 20f, rowBottom - 3f),
+                    3f,
+                    3f,
+                    pendingRowStripePaint
+                )
+                val baselineY = rowTop + (rowHeight / 2f) - ((pendingRowTextPaint.descent() + pendingRowTextPaint.ascent()) / 2f)
+                val labelStartX = midX + 28f
+                val maxLabelWidth = (width - labelStartX - rowRightMarginPx).coerceAtLeast(20f)
+                val pendingLabel = "Pending ($pendingCount past due)"
+                val fittedPending = ellipsize(pendingLabel, pendingRowTextPaint, maxLabelWidth)
+                canvas.drawText(fittedPending, labelStartX, baselineY, pendingRowTextPaint)
+                continue
             }
 
             // Always draw checkbox on each task slot so user can also handwrite tasks in empty slots
@@ -250,7 +284,8 @@ object DayPlannerCanvasRenderer {
             val boxTop = rowTop + (rowHeight - boxSize) / 2f
             val boxRect = RectF(boxLeft, boxTop, boxLeft + boxSize, boxTop + boxSize)
 
-            val taskItem = taskRows.getOrNull(i)
+            val taskIndex = if (hasPendingEntry) i - 1 else i
+            val taskItem = taskRows.getOrNull(taskIndex)
             if (taskItem?.isCompleted == true) {
                 canvas.drawRoundRect(boxRect, 6f, 6f, checkboxFillPaint)
                 canvas.drawLine(boxLeft + 6f, boxTop + 16f, boxLeft + 13f, boxTop + 24f, checkMarkPaint)
@@ -262,11 +297,10 @@ object DayPlannerCanvasRenderer {
             if (taskItem != null) {
                 val baselineY = rowTop + (rowHeight / 2f) - ((rowTitlePaint.descent() + rowTitlePaint.ascent()) / 2f)
                 val titleStartX = boxLeft + boxSize + 16f
-                val maxTitleWidth = (width - titleStartX - chevronReservePx).coerceAtLeast(20f)
+                val maxTitleWidth = (width - titleStartX - rowRightMarginPx).coerceAtLeast(20f)
                 val paint = if (taskItem.isCompleted) rowCompletedTitlePaint else rowTitlePaint
                 val fittedTitle = ellipsize(taskItem.title, paint, maxTitleWidth)
                 canvas.drawText(fittedTitle, titleStartX, baselineY, paint)
-                canvas.drawText("[>]", width - 14f, baselineY, chevronPaint)
             }
         }
 

@@ -77,7 +77,7 @@ class DayPlannerCanvasRendererTest {
         DayPlannerCanvasRenderer.drawDayPlannerBg(canvas)
 
         val headerBottom = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX.toInt()
-        assertEquals(56, headerBottom)
+        assertEquals(64, headerBottom)
 
         // Verify left section header background ("TODAY'S SCHEDULE") is #DBEAFE and divider is drawn at headerBottom
         assertEquals(Color.parseColor("#DBEAFE"), bitmap.getPixel(500, headerBottom / 2))
@@ -88,13 +88,15 @@ class DayPlannerCanvasRendererTest {
         // Verify right section header background ("GOOGLE TASKS") is #D1FAE5
         assertEquals(Color.parseColor("#D1FAE5"), bitmap.getPixel(width - 200, headerBottom / 2))
 
-        // Verify bottom "NOTES" header starts right under dashboard separator
-        val dashboardBottom = (height * DayPlannerCanvasRenderer.DASHBOARD_HEIGHT_FRACTION).toInt()
+        // Verify bottom "NOTES" header starts right under compact dashboard separator
+        val dashboardBottomFloat = DayPlannerCanvasRenderer.dashboardBottomY(height.toFloat())
+        val dashboardBottom = dashboardBottomFloat.toInt()
         assertEquals(Color.parseColor("#FEF3C7"), bitmap.getPixel(width / 2, dashboardBottom + 20))
 
-        // Verify text pixels were drawn inside both the first Schedule row and first Task row
-        val rowsAreaHeight = (height * DayPlannerCanvasRenderer.DASHBOARD_HEIGHT_FRACTION - headerBottom - 4f)
+        // Verify text pixels were drawn inside the first Schedule row
+        val rowsAreaHeight = (dashboardBottomFloat - headerBottom - 4f)
         val rowHeight = rowsAreaHeight / DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS
+        assertEquals(DayPlannerCanvasRenderer.DASHBOARD_ROW_HEIGHT_PX, rowHeight, 0.5f)
         val row0Top = headerBottom
         val row0Bottom = (headerBottom + rowHeight).toInt()
         val hasScheduleTextInk = (row0Top until row0Bottom).any { y ->

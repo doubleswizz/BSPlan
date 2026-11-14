@@ -25,10 +25,17 @@ import java.time.LocalDate
  */
 object DayPlannerCanvasRenderer {
 
-    const val DASHBOARD_HEIGHT_FRACTION = 0.25f
-    const val SECTION_HEADER_HEIGHT_PX = 56f
+    const val DASHBOARD_MAX_HEIGHT_FRACTION = 0.30f
+    const val SECTION_HEADER_HEIGHT_PX = 64f
     const val DASHBOARD_MAX_ROWS = 5
+    const val DASHBOARD_ROW_HEIGHT_PX = 62f
     private const val WRITING_LINE_SPACING_PX = 54f
+
+    fun dashboardBottomY(canvasHeightPx: Float): Float {
+        val idealBottom = SECTION_HEADER_HEIGHT_PX + (DASHBOARD_MAX_ROWS * DASHBOARD_ROW_HEIGHT_PX) + 4f
+        val maxBottom = (canvasHeightPx * DASHBOARD_MAX_HEIGHT_FRACTION).coerceAtLeast(SECTION_HEADER_HEIGHT_PX + 54f)
+        return minOf(idealBottom, maxBottom)
+    }
 
     private val strongBorderPaint = Paint().apply {
         color = Color.parseColor("#0F172A") // Deep Navy
@@ -53,7 +60,7 @@ object DayPlannerCanvasRenderer {
 
     private val sectionHeaderPaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 31f
+        textSize = 38f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -71,7 +78,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowTimePaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 29f
+        textSize = 36f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -79,7 +86,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowTitlePaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 29f
+        textSize = 36f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -87,7 +94,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowCompletedTitlePaint = Paint().apply {
         color = Color.parseColor("#64748B")
-        textSize = 29f
+        textSize = 36f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
         isStrikeThruText = true
@@ -96,7 +103,7 @@ object DayPlannerCanvasRenderer {
 
     private val chevronPaint = Paint().apply {
         color = Color.parseColor("#1E3A8A")
-        textSize = 26f
+        textSize = 32f
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         textAlign = Paint.Align.RIGHT
         isAntiAlias = true
@@ -143,7 +150,7 @@ object DayPlannerCanvasRenderer {
         val isTuesday = model?.isTuesday ?: (LocalDate.now().dayOfWeek == DayOfWeek.TUESDAY)
 
         val midX = width * 0.5f
-        val dashboardBottomY = height * DASHBOARD_HEIGHT_FRACTION
+        val dashboardBottomY = dashboardBottomY(height)
 
         // ═══════════════════════════════════════════════════════════════════════════
         // 1. TOP 25% DASHBOARD: TODAY'S SCHEDULE (Left) | GOOGLE TASKS (Right)
@@ -178,7 +185,7 @@ object DayPlannerCanvasRenderer {
         val rowsAreaHeight = (dashboardBottomY - rowsTopY - 4f).coerceAtLeast(50f)
         val rowHeight = rowsAreaHeight / DASHBOARD_MAX_ROWS
 
-        val chevronReservePx = 68f
+        val chevronReservePx = 80f
 
         // Draw Schedule rows (Left)
         val scheduleRows = model?.scheduleRows.orEmpty()
@@ -220,7 +227,7 @@ object DayPlannerCanvasRenderer {
             }
             canvas.drawText(timeStr, timeStartX, baselineY, rowTimePaint)
 
-            val titleStartX = maxOf(196f, timeStartX + rowTimePaint.measureText(timeStr) + 16f)
+            val titleStartX = maxOf(228f, timeStartX + rowTimePaint.measureText(timeStr) + 18f)
             val maxTitleWidth = (midX - titleStartX - chevronReservePx).coerceAtLeast(20f)
             val fittedTitle = ellipsize(item.title, rowTitlePaint, maxTitleWidth)
             canvas.drawText(fittedTitle, titleStartX, baselineY, rowTitlePaint)
@@ -238,18 +245,18 @@ object DayPlannerCanvasRenderer {
             }
 
             // Always draw checkbox on each task slot so user can also handwrite tasks in empty slots
-            val boxSize = 28f
+            val boxSize = 32f
             val boxLeft = midX + 18f
             val boxTop = rowTop + (rowHeight - boxSize) / 2f
             val boxRect = RectF(boxLeft, boxTop, boxLeft + boxSize, boxTop + boxSize)
 
             val taskItem = taskRows.getOrNull(i)
             if (taskItem?.isCompleted == true) {
-                canvas.drawRoundRect(boxRect, 5f, 5f, checkboxFillPaint)
-                canvas.drawLine(boxLeft + 5f, boxTop + 14f, boxLeft + 11f, boxTop + 21f, checkMarkPaint)
-                canvas.drawLine(boxLeft + 11f, boxTop + 21f, boxLeft + 23f, boxTop + 7f, checkMarkPaint)
+                canvas.drawRoundRect(boxRect, 6f, 6f, checkboxFillPaint)
+                canvas.drawLine(boxLeft + 6f, boxTop + 16f, boxLeft + 13f, boxTop + 24f, checkMarkPaint)
+                canvas.drawLine(boxLeft + 13f, boxTop + 24f, boxLeft + 26f, boxTop + 8f, checkMarkPaint)
             } else {
-                canvas.drawRoundRect(boxRect, 5f, 5f, checkboxStrokePaint)
+                canvas.drawRoundRect(boxRect, 6f, 6f, checkboxStrokePaint)
             }
 
             if (taskItem != null) {

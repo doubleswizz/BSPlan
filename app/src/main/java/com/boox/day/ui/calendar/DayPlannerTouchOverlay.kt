@@ -458,7 +458,7 @@ fun DayPlannerTouchOverlay(
 
                     val widthPx = size.width.toFloat()
                     val heightPx = size.height.toFloat()
-                    val dashboardBottomY = heightPx * DayPlannerCanvasRenderer.DASHBOARD_HEIGHT_FRACTION
+                    val dashboardBottomY = DayPlannerCanvasRenderer.dashboardBottomY(heightPx)
                     val rowsTopY = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX
 
                     // Only intercept finger taps inside the Top 25% Dashboard rows
@@ -483,7 +483,7 @@ fun DayPlannerTouchOverlay(
                         // Right column: GOOGLE TASKS
                         val taskRow = model.taskRows.getOrNull(rowIndex) ?: return@awaitEachGesture
                         DrawCanvas.forceUnfreeze()
-                        val checkboxZoneRightX = midX + 74f
+                        val checkboxZoneRightX = midX + 80f
                         if (upPos.x <= checkboxZoneRightX) {
                             // Toggle task completion directly
                             val targetTask = taskRow.task

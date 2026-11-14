@@ -483,7 +483,7 @@ fun DayPlannerTouchOverlay(
                         // Right column: GOOGLE TASKS
                         val taskRow = model.taskRows.getOrNull(rowIndex) ?: return@awaitEachGesture
                         DrawCanvas.forceUnfreeze()
-                        val checkboxZoneRightX = midX + 64f
+                        val checkboxZoneRightX = midX + 74f
                         if (upPos.x <= checkboxZoneRightX) {
                             // Toggle task completion directly
                             val targetTask = taskRow.task

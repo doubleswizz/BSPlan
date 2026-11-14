@@ -21,7 +21,7 @@ import java.time.LocalDate
  */
 object MonthPlannerCanvasRenderer {
 
-    const val WEEKDAY_HEADER_HEIGHT_PX = 48f
+    const val WEEKDAY_HEADER_HEIGHT_PX = 60f
 
     private val gridBorderPaint = Paint().apply {
         color = Color.parseColor("#1E293B") // Crisp Slate/Navy
@@ -63,7 +63,7 @@ object MonthPlannerCanvasRenderer {
 
     private val weekdayTextPaint = Paint().apply {
         color = Color.WHITE
-        textSize = 23f
+        textSize = 28f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
         isAntiAlias = true
@@ -71,7 +71,7 @@ object MonthPlannerCanvasRenderer {
 
     private val dayNumberCurrentPaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 24f
+        textSize = 34f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -79,7 +79,7 @@ object MonthPlannerCanvasRenderer {
 
     private val dayNumberSpilloverPaint = Paint().apply {
         color = Color.parseColor("#64748B")
-        textSize = 22f
+        textSize = 30f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -93,7 +93,7 @@ object MonthPlannerCanvasRenderer {
 
     private val dayNumberTodayPaint = Paint().apply {
         color = Color.WHITE
-        textSize = 24f
+        textSize = 34f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -101,7 +101,7 @@ object MonthPlannerCanvasRenderer {
 
     private val eventTextPaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 20f
+        textSize = 27f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -109,7 +109,7 @@ object MonthPlannerCanvasRenderer {
 
     private val eventAllDayPaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 20f
+        textSize = 27f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -129,7 +129,7 @@ object MonthPlannerCanvasRenderer {
 
     private val taskTextPaint = Paint().apply {
         color = Color.parseColor("#064E3B") // Deep Emerald Text
-        textSize = 19f
+        textSize = 26f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -232,7 +232,7 @@ object MonthPlannerCanvasRenderer {
 
         if (cells == null) return
         val cellPaddingX = 10f
-        val lineHeight = 25f
+        val lineHeight = 35f
 
         // 4. Draw each visible day cell (including any spillover days)
         for (row in 0 until rowCount) {
@@ -249,18 +249,18 @@ object MonthPlannerCanvasRenderer {
                 // Draw date label in top-left
                 val labelText = cell.headerLabel
                 val labelX = cellLeft + cellPaddingX
-                val labelBaselineY = cellTop + 30f
+                val labelBaselineY = cellTop + 38f
 
                 if (cell.isToday) {
                     val labelWidth = dayNumberTodayPaint.measureText(labelText)
                     val pillRect = RectF(
                         labelX - 6f,
                         cellTop + 6f,
-                        labelX + labelWidth + 8f,
-                        cellTop + 36f
+                        labelX + labelWidth + 10f,
+                        cellTop + 46f
                     )
-                    canvas.drawRoundRect(pillRect, 6f, 6f, todayPillFillPaint)
-                    canvas.drawText(labelText, labelX + 1f, labelBaselineY, dayNumberTodayPaint)
+                    canvas.drawRoundRect(pillRect, 8f, 8f, todayPillFillPaint)
+                    canvas.drawText(labelText, labelX + 2f, labelBaselineY, dayNumberTodayPaint)
                 } else {
                     val paint = if (cell.isCurrentMonth) dayNumberCurrentPaint else dayNumberSpilloverPaint
                     canvas.drawText(labelText, labelX, labelBaselineY, paint)
@@ -269,18 +269,18 @@ object MonthPlannerCanvasRenderer {
                 // Draw small note page indicator in top-right if day has handwritten notes
                 if (cell.hasDayNotes) {
                     val iconRight = cellRight - 10f
-                    val iconLeft = iconRight - 16f
+                    val iconLeft = iconRight - 20f
                     val iconTop = cellTop + 10f
-                    val iconBottom = iconTop + 20f
+                    val iconBottom = iconTop + 24f
                     canvas.drawRect(iconLeft, iconTop, iconRight, iconBottom, noteBadgeFillPaint)
                     canvas.drawRect(iconLeft, iconTop, iconRight, iconBottom, noteBadgePaint)
-                    canvas.drawLine(iconLeft + 3f, iconTop + 6f, iconRight - 3f, iconTop + 6f, noteBadgePaint)
-                    canvas.drawLine(iconLeft + 3f, iconTop + 11f, iconRight - 3f, iconTop + 11f, noteBadgePaint)
+                    canvas.drawLine(iconLeft + 4f, iconTop + 7f, iconRight - 4f, iconTop + 7f, noteBadgePaint)
+                    canvas.drawLine(iconLeft + 4f, iconTop + 13f, iconRight - 4f, iconTop + 13f, noteBadgePaint)
                 }
 
                 // Draw events and tasks inside the cell
-                var currentY = cellTop + 58f
-                val maxBottomY = cellBottom - 8f
+                var currentY = cellTop + 76f
+                val maxBottomY = cellBottom - 10f
 
                 // Render lines: events first, then tasks summary/previews
                 val totalLinesAvailable = ((maxBottomY - currentY) / lineHeight).toInt().coerceAtLeast(0)
@@ -310,15 +310,15 @@ object MonthPlannerCanvasRenderer {
                         val b = Color.blue(eventColorInt)
                         val pillRect = RectF(
                             cellLeft + 6f,
-                            currentY - 18f,
+                            currentY - 24f,
                             cellRight - 6f,
-                            currentY + 5f
+                            currentY + 8f
                         )
                         eventColorPaint.color = Color.argb(65, r, g, b)
                         canvas.drawRoundRect(pillRect, 4f, 4f, eventColorPaint)
                         eventColorPaint.color = eventColorInt
                         canvas.drawRoundRect(
-                            RectF(cellLeft + 6f, currentY - 18f, cellLeft + 12f, currentY + 5f),
+                            RectF(cellLeft + 6f, currentY - 24f, cellLeft + 12f, currentY + 8f),
                             3f,
                             3f,
                             eventColorPaint
@@ -328,9 +328,9 @@ object MonthPlannerCanvasRenderer {
                     } else if (eventColorInt != null) {
                         // Timed event with Google Calendar color: vivid colored dot + crisp black text
                         eventColorPaint.color = eventColorInt
-                        canvas.drawCircle(cellLeft + cellPaddingX + 5f, currentY - 7f, 5.5f, eventColorPaint)
-                        val fitted = ellipsizeToWidth(ev.displayLine, paint, (maxTextWidth - 16f).coerceAtLeast(16f))
-                        canvas.drawText(fitted, cellLeft + cellPaddingX + 15f, currentY, paint)
+                        canvas.drawCircle(cellLeft + cellPaddingX + 6f, currentY - 9f, 6.5f, eventColorPaint)
+                        val fitted = ellipsizeToWidth(ev.displayLine, paint, (maxTextWidth - 18f).coerceAtLeast(16f))
+                        canvas.drawText(fitted, cellLeft + cellPaddingX + 18f, currentY, paint)
                     } else {
                         val fitted = ellipsizeToWidth("• ${ev.displayLine}", paint, maxTextWidth)
                         canvas.drawText(fitted, cellLeft + cellPaddingX, currentY, paint)
@@ -346,13 +346,13 @@ object MonthPlannerCanvasRenderer {
                     }
                     val pillRect = RectF(
                         cellLeft + 6f,
-                        currentY - 18f,
+                        currentY - 23f,
                         cellRight - 6f,
-                        currentY + 5f
+                        currentY + 8f
                     )
                     canvas.drawRoundRect(pillRect, 4f, 4f, taskPillFillPaint)
                     canvas.drawRoundRect(
-                        RectF(cellLeft + 6f, currentY - 18f, cellLeft + 12f, currentY + 5f),
+                        RectF(cellLeft + 6f, currentY - 23f, cellLeft + 12f, currentY + 8f),
                         3f,
                         3f,
                         taskStripeFillPaint

@@ -31,8 +31,8 @@ class MonthPlannerCanvasRendererTest {
     @Test
     fun drawsExactNumberOfRowsFullscreenTopToBottomFor4_5_And6Rows() {
         val width = 1400
-        val height = 1848 // 48px weekday header + 1800px grid (divisible cleanly by 4, 5, 6)
         val gridTop = MonthPlannerCanvasRenderer.WEEKDAY_HEADER_HEIGHT_PX.toInt()
+        val height = gridTop + 1800 // header + 1800px grid (divisible cleanly by 4, 5, 6)
 
         val testCases = listOf(
             Triple(2026, 1, 4),  // Feb 2026 (Sunday start) -> 4 rows (450px each)

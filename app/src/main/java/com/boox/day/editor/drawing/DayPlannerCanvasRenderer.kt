@@ -26,7 +26,7 @@ import java.time.LocalDate
 object DayPlannerCanvasRenderer {
 
     const val DASHBOARD_HEIGHT_FRACTION = 0.25f
-    const val SECTION_HEADER_HEIGHT_PX = 42f
+    const val SECTION_HEADER_HEIGHT_PX = 56f
     const val DASHBOARD_MAX_ROWS = 5
     private const val WRITING_LINE_SPACING_PX = 54f
 
@@ -53,7 +53,7 @@ object DayPlannerCanvasRenderer {
 
     private val sectionHeaderPaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 23f
+        textSize = 31f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -71,7 +71,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowTimePaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 21f
+        textSize = 29f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -79,7 +79,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowTitlePaint = Paint().apply {
         color = Color.parseColor("#0F172A")
-        textSize = 21f
+        textSize = 29f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
         isAntiAlias = true
@@ -87,7 +87,7 @@ object DayPlannerCanvasRenderer {
 
     private val rowCompletedTitlePaint = Paint().apply {
         color = Color.parseColor("#64748B")
-        textSize = 21f
+        textSize = 29f
         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
         textAlign = Paint.Align.LEFT
         isStrikeThruText = true
@@ -96,7 +96,7 @@ object DayPlannerCanvasRenderer {
 
     private val chevronPaint = Paint().apply {
         color = Color.parseColor("#1E3A8A")
-        textSize = 20f
+        textSize = 26f
         typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         textAlign = Paint.Align.RIGHT
         isAntiAlias = true
@@ -178,6 +178,8 @@ object DayPlannerCanvasRenderer {
         val rowsAreaHeight = (dashboardBottomY - rowsTopY - 4f).coerceAtLeast(50f)
         val rowHeight = rowsAreaHeight / DASHBOARD_MAX_ROWS
 
+        val chevronReservePx = 68f
+
         // Draw Schedule rows (Left)
         val scheduleRows = model?.scheduleRows.orEmpty()
         for (i in 0 until DASHBOARD_MAX_ROWS) {
@@ -187,8 +189,10 @@ object DayPlannerCanvasRenderer {
                 canvas.drawLine(12f, rowBottom, midX - 12f, rowBottom, writingLinePaint)
             }
             val item = scheduleRows.getOrNull(i) ?: continue
-            val baselineY = rowTop + (rowHeight * 0.66f)
+            val baselineY = rowTop + (rowHeight / 2f) - ((rowTitlePaint.descent() + rowTitlePaint.ascent()) / 2f)
             val colorInt = parseEventColor(item.event.colorHex)
+            val timeStartX: Float
+            val timeStr: String
             if (colorInt != null) {
                 // Google Calendar color stripe + tinted row highlight on Kaleido 3 color screen
                 val r = Color.red(colorInt)
@@ -208,14 +212,16 @@ object DayPlannerCanvasRenderer {
                     3f,
                     eventStripePaint
                 )
-                canvas.drawText(item.timeText, 28f, baselineY, rowTimePaint)
+                timeStartX = 28f
+                timeStr = item.timeText
             } else {
-                val timeStr = "• ${item.timeText}"
-                canvas.drawText(timeStr, 16f, baselineY, rowTimePaint)
+                timeStartX = 16f
+                timeStr = "• ${item.timeText}"
             }
+            canvas.drawText(timeStr, timeStartX, baselineY, rowTimePaint)
 
-            val titleStartX = 148f
-            val maxTitleWidth = (midX - titleStartX - 58f).coerceAtLeast(20f)
+            val titleStartX = maxOf(196f, timeStartX + rowTimePaint.measureText(timeStr) + 16f)
+            val maxTitleWidth = (midX - titleStartX - chevronReservePx).coerceAtLeast(20f)
             val fittedTitle = ellipsize(item.title, rowTitlePaint, maxTitleWidth)
             canvas.drawText(fittedTitle, titleStartX, baselineY, rowTitlePaint)
 
@@ -232,24 +238,24 @@ object DayPlannerCanvasRenderer {
             }
 
             // Always draw checkbox on each task slot so user can also handwrite tasks in empty slots
-            val boxSize = 22f
+            val boxSize = 28f
             val boxLeft = midX + 18f
             val boxTop = rowTop + (rowHeight - boxSize) / 2f
             val boxRect = RectF(boxLeft, boxTop, boxLeft + boxSize, boxTop + boxSize)
 
             val taskItem = taskRows.getOrNull(i)
             if (taskItem?.isCompleted == true) {
-                canvas.drawRoundRect(boxRect, 4f, 4f, checkboxFillPaint)
-                canvas.drawLine(boxLeft + 4f, boxTop + 11f, boxLeft + 9f, boxTop + 17f, checkMarkPaint)
-                canvas.drawLine(boxLeft + 9f, boxTop + 17f, boxLeft + 18f, boxTop + 5f, checkMarkPaint)
+                canvas.drawRoundRect(boxRect, 5f, 5f, checkboxFillPaint)
+                canvas.drawLine(boxLeft + 5f, boxTop + 14f, boxLeft + 11f, boxTop + 21f, checkMarkPaint)
+                canvas.drawLine(boxLeft + 11f, boxTop + 21f, boxLeft + 23f, boxTop + 7f, checkMarkPaint)
             } else {
-                canvas.drawRoundRect(boxRect, 4f, 4f, checkboxStrokePaint)
+                canvas.drawRoundRect(boxRect, 5f, 5f, checkboxStrokePaint)
             }
 
             if (taskItem != null) {
-                val baselineY = rowTop + (rowHeight * 0.66f)
-                val titleStartX = boxLeft + boxSize + 14f
-                val maxTitleWidth = (width - titleStartX - 58f).coerceAtLeast(20f)
+                val baselineY = rowTop + (rowHeight / 2f) - ((rowTitlePaint.descent() + rowTitlePaint.ascent()) / 2f)
+                val titleStartX = boxLeft + boxSize + 16f
+                val maxTitleWidth = (width - titleStartX - chevronReservePx).coerceAtLeast(20f)
                 val paint = if (taskItem.isCompleted) rowCompletedTitlePaint else rowTitlePaint
                 val fittedTitle = ellipsize(taskItem.title, paint, maxTitleWidth)
                 canvas.drawText(fittedTitle, titleStartX, baselineY, paint)
@@ -354,7 +360,7 @@ object DayPlannerCanvasRenderer {
         canvas.drawRect(left, top, right, headerBottom, sectionHeaderBgPaint)
         sectionHeaderStripePaint.color = stripeColor
         canvas.drawRect(left, top, left + 10f, headerBottom, sectionHeaderStripePaint)
-        val baselineY = top + 29f
+        val baselineY = top + (SECTION_HEADER_HEIGHT_PX / 2f) - ((sectionHeaderPaint.descent() + sectionHeaderPaint.ascent()) / 2f)
         canvas.drawText(title, left + 22f, baselineY, sectionHeaderPaint)
         canvas.drawLine(left, headerBottom, right, headerBottom, thinBorderPaint)
     }

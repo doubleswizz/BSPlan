@@ -2003,6 +2003,7 @@ fun MainScreen(
                                 viewingCalendar.get(Calendar.MONTH) + 1
                             )
                         }
+                        com.boox.day.tasksync.TaskSyncTriggers.onReturn(context)
                     }
                 }
             ) {
@@ -2043,6 +2044,7 @@ fun MainScreen(
                                 viewingCalendar.get(Calendar.MONTH) + 1
                             )
                         }
+                        com.boox.day.tasksync.TaskSyncTriggers.onReturn(context)
                     }
                     SnackState.tryEmitRateLimited(
                         SnackConf(key = "nav-today", text = "Jumped to today", duration = SnackConf.DURATION_QUICK)
@@ -3426,11 +3428,6 @@ fun MainScreen(
                             val intent = multiAccountSyncViewModel.getGoogleSignInIntent(act, accountType)
                             intent?.let { multiProviderSignInLauncher.launch(it) }
                         }
-                    }
-                },
-                onOutlookSignIn = { accountType ->
-                    activity?.let { act ->
-                        multiAccountSyncViewModel.addOutlookAccount(act, accountType)
                     }
                 },
                 onFirstAccountAdded = {

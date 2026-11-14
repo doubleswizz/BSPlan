@@ -62,7 +62,7 @@ fun ClearSyncedDataDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "This will remove all synced calendar events (Google, Outlook and CalDAV) that BSPlan has cached locally.\n\n" +
+                    text = "This will remove all synced Google calendar events that BSPlan has cached locally.\n\n" +
                             "Your events online will not be deleted.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     color = EInkTheme.Colors.primary,

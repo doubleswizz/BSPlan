@@ -81,8 +81,18 @@ class TaskSyncSetupTest {
     }
 
     @Test
-    fun aDebugBuildWithoutTheTestListTicksNothing() = runBlocking {
-        TaskSync.turnOn(context, TaskSyncTarget.google(EMAIL), service, today = TODAY)  // debug build: "BooxDay test", not in Google here
+    fun turningOnWithDefaultArgsTicksMainListInDebugBuild() = runBlocking {
+        TaskSync.turnOn(context, TaskSyncTarget.google(EMAIL), service, today = TODAY)
+
+        val lists = sync.getListsFor(provider, EMAIL, "")
+        assertEquals(listOf("main"), lists.map { it.listId })
+        assertTrue(lists.single().isDefaultForNew)
+        assertTrue(TaskSync.isOn(context))
+    }
+
+    @Test
+    fun missingExplicitTestListTicksNothing() = runBlocking {
+        TaskSync.turnOn(context, TaskSyncTarget.google(EMAIL), service, today = TODAY, testList = TaskSync.DEBUG_TEST_LIST)
 
         assertTrue("never falls back to the main list", sync.getListsFor(provider, EMAIL, "").isEmpty())
         assertTrue(TaskSync.isOn(context))

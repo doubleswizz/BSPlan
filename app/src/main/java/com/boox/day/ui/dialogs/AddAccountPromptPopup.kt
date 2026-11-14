@@ -106,7 +106,7 @@ fun AddAccountPromptPopup(
 
                 // Explanation
                 Text(
-                    text = "Cloud Sync is now enabled. Connect Google, Outlook or CalDAV to see your cloud calendars alongside your on-device calendars.",
+                    text = "Cloud Sync is now enabled. Connect your Google account to see your Google calendars alongside your on-device calendars.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     color = EInkTheme.Colors.darkGray,
                     lineHeight = 20.sp
@@ -115,7 +115,7 @@ fun AddAccountPromptPopup(
                 Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
 
                 Text(
-                    text = "Would you like to add a calendar account now?",
+                    text = "Would you like to add a Google account now?",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = EInkTheme.Colors.primary
@@ -123,7 +123,7 @@ fun AddAccountPromptPopup(
 
                 Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
-                // Provider icons hint
+                // Provider icon hint
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -135,16 +135,6 @@ fun AddAccountPromptPopup(
                         modifier = Modifier.size(32.dp),
                         tint = androidx.compose.ui.graphics.Color.Unspecified
                     )
-                    Spacer(modifier = Modifier.width(24.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.ic_outlook),
-                        contentDescription = "Outlook Calendar",
-                        modifier = Modifier.size(32.dp),
-                        tint = androidx.compose.ui.graphics.Color.Unspecified
-                    )
-                    Spacer(modifier = Modifier.width(24.dp))
-                    // iCloud and other calendars (plan step 3.8)
-                    com.boox.day.ui.components.CalDavMark(32.dp)
                 }
 
                 Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))

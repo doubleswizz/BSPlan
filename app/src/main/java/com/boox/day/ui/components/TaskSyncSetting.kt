@@ -193,7 +193,7 @@ fun TaskSyncSetting(modifier: Modifier = Modifier) {
 
     SettingCard(
         title = "Task Sync",
-        description = "Keep your tasks in step with Google Tasks or a CalDAV server (Nextcloud, Fastmail and others). Off until you turn it on.",
+        description = "Keep your tasks in step with Google Tasks. Off until you turn it on.",
         modifier = modifier
     ) {
         state?.let { TaskSyncCardContent(it, actions) }
@@ -210,17 +210,15 @@ internal suspend fun loadTaskSyncCard(context: Context, serviceLists: List<Remot
     val app = context.applicationContext
     val db = AppDatabase.getDatabase(app)
     val google = db.connectedAccountDao().getAccountsByProvider(ProviderId.GOOGLE.key).map { TaskSyncTarget.google(it.email) }
-    val calDav = db.connectedAccountDao().getAccountsByProvider(ProviderId.CALDAV.key).map { it.toDomainModel() }
-    val targets = (google + calDav.filter { it.accountType != AccountType.CALDAV_ICLOUD }.map(TaskSyncTarget::calDav))
-        .associateBy { it.key }
+    val targets = google.associateBy { it.key }
     val settings = workerAppSettings(app)
     val on = TaskSync.isOn(app)
-    val saved = TaskSync.target(app)
+    val saved = TaskSync.target(app)?.takeIf { it.isGoogle }
     // While on, the one in use (even if its account is gone); while off, the one picked if it is still there
     val chosen = saved?.takeIf { on || it.key in targets }?.let { targets[it.key] ?: it } ?: targets.values.firstOrNull()
     val cantTurnOn = when {
         settings.syncMode != AppSettings.SyncMode.HYBRID -> "Task Sync works with Cloud Sync. Turn on Cloud Sync in the Settings menu first."
-        targets.isEmpty() -> "Connect Google, Nextcloud, Fastmail or another CalDAV server first: Settings → Calendar Accounts."
+        targets.isEmpty() -> "Connect a Google account first: Settings → Calendar Accounts."
         else -> null
     }
     val sync = db.taskSyncDao()

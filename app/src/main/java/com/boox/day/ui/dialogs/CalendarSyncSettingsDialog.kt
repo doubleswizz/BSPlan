@@ -43,12 +43,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.boox.day.BuildConfig
 import com.boox.day.data.model.AccountType
 import com.boox.day.sync.SyncResult
 import com.boox.day.ui.components.ScrollableWithIndicator
@@ -56,30 +58,11 @@ import com.boox.day.sync.MultiAccountSyncViewModel
 import com.boox.day.ui.messages.AiFeedbackMessages
 import android.util.Log
 import com.boox.day.ui.components.AccountCalendarList
-import com.boox.day.ui.components.CALDAV_TAB_LABEL
-import com.boox.day.ui.components.CalDavAddButtons
-import com.boox.day.ui.components.CalDavEmptyMessage
-import com.boox.day.ui.components.CalDavSignInState
-import com.boox.day.ui.components.CalDavTabLabel
-import com.boox.day.ui.components.CalDavUses
-import com.boox.day.ui.components.TaskSyncSwitchContent
-import com.boox.day.ui.components.loadCalDavUses
-import com.boox.day.tasksync.TaskSync
-import com.boox.day.tasksync.TaskSyncStart
-import com.boox.day.tasksync.TaskSyncTarget
+import com.boox.day.ui.components.TaskSyncSetting
+import com.boox.day.tasksync.TaskSyncTriggers
 import kotlinx.coroutines.launch
 import com.boox.day.ui.noRippleClickable
 import com.boox.day.ui.theme.EInkTheme
-
-/**
- * Tab options for the sync settings dialog.
- */
-private enum class SyncSettingsTab(val label: String) {
-    GOOGLE("Google"),
-    OUTLOOK("Outlook"),
-    // iCloud, Fastmail, Nextcloud and other CalDAV servers (plan stage 3, owner decision 58)
-    CALDAV(CALDAV_TAB_LABEL)
-}
 
 /** What the banner says when a sync finishes ([syncFinishedBanner]). */
 internal data class SyncFinishedBanner(val failed: Boolean, val title: String, val subtext: String)
@@ -105,8 +88,7 @@ internal fun syncFinishedBanner(results: Collection<SyncResult>, funMessage: Str
 }
 
 /**
- * Multi-provider calendar sync settings dialog.
- * Supports Google and Outlook accounts with per-account calendar selection.
+ * Google Calendar & Google Tasks sync settings dialog.
  *
  * E-Ink optimized:
  * - Uses Popup instead of Dialog (no scrim)
@@ -117,11 +99,6 @@ internal fun syncFinishedBanner(results: Collection<SyncResult>, funMessage: Str
  * @param viewModel The multi-account sync ViewModel
  * @param onDismiss Callback when dialog should close
  * @param onGoogleSignIn Callback to initiate Google sign-in with account type
- * @param onOutlookSignIn Callback to initiate Outlook sign-in with account type
- * @param autoSyncEnabled Whether background auto-sync is enabled
- * @param syncFrequency Current sync frequency setting
- * @param onAutoSyncChanged Callback when auto-sync toggle changes
- * @param onSyncFrequencyChanged Callback when frequency selection changes
  * @param onFirstAccountAdded Callback when the first account is added (0 → 1+) - used to switch to hybrid mode
  * @param onClearDataAndStandalone Callback when user chooses to clear synced data and return to standalone
  * @param onKeepDataAndHybrid Callback when user chooses to keep synced data and stay in hybrid mode
@@ -133,7 +110,6 @@ fun CalendarSyncSettingsDialog(
     viewModel: MultiAccountSyncViewModel,
     onDismiss: () -> Unit,
     onGoogleSignIn: (AccountType) -> Unit,
-    onOutlookSignIn: (AccountType) -> Unit,
     onFirstAccountAdded: () -> Unit = {},
     onClearDataAndStandalone: () -> Unit = {},
     onKeepDataAndHybrid: () -> Unit = {},
@@ -143,22 +119,7 @@ fun CalendarSyncSettingsDialog(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    // Smart tab default: the first tab with accounts (Google, then Outlook, then iCloud & more).
-    // Only computed once on dialog open — doesn't reset when user manually switches tabs.
-    var selectedTab by remember {
-        val state = viewModel.uiState.value
-        val default = when {
-            state.googleAccounts.isNotEmpty() -> SyncSettingsTab.GOOGLE
-            state.outlookAccounts.isNotEmpty() -> SyncSettingsTab.OUTLOOK
-            state.calDavAccounts.isNotEmpty() -> SyncSettingsTab.CALDAV
-            else -> SyncSettingsTab.GOOGLE
-        }
-        mutableStateOf(default)
-    }
-
-    // The CalDAV sign-in form, when open (a new account, or signing in again)
-    var calDavForm by remember { mutableStateOf<CalDavSignInState?>(null) }
+    val context = LocalContext.current
 
     // Track previous account count to detect when all accounts are removed
     var previousAccountCount by remember { mutableStateOf<Int?>(null) }
@@ -251,15 +212,6 @@ fun CalendarSyncSettingsDialog(
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {
-        calDavForm?.let { form ->
-            androidx.compose.runtime.key(form) {
-                CalDavSignInPopup(
-                    initial = form,
-                    signIn = { f, address, trust, choice -> viewModel.signInCalDav(f.type, address, f.name, f.password, trust, choice) },
-                    onDismiss = { calDavForm = null }
-                )
-            }
-        }
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -282,14 +234,6 @@ fun CalendarSyncSettingsDialog(
                 // Header
                 DialogHeader(
                     onDismiss = onDismiss
-                )
-
-                Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
-
-                // Tab selector
-                TabSelector(
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it }
                 )
 
                 Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
@@ -372,7 +316,7 @@ fun CalendarSyncSettingsDialog(
                     }
                 }
 
-                // Tab content (scrollable with indicator)
+                // Account content (Google Calendar & Google Tasks)
                 ScrollableWithIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -381,73 +325,28 @@ fun CalendarSyncSettingsDialog(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)
                     ) {
-                        when (selectedTab) {
-                            SyncSettingsTab.GOOGLE -> GoogleTabContent(
-                                accounts = uiState.googleAccounts,
-                                isLoading = uiState.isLoading,
-                                isConnecting = uiState.isConnectingGoogle,
-                                error = uiState.error,
-                                syncResults = uiState.syncResults,
-                                onSignIn = onGoogleSignIn,
-                                onRemoveAccount = { viewModel.removeAccount(it) },
-                                onToggleCalendar = { accountId, calendarId ->
-                                    viewModel.toggleCalendarEnabled(accountId, calendarId)
-                                },
-                                onSetDefaultCalendar = { accountId, calendarId ->
-                                    viewModel.setDefaultCalendar(accountId, calendarId)
-                                },
-                                onRefreshCalendars = { viewModel.refreshCalendars(it) },
-                                onToggleExpanded = { viewModel.toggleAccountExpanded(it) },
-                                // Re-auth: trigger sign-in flow again for the account's type
-                                onReauth = { accountId ->
-                                    val account = uiState.googleAccounts.find { it.account.id == accountId }
-                                    account?.let { onGoogleSignIn(it.account.accountType) }
-                                }
-                            )
-                            SyncSettingsTab.OUTLOOK -> OutlookTabContent(
-                                accounts = uiState.outlookAccounts,
-                                isLoading = uiState.isLoading,
-                                error = uiState.error,
-                                syncResults = uiState.syncResults,
-                                onSignIn = onOutlookSignIn,
-                                onRemoveAccount = { viewModel.removeAccount(it) },
-                                onToggleCalendar = { accountId, calendarId ->
-                                    viewModel.toggleCalendarEnabled(accountId, calendarId)
-                                },
-                                onSetDefaultCalendar = { accountId, calendarId ->
-                                    viewModel.setDefaultCalendar(accountId, calendarId)
-                                },
-                                onRefreshCalendars = { viewModel.refreshCalendars(it) },
-                                onToggleExpanded = { viewModel.toggleAccountExpanded(it) },
-                                // Re-auth: trigger sign-in flow again for the account's type
-                                onReauth = { accountId ->
-                                    val account = uiState.outlookAccounts.find { it.account.id == accountId }
-                                    account?.let { onOutlookSignIn(it.account.accountType) }
-                                }
-                            )
-                            SyncSettingsTab.CALDAV -> CalDavTabContent(
-                                accounts = uiState.calDavAccounts,
-                                isLoading = uiState.isLoading,
-                                error = uiState.error,
-                                syncResults = uiState.syncResults,
-                                onAdd = { type -> calDavForm = CalDavSignInState(type) },
-                                onRemoveAccount = { viewModel.removeAccount(it) },
-                                onToggleCalendar = { accountId, calendarId ->
-                                    viewModel.toggleCalendarEnabled(accountId, calendarId)
-                                },
-                                onSetDefaultCalendar = { accountId, calendarId ->
-                                    viewModel.setDefaultCalendar(accountId, calendarId)
-                                },
-                                onRefreshCalendars = { viewModel.refreshCalendars(it) },
-                                onToggleExpanded = { viewModel.toggleAccountExpanded(it) },
-                                // Re-auth: the password again (the server refused the saved one)
-                                onReauth = { accountId ->
-                                    uiState.calDavAccounts.find { it.account.id == accountId }
-                                        ?.let { calDavForm = CalDavSignInState.again(it.account) }
-                                },
-                                onUseCalendars = { accountId, on -> viewModel.setCalDavCalendarsOn(accountId, on) }
-                            )
-                        }
+                        GoogleTabContent(
+                            accounts = uiState.googleAccounts,
+                            isLoading = uiState.isLoading,
+                            isConnecting = uiState.isConnectingGoogle,
+                            error = uiState.error,
+                            syncResults = uiState.syncResults,
+                            onSignIn = onGoogleSignIn,
+                            onRemoveAccount = { viewModel.removeAccount(it) },
+                            onToggleCalendar = { accountId, calendarId ->
+                                viewModel.toggleCalendarEnabled(accountId, calendarId)
+                            },
+                            onSetDefaultCalendar = { accountId, calendarId ->
+                                viewModel.setDefaultCalendar(accountId, calendarId)
+                            },
+                            onRefreshCalendars = { viewModel.refreshCalendars(it) },
+                            onToggleExpanded = { viewModel.toggleAccountExpanded(it) },
+                            // Re-auth: trigger sign-in flow again for the account's type
+                            onReauth = { accountId ->
+                                val account = uiState.googleAccounts.find { it.account.id == accountId }
+                                account?.let { onGoogleSignIn(it.account.accountType) }
+                            }
+                        )
                     }
                 }
 
@@ -484,7 +383,10 @@ fun CalendarSyncSettingsDialog(
                             syncProgress = uiState.syncProgress,
                             hasAccounts = uiState.accountCount > 0,
                             showDoneState = showSuccessBanner,
-                            onSyncAll = { viewModel.syncAllAccounts() },
+                            onSyncAll = {
+                                viewModel.syncAllAccounts()
+                                TaskSyncTriggers.syncNow(context)
+                            },
                             onDone = {
                                 showSuccessBanner = false
                                 onDismiss()
@@ -545,55 +447,7 @@ private fun DialogHeader(
 }
 
 /**
- * Tab selector for Google/Outlook.
- * E-Ink optimized: icon-only buttons with inverted colors for selection.
- * Uses provider logos (ic_google_provider, ic_outlook_provider) that invert
- * from black to white when selected.
- */
-@Composable
-private fun TabSelector(
-    selectedTab: SyncSettingsTab,
-    onTabSelected: (SyncSettingsTab) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacingSmall)
-    ) {
-        SyncSettingsTab.entries.forEach { tab ->
-            val isSelected = selectedTab == tab
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(EInkTheme.Global.touchTarget)
-                    .background(
-                        if (isSelected) EInkTheme.Colors.primary else EInkTheme.Colors.background,
-                        RoundedCornerShape(EInkTheme.Global.cornerRadius)
-                    )
-                    .border(
-                        EInkTheme.Global.borderWidth,
-                        EInkTheme.Colors.primary,
-                        RoundedCornerShape(EInkTheme.Global.cornerRadius)
-                    )
-                    .noRippleClickable(onClick = { onTabSelected(tab) }),
-                contentAlignment = Alignment.Center
-            ) {
-                // Provider wordmark logo - height constrained, width scales with aspect ratio
-                // E-ink: black when unselected, white when selected (inverted). CalDAV: words.
-                if (tab == SyncSettingsTab.CALDAV) CalDavTabLabel(selected = isSelected) else Icon(
-                    painter = painterResource(
-                        if (tab == SyncSettingsTab.GOOGLE) R.drawable.ic_google_provider else R.drawable.ic_outlook_provider
-                    ),
-                    contentDescription = tab.label,
-                    modifier = Modifier.height(20.dp),
-                    tint = if (isSelected) EInkTheme.Colors.white else EInkTheme.Colors.primary
-                )
-            }
-        }
-    }
-}
-
-/**
- * Google tab content: accounts list + add buttons.
+ * Google tab content: accounts list + Task Sync + add buttons.
  */
 @Composable
 private fun GoogleTabContent(
@@ -695,6 +549,11 @@ private fun GoogleTabContent(
         }
     }
 
+    if (accounts.isNotEmpty() && BuildConfig.TASK_SYNC_ENABLED) {
+        Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
+        TaskSyncSetting()
+    }
+
     Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
 
     // Add account buttons - one account per TYPE (Gmail + Workspace can coexist)
@@ -721,261 +580,6 @@ private fun GoogleTabContent(
         personalConnected = hasPersonalAccount,
         workspaceConnected = hasWorkspaceAccount
     )
-}
-
-/**
- * Outlook tab content: accounts list + add buttons.
- */
-@Composable
-private fun OutlookTabContent(
-    accounts: List<MultiAccountSyncViewModel.AccountWithCalendars>,
-    isLoading: Boolean,
-    error: String?,
-    syncResults: Map<String, com.boox.day.sync.SyncResult>,
-    onSignIn: (AccountType) -> Unit,
-    onRemoveAccount: (accountId: String) -> Unit,
-    onToggleCalendar: (accountId: String, calendarId: String) -> Unit,
-    onSetDefaultCalendar: (accountId: String, calendarId: String) -> Unit,
-    onRefreshCalendars: (accountId: String) -> Unit,
-    onToggleExpanded: (accountId: String) -> Unit,
-    onReauth: (accountId: String) -> Unit
-) {
-    // Loading state
-    if (isLoading && accounts.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(EInkTheme.Global.padding),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)
-            ) {
-                CircularProgressIndicator(
-                    color = EInkTheme.Colors.primary,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Loading accounts...",
-                    fontSize = EInkTheme.Typography.bodyMedium,
-                    color = EInkTheme.Colors.gray
-                )
-            }
-        }
-        return
-    }
-
-    // Error state
-    error?.let { errorMsg ->
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(EInkTheme.Colors.offWhite)
-                .padding(EInkTheme.Global.paddingMedium)
-        ) {
-            Text(
-                text = errorMsg,
-                fontSize = EInkTheme.Typography.bodyMedium,
-                color = EInkTheme.Colors.primary
-            )
-        }
-    }
-
-    // Accounts list
-    if (accounts.isEmpty()) {
-        EmptyStateMessage(
-            message = "No Outlook accounts connected.\nAdd an account to sync your Outlook Calendar."
-        )
-    } else {
-        accounts.forEach { accountWithCalendars ->
-            // Get sync result for this account
-            val syncResult = syncResults[accountWithCalendars.account.id]
-            val lastSyncMessage = syncResult?.getDisplayMessage()
-
-            AccountCalendarList(
-                account = accountWithCalendars.account,
-                calendars = accountWithCalendars.calendars,
-                onDisconnectAccount = { onRemoveAccount(accountWithCalendars.account.id) },
-                onToggleCalendar = { calendarId ->
-                    onToggleCalendar(accountWithCalendars.account.id, calendarId)
-                },
-                onSetDefaultCalendar = { calendarId ->
-                    onSetDefaultCalendar(accountWithCalendars.account.id, calendarId)
-                },
-                onRefreshCalendars = { onRefreshCalendars(accountWithCalendars.account.id) },
-                isExpanded = accountWithCalendars.isExpanded,
-                onToggleExpanded = { onToggleExpanded(accountWithCalendars.account.id) },
-                isLoadingCalendars = accountWithCalendars.isLoadingCalendars,
-                isSyncing = accountWithCalendars.isSyncing,
-                syncProgress = accountWithCalendars.syncProgress,
-                needsReauth = accountWithCalendars.needsReauth,
-                error = accountWithCalendars.error,
-                lastSyncMessage = lastSyncMessage,
-                onReauth = { onReauth(accountWithCalendars.account.id) }
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
-
-    // Add account buttons - one account per provider rule
-    // When an account exists: connected type shows "Connected", other type is grayed out
-    // Add account buttons - one account per TYPE (Personal + Work/School can coexist)
-    val hasPersonalAccount = accounts.any { it.account.accountType == AccountType.OUTLOOK_PERSONAL }
-    val hasWorkspaceAccount = accounts.any { it.account.accountType == AccountType.OUTLOOK_WORK_SCHOOL }
-
-    AddAccountButtons(
-        onAddPersonal = { onSignIn(AccountType.OUTLOOK_PERSONAL) },
-        onAddWorkspace = { onSignIn(AccountType.OUTLOOK_WORK_SCHOOL) },
-        personalLabel = if (hasPersonalAccount) "Outlook.com Connected" else "Add Outlook.com Account",
-        workspaceLabel = if (hasWorkspaceAccount) "Work/School Connected" else "Add Work/School Account",
-        personalDescription = when {
-            hasPersonalAccount -> "Account already connected"
-            else -> "Personal Microsoft Account"
-        },
-        workspaceDescription = when {
-            hasWorkspaceAccount -> "Account already connected"
-            else -> "Microsoft 365 Business"
-        },
-        personalEnabled = !hasPersonalAccount,
-        workspaceEnabled = !hasWorkspaceAccount,
-        // Visual distinction: connected type vs unavailable type
-        personalConnected = hasPersonalAccount,
-        workspaceConnected = hasWorkspaceAccount
-    )
-}
-
-/**
- * "iCloud & more" tab content (plan step 3.6): CalDAV accounts, then the four add buttons. Any number
- * of accounts; signing in happens in [CalDavSignInPopup].
- */
-@Composable
-private fun CalDavTabContent(
-    accounts: List<MultiAccountSyncViewModel.AccountWithCalendars>,
-    isLoading: Boolean,
-    error: String?,
-    syncResults: Map<String, com.boox.day.sync.SyncResult>,
-    onAdd: (AccountType) -> Unit,
-    onRemoveAccount: (accountId: String) -> Unit,
-    onToggleCalendar: (accountId: String, calendarId: String) -> Unit,
-    onSetDefaultCalendar: (accountId: String, calendarId: String) -> Unit,
-    onRefreshCalendars: (accountId: String) -> Unit,
-    onToggleExpanded: (accountId: String) -> Unit,
-    onReauth: (accountId: String) -> Unit,
-    onUseCalendars: (accountId: String, on: Boolean) -> kotlinx.coroutines.Job
-) {
-    // "Use for" (owner decision 78): what each account's server has and what it's used for
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    var usesReload by remember { mutableStateOf(0) }
-    var uses by remember { mutableStateOf<Map<String, CalDavUses>>(emptyMap()) }
-    var switching by remember { mutableStateOf<Pair<TaskSyncTarget, TaskSyncTarget>?>(null) }
-    var tasksWorking by remember { mutableStateOf(false) }
-    var tasksMessage by remember { mutableStateOf<String?>(null) }
-    // Task Sync turned on or off anywhere (the connect step, Preferences) shows on the rows at once
-    val taskSyncChanges by TaskSync.statusChanges.collectAsState()
-    LaunchedEffect(accounts.map { it.account.id to it.calendars.size }, usesReload, taskSyncChanges) {
-        uses = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            loadCalDavUses(context, accounts.map { it.account }, accounts.associate { it.account.id to it.calendars.size })
-        }
-    }
-    fun startTasks(target: TaskSyncTarget) {
-        tasksWorking = true
-        tasksMessage = null
-        scope.launch {
-            tasksMessage = TaskSyncStart.turnOn(context, target)
-            tasksWorking = false
-            usesReload++
-        }
-    }
-    fun useTasks(account: com.boox.day.data.model.ConnectedAccount, on: Boolean) {
-        val target = TaskSyncTarget.calDav(account)
-        when {
-            !on -> {
-                TaskSync.turnOff(context)
-                tasksMessage = null
-                usesReload++
-            }
-            else -> TaskSyncStart.otherServiceOn(context, target)?.let { other -> switching = target to other } ?: startTasks(target)
-        }
-    }
-    switching?.let { (target, other) ->
-        Popup(alignment = Alignment.Center, onDismissRequest = { switching = null }, properties = PopupProperties(focusable = true)) {
-            Box(
-                modifier = Modifier
-                    .width(EInkTheme.PopupOverlay.width)
-                    .background(EInkTheme.PopupOverlay.background, RoundedCornerShape(EInkTheme.Global.cornerRadius))
-                    .border(EInkTheme.PopupOverlay.borderWidth, EInkTheme.PopupOverlay.borderColor, RoundedCornerShape(EInkTheme.Global.cornerRadius))
-                    .padding(EInkTheme.PopupOverlay.padding)
-            ) {
-                TaskSyncSwitchContent(
-                    currentService = other.nameBeside(target),
-                    newServer = target.nameBeside(other),
-                    onKeep = { switching = null },
-                    onSwitch = {
-                        switching = null
-                        startTasks(target)
-                    }
-                )
-            }
-        }
-    }
-
-    if (isLoading && accounts.isEmpty()) {
-        ConnectingMessage(message = "Loading accounts...")
-        return
-    }
-    error?.let { errorMsg ->
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(EInkTheme.Colors.offWhite)
-                .padding(EInkTheme.Global.paddingMedium)
-        ) {
-            Text(text = errorMsg, fontSize = EInkTheme.Typography.bodyMedium, color = EInkTheme.Colors.primary)
-        }
-    }
-    (if (tasksWorking) "Starting Task Sync…" else tasksMessage)?.let { line ->
-        Text(text = line, fontSize = EInkTheme.Typography.bodyMedium, fontWeight = FontWeight.Bold, color = EInkTheme.Colors.primary)
-    }
-    if (accounts.isEmpty()) {
-        CalDavEmptyMessage()
-    } else {
-        accounts.forEach { accountWithCalendars ->
-            val accountId = accountWithCalendars.account.id
-            AccountCalendarList(
-                account = accountWithCalendars.account,
-                calendars = accountWithCalendars.calendars,
-                onDisconnectAccount = { onRemoveAccount(accountId) },
-                onToggleCalendar = { calendarId -> onToggleCalendar(accountId, calendarId) },
-                onSetDefaultCalendar = { calendarId -> onSetDefaultCalendar(accountId, calendarId) },
-                onRefreshCalendars = { onRefreshCalendars(accountId) },
-                isExpanded = accountWithCalendars.isExpanded,
-                onToggleExpanded = { onToggleExpanded(accountId) },
-                isLoadingCalendars = accountWithCalendars.isLoadingCalendars,
-                isSyncing = accountWithCalendars.isSyncing,
-                syncProgress = accountWithCalendars.syncProgress,
-                needsReauth = accountWithCalendars.needsReauth,
-                error = accountWithCalendars.error,
-                lastSyncMessage = syncResults[accountId]?.getDisplayMessage(),
-                onReauth = { onReauth(accountId) },
-                uses = uses[accountId],
-                onUseCalendars = { on ->
-                    // Shown at once; read again once saved
-                    uses[accountId]?.let { uses = uses + (accountId to it.copy(calendarsOn = on)) }
-                    scope.launch {
-                        onUseCalendars(accountId, on).join()
-                        usesReload++
-                    }
-                },
-                onUseTasks = { on -> useTasks(accountWithCalendars.account, on) }
-            )
-        }
-    }
-    Spacer(modifier = Modifier.height(EInkTheme.Global.spacing))
-    CalDavAddButtons(onAdd = onAdd)
 }
 
 /**

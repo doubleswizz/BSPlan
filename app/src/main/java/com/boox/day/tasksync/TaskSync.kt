@@ -166,8 +166,8 @@ object TaskSync {
      * or service's links and lists go, so its tasks count as never synced (owner decision 32); with no
      * list yet, the service's main list is ticked and gets new tasks (decision 30); ticked tasks from
      * today on stay on the tablet (decision 9). The first sync is the caller's to start ([TaskSyncRun]).
-     * [testList]: debug builds tick only the list with this name instead (owner decision 42, so the
-     * owner's own tablet test never fills their real lists), or none when it doesn't exist.
+     * [testList]: optional override that ticks only a list with this exact title instead of the
+     * service's main list, or none when it doesn't exist.
      * Throws what the service throws (offline, sign-in): then nothing changed.
      */
     internal suspend fun turnOn(
@@ -175,7 +175,7 @@ object TaskSync {
         target: TaskSyncTarget,
         service: TaskSyncService,
         today: String = LocalDate.now().toString(),
-        testList: String? = if (BuildConfig.DEBUG) DEBUG_TEST_LIST else null
+        testList: String? = null
     ) {
         val app = context.applicationContext
         val db = AppDatabase.getDatabase(app)

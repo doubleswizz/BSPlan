@@ -100,35 +100,6 @@ fun CalendarSourceFilterIcons(
                 tintColor = null // Multi-color icon - no tint when selected
             )
         }
-
-        // Outlook calendar filter (only when account connected)
-        if (hasOutlookAccount) {
-            FilterIconButton(
-                iconRes = R.drawable.ic_outlook,
-                contentDesc = "Outlook calendar",
-                isSelected = filter.showOutlook,
-                onClick = { onToggleSource(CalendarSource.OUTLOOK) },
-                containerSize = containerSize,
-                iconSize = providerIconSize,
-                cornerRadius = cornerRadius,
-                tintColor = null // Colored icon - no tint when selected
-            )
-        }
-
-        // CalDAV calendars filter (only when an account is connected)
-        if (hasCalDavAccount) {
-            FilterIconButton(
-                iconRes = null,
-                contentDesc = "CalDAV calendars",
-                isSelected = filter.showCalDav,
-                onClick = { onToggleSource(CalendarSource.CALDAV) },
-                containerSize = containerSize,
-                iconSize = providerIconSize,
-                cornerRadius = cornerRadius,
-                tintColor = null,
-                mark = { size, tint, background -> CalDavMark(size, tint, background) }
-            )
-        }
     }
 }
 

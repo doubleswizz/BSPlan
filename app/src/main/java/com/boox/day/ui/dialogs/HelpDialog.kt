@@ -575,18 +575,14 @@ private fun TaskManagementContent() {
     if (TASK_SYNC_AVAILABLE) {
         Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
-        SectionSubheader("Task Sync (Settings → Preferences)")
-        BodyText("Keeps your tasks in step with Google Tasks or a CalDAV server (Nextcloud, Fastmail and others) on your phone. It's off until you turn it on, and it needs Cloud Sync and that account in Calendar Accounts.")
-        BulletPoint("What syncs: a task's words (typed, or your handwriting as read), its done mark, its day or due date, and subtasks; with a CalDAV server also its priority and its own reminder time. Ink and time estimates stay on the tablet. Google Tasks deadlines and attachments stay on your phone: Google doesn't share them with other apps.")
+        SectionSubheader("Task Sync (Settings → Preferences or Calendar Accounts)")
+        BodyText("Keeps your tasks in step with Google Tasks on your phone. It's off until you turn it on, and it needs Cloud Sync and a Google account in Calendar Accounts.")
+        BulletPoint("What syncs: a task's words (typed, or your handwriting as read), its done mark, its day or due date, and subtasks. Ink and time estimates stay on the tablet. Google Tasks deadlines and attachments stay on your phone: Google doesn't share them with other apps.")
         BulletPoint("Tasks from your phone come to their due day; tasks with no date come to today.")
-        BulletPoint("It syncs when you open BSPlan, about 10 seconds after you stop writing, with the cloud button, and in the background on Sync frequency while the tablet is awake (on BOOX, see Data & Troubleshooting).")
-        BulletPoint("Clearing or deleting a synced task deletes it on your phone's service too; more than 20 at once waits for your OK. Ticked tasks deleted on your phone stay on the tablet.")
-        BulletPoint("Repeating tasks come to each day of the coming week with a CalDAV server, not with Google Tasks.")
+        BulletPoint("It syncs when you open BSPlan, about 10 seconds after you stop writing, with the Sync buttons, and in the background on Sync frequency while the tablet is awake (on BOOX, see Data & Troubleshooting).")
+        BulletPoint("Clearing or deleting a synced task deletes it on Google Tasks too; more than 20 at once waits for your OK. Ticked tasks deleted on your phone stay on the tablet.")
     }
 }
-
-/** Where a CalDAV account's password goes (plan step 3.8). */
-private const val CALDAV_PASSWORD_HELP = "The password of a CalDAV account stays on the tablet, encrypted, and goes only to its server."
 
 /** Task sync's texts show only in builds that have it (owner decision 36: release builds until Google approves). */
 private val TASK_SYNC_AVAILABLE: Boolean get() = com.boox.day.BuildConfig.TASK_SYNC_ENABLED
@@ -626,14 +622,12 @@ private fun CalendarSyncContent() {
 
     SectionSubheader("Calendar Mode (Settings → Calendar & Sync)")
     BulletItem("Private Mode", "Everything stays on the tablet. No account needed.")
-    BulletItem("Cloud Sync", "Also shows your Google, Outlook and CalDAV calendars.")
+    BulletItem("Cloud Sync", "Also shows your Google calendars.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Accounts (Settings → Calendar Accounts)")
-    BulletPoint("Add Gmail Account, Add Workspace Account, Add Outlook.com Account or Add Work/School Account.")
-    BulletPoint("On the CalDAV tab: Add Fastmail, Nextcloud or Other Account. These sign in with a password made for BSPlan; the form says where to make it.")
-    BulletPoint("A home server with its own security certificate asks Trust This Server? the first time.")
+    BulletPoint("Add Gmail Account or Add Workspace Account.")
     BulletPoint("Disconnect removes an account from BSPlan.")
     BulletPoint("A new event goes to a Cloud Calendar when an account is connected. Under Save to, pick This device only to keep it on the tablet: it never syncs.")
     BulletPoint("Events sync from two months back to 13 months ahead.")
@@ -646,9 +640,9 @@ private fun CalendarSyncContent() {
 
     SectionSubheader("Sync Status")
     BodyText(
-        "The cloud icon in the calendar header turns while syncing and shows a number when changes wait to be sent. " +
-            (if (TASK_SYNC_AVAILABLE) "Tap it to sync now (calendars, and tasks when Task Sync is on). " else "Tap it to sync now. ") +
-            "Next to it: Syncing..., Sync failed, or the time of the last sync."
+        "Tap Sync All in Calendar Accounts to sync now" +
+            (if (TASK_SYNC_AVAILABLE) " (calendars, and tasks when Task Sync is on). " else ". ") +
+            "Events and tasks also sync automatically when opening BSPlan and in the background."
     )
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
@@ -656,11 +650,9 @@ private fun CalendarSyncContent() {
     SectionSubheader("Privacy")
     BodyText(
         if (TASK_SYNC_AVAILABLE) {
-            "Calendar sync sends and receives events. With Task Sync on (Preferences), your tasks' words, done marks and dates also sync with Google Tasks or your CalDAV server (with a CalDAV server also priority and reminder times); handwriting ink stays on the tablet. Memos are never synced. Drive backup, if you turn it on, copies memos and tasks to your own Google Drive. " +
-                CALDAV_PASSWORD_HELP
+            "Calendar sync sends and receives events. With Task Sync on, your tasks' words, done marks and dates also sync with Google Tasks; handwriting ink stays on the tablet. Memos are never synced. Drive backup, if you turn it on, copies memos and tasks to your own Google Drive."
         } else {
-            "Calendar sync sends and receives events only. Memos and tasks are never synced; Drive backup, if you turn it on, copies them to your own Google Drive. " +
-                CALDAV_PASSWORD_HELP
+            "Calendar sync sends and receives events only. Memos and tasks are never synced; Drive backup, if you turn it on, copies them to your own Google Drive."
         }
     )
     BodyText("The marks on the calendar are in Key Legends.")

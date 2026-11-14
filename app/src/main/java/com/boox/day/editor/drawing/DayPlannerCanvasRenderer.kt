@@ -29,7 +29,7 @@ object DayPlannerCanvasRenderer {
     const val SECTION_HEADER_HEIGHT_PX = 64f
     const val DASHBOARD_MAX_ROWS = 5
     const val DASHBOARD_ROW_HEIGHT_PX = 62f
-    private const val WRITING_LINE_SPACING_PX = 54f
+    internal const val WRITING_LINE_SPACING_PX = 64f
 
     fun dashboardBottomY(canvasHeightPx: Float): Float {
         val idealBottom = SECTION_HEADER_HEIGHT_PX + (DASHBOARD_MAX_ROWS * DASHBOARD_ROW_HEIGHT_PX) + 4f
@@ -52,9 +52,9 @@ object DayPlannerCanvasRenderer {
     }
 
     private val writingLinePaint = Paint().apply {
-        color = Color.parseColor("#BFDBFE") // Classic sky-blue notebook ruling lines
+        color = Color.parseColor("#64748B") // Crisp Slate notebook ruling lines visible on E-Ink & Kaleido 3
         style = Paint.Style.STROKE
-        strokeWidth = 1.3f
+        strokeWidth = 2.0f
         isAntiAlias = true
     }
 

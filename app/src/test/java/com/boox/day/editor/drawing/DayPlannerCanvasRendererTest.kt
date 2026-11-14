@@ -179,4 +179,63 @@ class DayPlannerCanvasRendererTest {
 
         bitmap.recycle()
     }
+
+    @Test
+    fun drawsVisibleHandwritingLinesInNotesAndAllTuesdaySections() {
+        val width = 1800
+        val height = 2200
+        val expectedLineColor = Color.parseColor("#64748B")
+
+        fun hasLineNearY(bitmap: Bitmap, x: Int, targetY: Float): Boolean {
+            val yInt = targetY.toInt()
+            return ((yInt - 2)..(yInt + 2)).any { y ->
+                bitmap.getPixel(x, y) == expectedLineColor
+            }
+        }
+
+        val dashboardBottom = DayPlannerCanvasRenderer.dashboardBottomY(height.toFloat())
+        val notesTop = dashboardBottom + 4f
+        val spacing = DayPlannerCanvasRenderer.WRITING_LINE_SPACING_PX
+        val headerH = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX
+
+        // 1. Non-Tuesday NOTES section
+        DayPlannerState.currentDayModel = DayPlannerModel(
+            dateStr = "2026-11-13",
+            date = LocalDate.of(2026, 11, 13),
+            isTuesday = false,
+            scheduleRows = emptyList(),
+            taskRows = emptyList()
+        )
+        val notesBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        DayPlannerCanvasRenderer.drawDayPlannerBg(Canvas(notesBitmap))
+        assertTrue(
+            "Expected visible writing line in NOTES section",
+            hasLineNearY(notesBitmap, width / 2, notesTop + headerH + spacing)
+        )
+        notesBitmap.recycle()
+
+        // 2. Tuesday 5-section Staff Meeting layout
+        DayPlannerState.currentDayModel = DayPlannerModel(
+            dateStr = "2026-11-10",
+            date = LocalDate.of(2026, 11, 10),
+            isTuesday = true,
+            scheduleRows = emptyList(),
+            taskRows = emptyList()
+        )
+        val tuesdayBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        DayPlannerCanvasRenderer.drawDayPlannerBg(Canvas(tuesdayBitmap))
+
+        val remainingHeight = height - notesTop
+        val row1Bottom = notesTop + remainingHeight * 0.33f
+        val row2Bottom = notesTop + remainingHeight * 0.66f
+        val leftX = width / 4
+        val rightX = (width * 3) / 4
+
+        assertTrue("Expected lines in CALENDAR", hasLineNearY(tuesdayBitmap, leftX, notesTop + headerH + spacing))
+        assertTrue("Expected lines in OLD BUSINESS", hasLineNearY(tuesdayBitmap, rightX, notesTop + headerH + spacing))
+        assertTrue("Expected lines in NEW BUSINESS", hasLineNearY(tuesdayBitmap, leftX, row1Bottom + headerH + spacing))
+        assertTrue("Expected lines in ROUNDTABLE", hasLineNearY(tuesdayBitmap, rightX, row1Bottom + headerH + spacing))
+        assertTrue("Expected lines in ACTION ITEMS", hasLineNearY(tuesdayBitmap, width / 2, row2Bottom + headerH + spacing))
+        tuesdayBitmap.recycle()
+    }
 }

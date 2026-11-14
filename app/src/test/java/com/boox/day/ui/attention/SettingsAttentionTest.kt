@@ -49,9 +49,9 @@ class SettingsAttentionTest {
     }
 
     @Test
-    fun booxNotesCountsOnlyLostAccess() {
-        assertEquals(listOf(SettingsPlace.BOOX_NOTES), places(allFine.copy(booxNotesAccess = false)))
-        assertTrue("never used: nothing to fix", places(allFine.copy(booxNotesUsed = false, booxNotesAccess = false)).isEmpty())
+    fun booxNotesNoLongerEmitsAttention() {
+        assertTrue(places(allFine.copy(booxNotesAccess = false)).isEmpty())
+        assertTrue(places(allFine.copy(booxNotesUsed = false, booxNotesAccess = false)).isEmpty())
     }
 
     @Test

@@ -61,8 +61,8 @@ import com.boox.day.ui.theme.EInkTheme
  * and does the signing in.
  */
 
-/** The words on the third tab of Calendar Accounts (owner decisions 58 and 3.6's 1A: words only). */
-internal const val CALDAV_TAB_LABEL = "iCloud & more"
+/** The words on the third tab of Calendar Accounts (words only). */
+internal const val CALDAV_TAB_LABEL = "CalDAV"
 
 /**
  * The CalDAV mark on accounts, the events filter and events (owner's choice 2A): a calendar with a
@@ -104,13 +104,12 @@ internal fun CalDavTabLabel(selected: Boolean) {
 internal data class CalDavChoice(val type: AccountType, val label: String, val detail: String)
 
 internal val calDavChoices = listOf(
-    CalDavChoice(AccountType.CALDAV_ICLOUD, "Add iCloud Account", "Apple calendars"),
     CalDavChoice(AccountType.CALDAV_FASTMAIL, "Add Fastmail Account", "Fastmail calendars"),
     CalDavChoice(AccountType.CALDAV_NEXTCLOUD, "Add Nextcloud Account", "Your Nextcloud server"),
     CalDavChoice(AccountType.CALDAV_OTHER, "Add Other Account", "Any CalDAV server (https)")
 )
 
-internal const val CALDAV_EMPTY_MESSAGE = "No iCloud or other calendars connected.\nAdd an account to sync its calendars."
+internal const val CALDAV_EMPTY_MESSAGE = "No CalDAV calendars connected.\nAdd an account to sync its calendars."
 
 @Composable
 internal fun CalDavEmptyMessage() {
@@ -119,7 +118,7 @@ internal fun CalDavEmptyMessage() {
     }
 }
 
-/** Two rows of two, styled like the Google and Outlook add buttons. Always on: any number of accounts. */
+/** Two rows of up to two buttons, styled like the Google and Outlook add buttons. Always on: any number of accounts. */
 @Composable
 internal fun CalDavAddButtons(enabled: Boolean = true, onAdd: (AccountType) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)) {
@@ -145,6 +144,9 @@ internal fun CalDavAddButtons(enabled: Boolean = true, onAdd: (AccountType) -> U
                         Text(choice.detail, fontSize = 11.sp, color = EInkTheme.Colors.gray, maxLines = 1, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
+                if (pair.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
             }
         }
     }
@@ -152,7 +154,7 @@ internal fun CalDavAddButtons(enabled: Boolean = true, onAdd: (AccountType) -> U
 
 // ── Sign-in form ──
 
-/** The form's words for each kind of account (help steps checked against Apple's, Fastmail's and Nextcloud's help, Nov 2026). */
+/** The form's words for each kind of account (Fastmail and Nextcloud steps checked, Nov 2026). */
 internal data class CalDavFormText(
     val title: String,
     val askAddress: Boolean,
@@ -165,18 +167,6 @@ internal data class CalDavFormText(
 )
 
 internal fun calDavFormText(type: AccountType): CalDavFormText = when (type) {
-    AccountType.CALDAV_ICLOUD -> CalDavFormText(
-        title = "Add iCloud Account",
-        askAddress = false, addressHint = "",
-        nameLabel = "Apple Account email", nameHint = "name@icloud.com",
-        passwordLabel = "App-specific password",
-        howTitle = "iCloud needs an app-specific password, not your usual Apple password:",
-        steps = listOf(
-            "On a phone or computer, sign in at account.apple.com.",
-            "Sign-In and Security → App-Specific Passwords.",
-            "Make one named BSPlan and type it here."
-        )
-    )
     AccountType.CALDAV_FASTMAIL -> CalDavFormText(
         title = "Add Fastmail Account",
         askAddress = false, addressHint = "",

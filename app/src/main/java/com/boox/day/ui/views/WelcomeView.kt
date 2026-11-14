@@ -140,13 +140,12 @@ fun WelcomeView(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Feature Highlights - AI + Boox Notes side by side
+                // Feature Highlight - AI Features
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     AiFeaturesHighlight(modifier = Modifier.weight(1f))
-                    BooxNotesHighlight(modifier = Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))

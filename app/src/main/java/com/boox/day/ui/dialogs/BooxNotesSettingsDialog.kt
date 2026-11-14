@@ -577,14 +577,9 @@ internal fun OcrSettingsSection(
         Spacer(modifier = Modifier.height(EInkTheme.Global.spacingSmall))
     }
 
-    // FIX 4: Visual indicator for incomplete setup
     // Show warning when indexing is disabled (safety net for edge cases)
     if (!ocrSettings.enabled) {
-        val warningText = if (hasBooxAccess) {
-            "Turn this on to search your memos, tasks and Boox Notes."
-        } else {
-            "Turn this on to search your memos and tasks. Boox Notes pages are included once file access is allowed."
-        }
+        val warningText = "Turn this on to search your memos and tasks."
         Card(
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = EInkTheme.Colors.background,
@@ -619,7 +614,7 @@ internal fun OcrSettingsSection(
         description = if (isStandaloneWithoutOcrKey) {
             "Reads pages with AI on your OpenRouter key, while AI Features is on: add a key in AI Settings"
         } else {
-            "Reads notes, memos and tasks while the tablet is idle"
+            "Reads memos and tasks while the tablet is idle"
         }
     ) {
         Row(
@@ -685,28 +680,6 @@ internal fun OcrSettingsSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Monthly Notes pages
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = "Notes",
-                        modifier = Modifier.size(20.dp),
-                        tint = EInkTheme.Colors.darkGray
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "${loadedOcrStats.booxNotesScanned}",
-                        fontSize = EInkTheme.Preferences.cardTitleFontSize,
-                        fontWeight = FontWeight.SemiBold,
-                        color = EInkTheme.Colors.darkGray
-                    )
-                    Text(
-                        text = "Note pages read",
-                        fontSize = EInkTheme.Preferences.subLabelFontSize,
-                        color = EInkTheme.Colors.gray
-                    )
-                }
-
                 // Monthly Memos pages
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(

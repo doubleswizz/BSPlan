@@ -680,7 +680,7 @@ class MultiAccountSyncViewModel(
                     )
                 }
 
-                // Sync 6-month window: 2 months past + current + 3 months future
+                // Sync 16-month window: 2 months past + current + 13 months future
                 val now = LocalDate.now()
                 val startDate = now.minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong())
                 val endDate = now.plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())
@@ -744,7 +744,7 @@ class MultiAccountSyncViewModel(
                 _uiState.update { it.copy(isSyncing = true, syncProgress = SyncProgress(SyncPhase.FETCHING), error = null) }
                 updateAccount(accountId) { it.copy(isSyncing = true, syncProgress = null, error = null, needsReauth = false) }
 
-                // Sync 6-month window: 2 months past + current + 3 months future
+                // Sync 16-month window: 2 months past + current + 13 months future
                 val now = LocalDate.now()
                 val startDate = now.minusMonths(SyncScheduler.DEFAULT_MONTHS_BEFORE.toLong())
                 val endDate = now.plusMonths(SyncScheduler.DEFAULT_MONTHS_AFTER.toLong())

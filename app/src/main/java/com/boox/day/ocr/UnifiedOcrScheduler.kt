@@ -147,14 +147,6 @@ class UnifiedOcrScheduler(private val context: Context) {
         // NOTE: Tasks use Digital Ink Recognition, NOT Cloud Vision - not added to queue
         queue.addAll(buildMemoQueue(today, now))
 
-        // Boox Notes: use backfill budget during backfill phase, monthly budget after
-        if (quotaManager.isBackfillPhase()) {
-            Log.d(TAG, "Backfill phase: remaining ${quotaManager.getRemainingBackfill()}/${quotaManager.backfillLimit}")
-        } else {
-            Log.d(TAG, "Monthly phase: remaining ${quotaManager.getRemainingMonthlyBudget()}/${quotaManager.monthlyBudget}")
-        }
-        queue.addAll(buildBooxNotesQueue(today, now))
-
         // Sort by priority (highest first) and limit to remaining budget
         // Note: The actual budget enforcement happens in UnifiedOcrPipeline.processPage()
         // This limit here is just to avoid building a huge queue

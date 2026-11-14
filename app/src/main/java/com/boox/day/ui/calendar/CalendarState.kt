@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 /**
  * Top-level PDF-planner view modes for BSPlan:
- * - [Month]: Full-page 6-row month calendar grid (with spillover days and stylus annotation)
+ * - [Month]: Full-page dynamic 4–6 row month calendar grid (with spillover days and stylus annotation)
  * - [Day]: Full-page day planner (Schedule + Tasks top dashboard, freeform notes / Tuesday 5-section Staff Meeting below)
  */
 enum class PlannerViewMode {

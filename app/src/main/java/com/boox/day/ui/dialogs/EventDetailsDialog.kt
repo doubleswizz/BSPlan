@@ -501,9 +501,6 @@ fun EventDetailsDialog(
                         }
                     }
 
-                    // Notes (Nov 2026): on every event, so a note can be linked from either side
-                    EventNotesSection(linkedBooxNotes, onBooxNoteClick, onViewBooxNote, onLinkANote, onCreateBooxNote)
-
                     // Sync Status Section (only in Hybrid mode when signed in)
                     // In Standalone mode, we don't show sync status - all events are local
                     if (syncMode == AppSettings.SyncMode.HYBRID && isSignedIn && syncStatus != null) {

@@ -142,19 +142,12 @@ fun SearchDialog(
             } catch (_: Exception) { emptyList() }
             eventAndTaskHits.filter { it.second.score >= 1.0 }.forEach { (key, r) -> addResult(r, key) }
 
-            // ═══════════════════════════════════════════════════════════════
-            // TIER 2: FTS4 for MEMO and BOOX_NOTE only (score = 1.0)
+            // TIER 2: FTS4 for MEMO only (score = 1.0)
             // Tasks and events are fully covered by direct queries above.
             // FTS task/event results have generic titles and are ALWAYS excluded.
             // ═══════════════════════════════════════════════════════════════
-            // Query each type separately so each gets its own result limit
             try {
                 ocrRepository.searchByType(query, OcrSource.MEMO, limit = 30).forEach { r ->
-                    addResult(r.copy(score = 1.0), "${r.sourceType}_${r.pageId}")
-                }
-            } catch (_: Exception) {}
-            try {
-                ocrRepository.searchByType(query, OcrSource.BOOX_NOTE, limit = 30).forEach { r ->
                     addResult(r.copy(score = 1.0), "${r.sourceType}_${r.pageId}")
                 }
             } catch (_: Exception) {}
@@ -474,12 +467,6 @@ private fun SourceFilterRow(
             isSelected = selected == "EVENTS",
             modifier = Modifier.weight(1f)
         ) { onSelect("EVENTS") }
-        FilterChip(
-            label = "Notes",
-            count = typeCounts["BOOX_NOTE"] ?: 0,
-            isSelected = selected == "BOOX_NOTE",
-            modifier = Modifier.weight(1f)
-        ) { onSelect("BOOX_NOTE") }
     }
 }
 

@@ -5,25 +5,25 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Owner's decision (31 Oct 2026): on the Go 10.3's Tasks tab, Task AI is on the bar and the full screen
- * switch goes into ≡; Memos keeps the full screen switch on the bar.
+ * Without the Boox Notes button on the regular bar, the Go 10.3 fits all Tasks tools (including
+ * FullScreen) and keeps Insert alongside AI & Lasso on Memos (only MeetingNotes overflows to ≡).
  */
 class RegularToolbarOverflowTest {
 
     private val go103Width = 773.dp  // 385 dpi
 
     @Test
-    fun go103TasksBarHasTaskAiAndFullScreenInMenu() {
+    fun go103TasksBarHasTaskAiAndFullScreen() {
         assertEquals(
-            setOf(BarTool.FullScreen),
+            emptySet<BarTool>(),
             regularToolbarOverflow(barWidth = go103Width, isMemos = false, hasPageNav = true)
         )
     }
 
     @Test
-    fun go103MemosBarKeepsFullScreen() {
+    fun go103MemosBarKeepsFullScreenAndInsert() {
         assertEquals(
-            setOf(BarTool.MeetingNotes, BarTool.Insert),
+            setOf(BarTool.MeetingNotes),
             regularToolbarOverflow(barWidth = go103Width, isMemos = true, hasPageNav = true)
         )
     }

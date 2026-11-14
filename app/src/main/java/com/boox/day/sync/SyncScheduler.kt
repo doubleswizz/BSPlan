@@ -26,9 +26,9 @@ class SyncScheduler(private val context: Context) {
     companion object {
         private const val TAG = "SyncScheduler"
 
-        // Default sync parameters: 2 months past + present + 3 months future = 6 months total
+        // Default sync parameters: 2 months past + present + 13 months future = 16 months total
         const val DEFAULT_MONTHS_BEFORE = 2
-        const val DEFAULT_MONTHS_AFTER = 3
+        const val DEFAULT_MONTHS_AFTER = 13
 
         private const val WORK_NAME_PENDING_PUSH = "calendar_sync_pending_push"
     }

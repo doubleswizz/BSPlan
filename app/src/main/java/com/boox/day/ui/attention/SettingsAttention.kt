@@ -91,10 +91,6 @@ object SettingsAttentionRules {
             } else if (aiEnabled && failingPicks > 0) {
                 add(AttentionItem(SettingsPlace.AI_SETTINGS, "A model you picked isn't working"))
             }
-            // Only access that was allowed and is gone: never using Boox Notes needs no action
-            if (booxNotesUsed && !booxNotesAccess) {
-                add(AttentionItem(SettingsPlace.BOOX_NOTES, "Boox Notes lost its file access"))
-            }
         }
     }
 }

@@ -33,7 +33,7 @@ data class MonthCellEventItem(
 )
 
 /**
- * Data for one of the 42 day cells (6 rows × 7 columns) on the Full-Page Month View,
+ * Data for one day cell in the Full-Page Month View grid (4–6 rows × 7 columns),
  * including spillover days from the previous and next month.
  */
 @Immutable
@@ -53,18 +53,30 @@ data class MonthCellData(
 )
 
 /**
- * Complete 6-row × 7-column (42-cell) month grid model for the Full-Page Month View.
+ * Dynamic N-row × 7-column (N in 4..6) month grid model for the Full-Page Month View.
  */
 @Immutable
 data class MonthGridModel(
     val year: Int,
     val monthZeroBased: Int,
+    val rowCount: Int,
     val weekdayHeaders: List<String>,
     val cells: List<MonthCellData>
 )
 
 /**
- * Holds the active 42-cell [MonthGridModel] so both the Compose touch overlay and
+ * Synchronous layout geometry (start date, minimal week row count, and weekday headers)
+ * for a given month and first-day-of-week setting.
+ */
+@Immutable
+data class MonthGridLayout(
+    val gridStart: LocalDate,
+    val rowCount: Int,
+    val weekdayHeaders: List<String>
+)
+
+/**
+ * Holds the active [MonthGridModel] so both the Compose touch overlay and
  * the native E-Ink background canvas renderer ([com.boox.day.editor.drawing.MonthPlannerCanvasRenderer])
  * read the exact same cell coordinates and data.
  */
@@ -80,8 +92,65 @@ object MonthPlannerGridState {
         String.format(Locale.US, "MONTH-%04d-%02d", year, monthZeroBased + 1)
 
     /**
-     * Computes the 42-day grid (6 rows × 7 columns) including spillover days from the previous
-     * and next month, and loads all Google Calendar events and Google Tasks for every cell.
+     * Computes the minimal week-row layout (4, 5, or 6 rows) needed to display all days of
+     * [year]/[monthZeroBased] starting on [firstDayOfWeek].
+     */
+    fun computeGridLayout(
+        year: Int,
+        monthZeroBased: Int,
+        firstDayOfWeek: AppSettings.FirstDayOfWeek
+    ): MonthGridLayout {
+        val yearMonth = YearMonth.of(year, monthZeroBased + 1)
+        val firstOfMonth = yearMonth.atDay(1)
+        val startDayOfWeek = firstDayOfWeek.dayOfWeek
+        val leadingDays = ((firstOfMonth.dayOfWeek.value - startDayOfWeek.value) + 7) % 7
+        val rowCount = ((leadingDays + yearMonth.lengthOfMonth() + 6) / 7).coerceIn(4, 6)
+        val gridStart = firstOfMonth.minusDays(leadingDays.toLong())
+        val weekdayHeaders = (0 until 7).map { offset ->
+            when (startDayOfWeek.plus(offset.toLong())) {
+                DayOfWeek.SUNDAY -> "SUN"
+                DayOfWeek.MONDAY -> "MON"
+                DayOfWeek.TUESDAY -> "TUE"
+                DayOfWeek.WEDNESDAY -> "WED"
+                DayOfWeek.THURSDAY -> "THU"
+                DayOfWeek.FRIDAY -> "FRI"
+                DayOfWeek.SATURDAY -> "SAT"
+            }
+        }
+        return MonthGridLayout(
+            gridStart = gridStart,
+            rowCount = rowCount,
+            weekdayHeaders = weekdayHeaders
+        )
+    }
+
+    /**
+     * Maps a touch coordinate `(xPx, yPx)` inside a Month View surface of size `(widthPx, heightPx)`
+     * with weekday header height [headerPx] and [rowCount] full-height rows to a cell index,
+     * or `null` if the touch is inside the header or the surface dimensions are invalid.
+     */
+    fun hitTestCellIndex(
+        xPx: Float,
+        yPx: Float,
+        widthPx: Float,
+        heightPx: Float,
+        headerPx: Float,
+        rowCount: Int
+    ): Int? {
+        if (yPx <= headerPx || widthPx <= 0f || heightPx <= headerPx || rowCount <= 0) {
+            return null
+        }
+        val clampedRows = rowCount.coerceIn(4, 6)
+        val col = (xPx / (widthPx / 7f)).toInt().coerceIn(0, 6)
+        val row = ((yPx - headerPx) / ((heightPx - headerPx) / clampedRows.toFloat()))
+            .toInt()
+            .coerceIn(0, clampedRows - 1)
+        return row * 7 + col
+    }
+
+    /**
+     * Computes the minimal N-row × 7-column grid (4, 5, or 6 rows) including spillover days
+     * from the previous and next month, and loads all calendar events and tasks for every cell.
      */
     suspend fun loadMonthGrid(
         context: Context,
@@ -92,24 +161,14 @@ object MonthPlannerGridState {
         datesWithNotes: Set<String>,
         loadEventsForDay: suspend (String) -> List<CalendarEvent>
     ): MonthGridModel = withContext(Dispatchers.IO) {
-        val yearMonth = YearMonth.of(year, monthZeroBased + 1)
-        val firstOfMonth = yearMonth.atDay(1)
-        val startDayOfWeek = when (firstDayOfWeek) {
-            AppSettings.FirstDayOfWeek.Monday -> DayOfWeek.MONDAY
-            else -> DayOfWeek.SUNDAY
-        }
-
-        val leadingDays = ((firstOfMonth.dayOfWeek.value - startDayOfWeek.value) + 7) % 7
-        val gridStart = firstOfMonth.minusDays(leadingDays.toLong())
-        val gridEnd = gridStart.plusDays(41)
+        val layout = computeGridLayout(year, monthZeroBased, firstDayOfWeek)
+        val gridStart = layout.gridStart
+        val rowCount = layout.rowCount
+        val totalCells = rowCount * 7
+        val gridEnd = gridStart.plusDays((totalCells - 1).toLong())
         val today = LocalDate.now()
         val zone = ZoneId.systemDefault()
-
-        val weekdayHeaders = if (startDayOfWeek == DayOfWeek.MONDAY) {
-            listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
-        } else {
-            listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
-        }
+        val weekdayHeaders = layout.weekdayHeaders
 
         val appContext = context.applicationContext
         val db = AppDatabase.getDatabase(appContext)
@@ -130,7 +189,7 @@ object MonthPlannerGridState {
             .filter { it.parentTaskId == null && it.dueDay != it.dayDate }
             .groupBy { it.dueDay }
 
-        val cells = (0L..41L).map { offset ->
+        val cells = (0L until totalCells.toLong()).map { offset ->
             val date = gridStart.plusDays(offset)
             val dateStr = date.toString()
             val isCurrentMonth = date.year == year && date.monthValue == (monthZeroBased + 1)
@@ -183,6 +242,7 @@ object MonthPlannerGridState {
         MonthGridModel(
             year = year,
             monthZeroBased = monthZeroBased,
+            rowCount = rowCount,
             weekdayHeaders = weekdayHeaders,
             cells = cells
         )

@@ -124,19 +124,6 @@ fun DayQuickViewPopup(
                     onNavigateToEvents = onNavigateToEvents,
                     onNavigateToTasksDue = onNavigateToTasksDue
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = EInkTheme.Colors.lightGray, thickness = 1.dp)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ─────────────────────────────────────────────────────────────
-                // Boox Notes Section
-                // ─────────────────────────────────────────────────────────────
-                BooxNotesSection(
-                    booxNotes = data.booxNotes,
-                    onOpenBooxNote = onOpenBooxNote,
-                    onLinkBooxNote = onLinkBooxNote
-                )
             }
         }
     }

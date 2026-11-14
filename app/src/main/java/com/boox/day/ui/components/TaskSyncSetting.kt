@@ -211,8 +211,6 @@ internal suspend fun loadTaskSyncCard(context: Context, serviceLists: List<Remot
     val db = AppDatabase.getDatabase(app)
     val google = db.connectedAccountDao().getAccountsByProvider(ProviderId.GOOGLE.key).map { TaskSyncTarget.google(it.email) }
     val calDav = db.connectedAccountDao().getAccountsByProvider(ProviderId.CALDAV.key).map { it.toDomainModel() }
-    // iCloud has CalDAV calendars but no task lists for other apps (owner decision 68)
-    val iCloud = calDav.any { it.accountType == AccountType.CALDAV_ICLOUD }
     val targets = (google + calDav.filter { it.accountType != AccountType.CALDAV_ICLOUD }.map(TaskSyncTarget::calDav))
         .associateBy { it.key }
     val settings = workerAppSettings(app)
@@ -222,8 +220,6 @@ internal suspend fun loadTaskSyncCard(context: Context, serviceLists: List<Remot
     val chosen = saved?.takeIf { on || it.key in targets }?.let { targets[it.key] ?: it } ?: targets.values.firstOrNull()
     val cantTurnOn = when {
         settings.syncMode != AppSettings.SyncMode.HYBRID -> "Task Sync works with Cloud Sync. Turn on Cloud Sync in the Settings menu first."
-        targets.isEmpty() && iCloud -> "iCloud can't be used: Apple doesn't share Reminders with other apps. " +
-            "Connect Google, Nextcloud, Fastmail or another CalDAV server in Settings → Calendar Accounts."
         targets.isEmpty() -> "Connect Google, Nextcloud, Fastmail or another CalDAV server first: Settings → Calendar Accounts."
         else -> null
     }
@@ -240,7 +236,7 @@ internal suspend fun loadTaskSyncCard(context: Context, serviceLists: List<Remot
         cantTurnOn = cantTurnOn,
         chosen = chosen?.let { TaskSyncChoice(it.key, it.serviceName, it.accountEmail, it.isGoogle) },
         choices = targets.values.map { TaskSyncChoice(it.key, it.serviceName, it.accountEmail, it.isGoogle) },
-        notListed = if (iCloud) "iCloud isn't listed: Apple doesn't share Reminders with other apps." else null,
+        notListed = null,
         lists = lists,
         newTasksListId = rows.firstOrNull { it.isDefaultForNew }?.listId,
         status = override ?: if (on) statusLine(status, use24Hour, chosen?.shortName ?: "The service") else null,

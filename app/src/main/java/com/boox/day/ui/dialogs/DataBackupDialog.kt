@@ -1086,7 +1086,7 @@ private fun WipeAllDataConfirmationDialog(
                             "• Memos and handwriting\n" +
                             "• Tasks and task pages\n" +
                             "• Events, and the copies of your synced calendars\n" +
-                            "• Boox Notes links and the search index\n" +
+                            "• Search index data\n" +
                             "• Settings, AI preferences and your OpenRouter key\n" +
                             "• Calendar account sign-ins",
                     fontSize = EInkTheme.Typography.bodyMedium,
@@ -1099,7 +1099,7 @@ private fun WipeAllDataConfirmationDialog(
 
                 // Oct 2026: say what stays, so nobody believes it is gone
                 Text(
-                    text = "Not erased: your Google, Outlook or iCloud calendars online, " +
+                    text = "Not erased: your Google, Outlook or CalDAV calendars online, " +
                             (if (com.boox.day.BuildConfig.TASK_SYNC_ENABLED) "your tasks in Google Tasks or on your CalDAV server, " else "") +
                             "Google Drive backups and " +
                             "Android's own backup, files saved to Documents or Downloads (exports, backups, " +

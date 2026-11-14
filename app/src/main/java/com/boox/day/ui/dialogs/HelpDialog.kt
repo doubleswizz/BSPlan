@@ -83,7 +83,6 @@ fun HelpDialog(
             HelpSection("Calendar & Sync", Icons.Default.CalendarToday),
             HelpSection("Search", Icons.Default.Search),
             HelpSection("AI Features", Icons.Default.AutoAwesome),
-            HelpSection("Smart Link", Icons.Default.Link),
             HelpSection("Voice Input", Icons.Default.Mic),
             HelpSection("E-Ink & Sleep Screen", Icons.Default.PhoneAndroid),
             HelpSection("Data & Troubleshooting", Icons.Default.Warning),
@@ -297,12 +296,11 @@ private fun HelpContent(
                 4 -> CalendarSyncContent()
                 5 -> SearchContent()
                 6 -> AiFeaturesContent()
-                7 -> SmartLinkContent()
-                8 -> VoiceInputContent()
-                9 -> EInkOptimizationContent()
-                10 -> TroubleshootingContent()
-                11 -> KeyLegendsContent()
-                12 -> SupportContent()
+                7 -> VoiceInputContent()
+                8 -> EInkOptimizationContent()
+                9 -> TroubleshootingContent()
+                10 -> KeyLegendsContent()
+                11 -> SupportContent()
             }
         }
     }
@@ -339,7 +337,7 @@ private fun QuickStartContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Settings")
-    BodyText("The Settings menu has Preferences, Calendar & Sync, Calendar Accounts, AI Settings, Voice-to-Text, Data & Backup, Boox Notes, Handwriting Search, Help and About. A dot next to an item marks a setting worth a look first.")
+    BodyText("The Settings menu has Preferences, Calendar & Sync, Calendar Accounts, AI Settings, Voice-to-Text, Data & Backup, Handwriting Search, Help and About. A dot next to an item marks a setting worth a look first.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingLarge))
 }
@@ -367,7 +365,7 @@ private fun TouchGesturesContent() {
     GestureItem(
         gesture = "Long-press a date",
         action = "Preview the day",
-        details = "A popup shows how many events and tasks the day has, each with a View button, and the day's Boox Notes with an Open button."
+        details = "A popup shows how many events and tasks the day has, each with a View button."
     )
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingLarge))
@@ -583,12 +581,12 @@ private fun TaskManagementContent() {
         BulletPoint("Tasks from your phone come to their due day; tasks with no date come to today.")
         BulletPoint("It syncs when you open BSPlan, about 10 seconds after you stop writing, with the cloud button, and in the background on Sync frequency while the tablet is awake (on BOOX, see Data & Troubleshooting).")
         BulletPoint("Clearing or deleting a synced task deletes it on your phone's service too; more than 20 at once waits for your OK. Ticked tasks deleted on your phone stay on the tablet.")
-        BulletPoint("iCloud can't be used: Apple doesn't share Reminders with other apps. Repeating tasks come to each day of the coming week with a CalDAV server, not with Google Tasks.")
+        BulletPoint("Repeating tasks come to each day of the coming week with a CalDAV server, not with Google Tasks.")
     }
 }
 
-/** Where an iCloud or other CalDAV account's password goes (plan step 3.8). */
-private const val CALDAV_PASSWORD_HELP = "The password of an iCloud or other account stays on the tablet, encrypted, and goes only to its server."
+/** Where a CalDAV account's password goes (plan step 3.8). */
+private const val CALDAV_PASSWORD_HELP = "The password of a CalDAV account stays on the tablet, encrypted, and goes only to its server."
 
 /** Task sync's texts show only in builds that have it (owner decision 36: release builds until Google approves). */
 private val TASK_SYNC_AVAILABLE: Boolean get() = com.boox.day.BuildConfig.TASK_SYNC_ENABLED
@@ -628,17 +626,17 @@ private fun CalendarSyncContent() {
 
     SectionSubheader("Calendar Mode (Settings → Calendar & Sync)")
     BulletItem("Private Mode", "Everything stays on the tablet. No account needed.")
-    BulletItem("Cloud Sync", "Also shows your Google, Outlook, iCloud and other calendars.")
+    BulletItem("Cloud Sync", "Also shows your Google, Outlook and CalDAV calendars.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("Accounts (Settings → Calendar Accounts)")
     BulletPoint("Add Gmail Account, Add Workspace Account, Add Outlook.com Account or Add Work/School Account.")
-    BulletPoint("On the iCloud & more tab: Add iCloud, Fastmail, Nextcloud or Other Account. These sign in with a password made for BSPlan; the form says where to make it.")
+    BulletPoint("On the CalDAV tab: Add Fastmail, Nextcloud or Other Account. These sign in with a password made for BSPlan; the form says where to make it.")
     BulletPoint("A home server with its own security certificate asks Trust This Server? the first time.")
     BulletPoint("Disconnect removes an account from BSPlan.")
     BulletPoint("A new event goes to a Cloud Calendar when an account is connected. Under Save to, pick This device only to keep it on the tablet: it never syncs.")
-    BulletPoint("Events sync from two months back to three months ahead.")
+    BulletPoint("Events sync from two months back to 13 months ahead.")
     BulletPoint(
         "BSPlan asks Google for little access to your calendar: only your events and your list of calendars." +
             if (TASK_SYNC_AVAILABLE) " Task Sync asks Google separately for Google Tasks, only when you turn it on." else ""
@@ -682,10 +680,10 @@ private fun SearchContent() {
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
     SectionSubheader("What It Finds")
-    BulletItem("Memos and Boox Notes", "The words read from your handwriting, once the pages are read (see Smart Link).")
+    BulletItem("Memos", "The words read from your handwriting, once the pages are read (Settings → Handwriting Search).")
     BulletItem("Tasks", "Typed text, and handwriting read on the tablet.")
     BulletItem("Events", "From your calendar accounts, and the tablet's own events.")
-    BodyText("The filters All, Memos, Tasks, Events and Notes narrow the results.")
+    BodyText("The filters All, Memos, Tasks and Events narrow the results.")
 
     Spacer(modifier = Modifier.height(EInkTheme.Global.paddingMedium))
 
@@ -696,8 +694,8 @@ private fun SearchContent() {
 
     SectionSubheader("Results")
     BulletPoint("Up to 50, best matches first, then the newest.")
-    BulletPoint("Memo and Boox Notes results show their topic and word count.")
-    BulletPoint("Tap a result to go to its day. A task opens; a Boox Notes result opens the note.")
+    BulletPoint("Memo results show their topic and word count.")
+    BulletPoint("Tap a result to go to its day. A task opens.")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

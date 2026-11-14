@@ -106,7 +106,7 @@ fun AddAccountPromptPopup(
 
                 // Explanation
                 Text(
-                    text = "Cloud Sync is now enabled. Connect Google, Outlook or iCloud to see your cloud calendars alongside your on-device calendars.",
+                    text = "Cloud Sync is now enabled. Connect Google, Outlook or CalDAV to see your cloud calendars alongside your on-device calendars.",
                     fontSize = EInkTheme.Typography.bodyMedium,
                     color = EInkTheme.Colors.darkGray,
                     lineHeight = 20.sp

@@ -537,8 +537,8 @@ fun PlannerHeaderActionButton(
 /**
  * Transparent touch overlay over the Full-Page Month View canvas:
  * - Ignores [PointerType.Stylus] so the Boox stylus can write anywhere over the Month Grid with zero lag.
- * - Listens for finger taps ([PointerType.Touch]) on any of the 42 day cells (including spillover days)
- *   and opens that day in [PlannerViewMode.Day].
+ * - Listens for finger taps ([PointerType.Touch]) on any of the visible day cells (4–6 week rows,
+ *   including spillover days) and opens that day in [PlannerViewMode.Day].
  */
 @Composable
 fun MonthGridTouchOverlay(
@@ -579,19 +579,17 @@ fun MonthGridTouchOverlay(
 
                     if (movedTooFar) return@awaitEachGesture
 
-                    val widthPx = size.width.toFloat()
-                    val heightPx = size.height.toFloat()
-                    val headerPx = MonthPlannerCanvasRenderer.WEEKDAY_HEADER_HEIGHT_PX
+                    val activeGrid = currentGridState.value ?: return@awaitEachGesture
+                    val cellIndex = MonthPlannerGridState.hitTestCellIndex(
+                        xPx = upPos.x,
+                        yPx = upPos.y,
+                        widthPx = size.width.toFloat(),
+                        heightPx = size.height.toFloat(),
+                        headerPx = MonthPlannerCanvasRenderer.WEEKDAY_HEADER_HEIGHT_PX,
+                        rowCount = activeGrid.rowCount
+                    ) ?: return@awaitEachGesture
 
-                    if (upPos.y <= headerPx || widthPx <= 0f || heightPx <= headerPx) {
-                        return@awaitEachGesture
-                    }
-
-                    val col = ((upPos.x / (widthPx / 7f)).toInt()).coerceIn(0, 6)
-                    val row = (((upPos.y - headerPx) / ((heightPx - headerPx) / 6f)).toInt()).coerceIn(0, 5)
-                    val cellIndex = row * 7 + col
-
-                    val tappedCell = currentGridState.value?.cells?.getOrNull(cellIndex)
+                    val tappedCell = activeGrid.cells.getOrNull(cellIndex)
                     if (tappedCell != null) {
                         DrawCanvas.forceUnfreeze()
                         currentCallback.value(tappedCell)
@@ -602,8 +600,8 @@ fun MonthGridTouchOverlay(
 }
 
 /**
- * Handles background loading of the 42-day Month Grid (including spillover days, Google Calendar
- * events, and Google Tasks), Back-button navigation from Day View to Month View, E-Ink canvas
+ * Handles background loading of the dynamic Month Grid (4–6 week rows including spillover days,
+ * calendar events, and tasks), Back-button navigation from Day View to Month View, E-Ink canvas
  * redraw synchronization, and session state persistence.
  */
 @Composable

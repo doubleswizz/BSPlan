@@ -664,7 +664,7 @@ private fun NoAccountsContent(onOpenCalendarAccounts: () -> Unit) {
         )
 
         Text(
-            text = "Connect a Google, Outlook or iCloud account to see your cloud calendars alongside your on-device calendars.",
+            text = "Connect a Google, Outlook or CalDAV account to see your cloud calendars alongside your on-device calendars.",
             fontSize = EInkTheme.Typography.bodyMedium,
             color = EInkTheme.Colors.darkGray,
             textAlign = TextAlign.Center
@@ -714,7 +714,7 @@ private fun NoAccountsContent(onOpenCalendarAccounts: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(EInkTheme.Global.spacingSmall))
                 Text(
-                    text = "• See events from Google, Outlook and iCloud calendars",
+                    text = "• See events from Google, Outlook and CalDAV calendars",
                     fontSize = EInkTheme.Typography.bodySmall,
                     color = EInkTheme.Colors.darkGray
                 )

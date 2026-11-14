@@ -490,72 +490,7 @@ class UnifiedOcrIdleProcessor(private val context: Context) {
      * all Boox Notes have been indexed. When complete, it triggers auto-linking
      * to match notes with calendar events using the newly available semantic data.
      */
-    private suspend fun checkAndTriggerAutoLink(): Boolean {
-        // ═══════════════════════════════════════════════════════════════════
-        // FIX: Do NOT evaluate backfill completion until the Boox Notes
-        // index has been populated by at least one successful fullScan().
-        //
-        // Without this guard, the idle processor can fire before fullScan()
-        // finishes on first launch.  getEligibleBooxNotePageEntryIds()
-        // returns 0 (empty index), and checkAndMarkBackfillComplete(0,0)
-        // interprets that as "nothing to do" → markBackfillComplete() →
-        // backfill phase permanently ends before any historical pages are
-        // bucketed.  All subsequent Boox Note OCR then charges against
-        // the monthly budget instead of the free backfill bucket.
-        // ═══════════════════════════════════════════════════════════════════
-        if (!GlobalAppSettings.isBooxNotesReady) {
-            Log.d(TAG, "Skipping backfill completion check: Boox Notes scan has not completed yet (isBooxNotesReady=false)")
-            return false
-        }
-
-        if (!quotaManager.isOcrFeatureEnabled) {
-            Log.d(TAG, "Skipping backfill auto-link check: OCR disabled in OCR config (${quotaManager.describeAppliedConfig()})")
-            return false
-        }
-
-        if (!quotaManager.isSmartLinkEnabled) {
-            Log.d(TAG, "Skipping backfill auto-link check: Smart Link disabled in OCR config (${quotaManager.describeAppliedConfig()})")
-            return false
-        }
-
-        val indexer = booxNoteIndexer
-        if (indexer == null) {
-            Log.w(TAG, "Skipping backfill auto-link check: booxNoteIndexer not wired yet")
-            return false
-        }
-
-        try {
-            // Eligible pages match scheduler rules (lookback window + page cap per note)
-            val eligiblePageEntryIds = scheduler.getEligibleBooxNotePageEntryIds()
-            val eligiblePageCount = eligiblePageEntryIds.size
-            val processedEligiblePageCount = if (eligiblePageEntryIds.isEmpty()) {
-                0
-            } else {
-                ocrRepository.getProcessedPageCountByTypeAndIds(OcrSource.BOOX_NOTE, eligiblePageEntryIds)
-            }
-
-            Log.d(TAG, "Backfill check: $processedEligiblePageCount/$eligiblePageCount eligible pages processed")
-
-            // Check if backfill is complete
-            val backfillJustCompleted = quotaManager.checkAndMarkBackfillComplete(
-                eligiblePageCount = eligiblePageCount,
-                processedPageCount = processedEligiblePageCount
-            )
-
-            if (backfillJustCompleted) {
-                Log.i(TAG, "Backfill just completed! Triggering auto-link...")
-                val linkedAny = indexer.runPendingAutoLinkIfNeeded()
-                if (linkedAny) {
-                    Log.i(TAG, "Auto-link completed after backfill")
-                }
-                return linkedAny
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking/triggering backfill completion: ${e.message}", e)
-        }
-
-        return false
-    }
+    private suspend fun checkAndTriggerAutoLink(): Boolean = false
 
     /**
      * Close resources.

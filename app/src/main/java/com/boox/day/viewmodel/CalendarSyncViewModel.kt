@@ -141,7 +141,7 @@ class CalendarSyncViewModel(application: Application) : AndroidViewModel(applica
 
     /**
      * Perform startup sync for a range of months around current month.
-     * Uses SyncScheduler defaults: 2 months past + current + 3 months future = 6 months total.
+     * Uses SyncScheduler defaults: 2 months past + current + 13 months future = 16 months total.
      */
     private suspend fun performStartupMonthRangeSync(
         monthsBefore: Int = SyncScheduler.DEFAULT_MONTHS_BEFORE,

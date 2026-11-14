@@ -5,11 +5,14 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import com.boox.day.data.datastore.GlobalAppSettings
 import com.boox.day.ui.calendar.MonthGridModel
 import com.boox.day.ui.calendar.MonthPlannerGridState
+import com.boox.day.ui.calendar.PlannerNavigationState
+import java.time.LocalDate
 
 /**
- * Renders the Full-Page 7×6 Month View planner grid directly onto [PageView]'s background canvas.
+ * Renders the Full-Page dynamic Month View planner grid (7 columns × 4–6 rows) directly onto [PageView]'s background canvas.
  *
  * Because it renders in the background layer of [com.boox.day.editor.DrawCanvas]:
  * - The Onyx hardware stylus driver can write over the top of the entire Month View with zero lag.
@@ -163,11 +166,24 @@ object MonthPlannerCanvasRenderer {
         if (width <= 0f || height <= WEEKDAY_HEADER_HEIGHT_PX) return
 
         val grid: MonthGridModel? = MonthPlannerGridState.currentGrid
-        val headers = grid?.weekdayHeaders ?: listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
+        val fallbackLayout = if (grid == null) {
+            val now = LocalDate.now()
+            val year = PlannerNavigationState.savedViewingYear ?: now.year
+            val monthZeroBased = PlannerNavigationState.savedViewingMonthZeroBased ?: (now.monthValue - 1)
+            MonthPlannerGridState.computeGridLayout(
+                year = year,
+                monthZeroBased = monthZeroBased,
+                firstDayOfWeek = GlobalAppSettings.current.firstDayOfWeek
+            )
+        } else {
+            null
+        }
+        val headers = grid?.weekdayHeaders ?: fallbackLayout!!.weekdayHeaders
+        val rowCount = (grid?.rowCount ?: fallbackLayout!!.rowCount).coerceIn(4, 6)
 
         val colWidth = width / 7f
         val gridTop = WEEKDAY_HEADER_HEIGHT_PX
-        val rowHeight = (height - gridTop) / 6f
+        val rowHeight = (height - gridTop) / rowCount.toFloat()
 
         // 1. Draw SUN..SAT weekday header row with Deep Navy & Crimson Weekend accents
         val headerBaselineY = (WEEKDAY_HEADER_HEIGHT_PX / 2f) - ((weekdayTextPaint.descent() + weekdayTextPaint.ascent()) / 2f)
@@ -184,7 +200,7 @@ object MonthPlannerCanvasRenderer {
         // Pre-fill cell backgrounds (Spillover slate tint or Today warm amber tint) before grid lines
         val cells = grid?.cells
         if (cells != null) {
-            for (row in 0 until 6) {
+            for (row in 0 until rowCount) {
                 for (col in 0 until 7) {
                     val cell = cells.getOrNull(row * 7 + col) ?: continue
                     val cellLeft = col * colWidth
@@ -208,8 +224,8 @@ object MonthPlannerCanvasRenderer {
             canvas.drawLine(x, 0f, x, height, gridBorderPaint)
         }
 
-        // 3. Draw horizontal row lines for the 6 weeks
-        for (row in 1..6) {
+        // 3. Draw horizontal row lines for the dynamic week rows (4, 5, or 6) filling top-to-bottom
+        for (row in 1..rowCount) {
             val y = (gridTop + row * rowHeight).coerceAtMost(height - 1f)
             canvas.drawLine(0f, y, width, y, gridBorderPaint)
         }
@@ -218,8 +234,8 @@ object MonthPlannerCanvasRenderer {
         val cellPaddingX = 10f
         val lineHeight = 25f
 
-        // 4. Draw each of the 42 day cells (including spillover days)
-        for (row in 0 until 6) {
+        // 4. Draw each visible day cell (including any spillover days)
+        for (row in 0 until rowCount) {
             for (col in 0 until 7) {
                 val index = row * 7 + col
                 val cell = cells.getOrNull(index) ?: continue

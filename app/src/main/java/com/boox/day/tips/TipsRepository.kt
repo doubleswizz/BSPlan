@@ -18,7 +18,7 @@ object TipsRepository {
 
     /** Get all tips from all categories */
     fun getAllTips(): List<Tip> =
-        memosTips + tasksTips + calendarTips + eventsTips + booxNotesTips + generalTips + aiTips + discoveryTips
+        memosTips + tasksTips + calendarTips + eventsTips + generalTips + aiTips + discoveryTips
 
     // ═══════════════════════════════════════════════════════════════
     // MEMOS TAB - Contextual Tips (shown when Memos tab is active)
@@ -87,11 +87,6 @@ object TipsRepository {
         Tip(
             id = "memos_export",
             message = "≡ → Export Pages saves a page, a day or a week as a PDF, pictures or Markdown for Obsidian, or shares it.",
-            contexts = setOf(TipContext.MEMOS)
-        ),
-        Tip(
-            id = "memos_boox_notes_button",
-            message = "The B on the Memos toolbar opens your Boox Notes.",
             contexts = setOf(TipContext.MEMOS)
         ),
         Tip(
@@ -273,12 +268,12 @@ object TipsRepository {
         ),
         Tip(
             id = "calendar_marks",
-            message = "A small mark under a date means events; a B means Boox Notes. The day header shows memos and tasks.",
+            message = "A small mark under a date means events. The day header shows memos and tasks.",
             contexts = setOf(TipContext.CALENDAR)
         ),
         Tip(
             id = "calendar_search",
-            message = "Tap the magnifier in the calendar header to search your memos, tasks, events and Boox Notes.",
+            message = "Tap the magnifier in the calendar header to search your memos, tasks and events.",
             contexts = setOf(TipContext.CALENDAR)
         ),
         Tip(
@@ -309,12 +304,12 @@ object TipsRepository {
         ),
         Tip(
             id = "events_details",
-            message = "Tap an event to see its details, edit it, or open its linked Boox Notes.",
+            message = "Tap an event to see its details or edit it.",
             contexts = setOf(TipContext.EVENTS)
         ),
         Tip(
             id = "events_sync",
-            message = "Add your Google, Outlook or iCloud account in Settings → Calendar Accounts to see its events here.",
+            message = "Add your Google, Outlook or CalDAV account in Settings → Calendar Accounts to see its events here.",
             contexts = setOf(TipContext.EVENTS)
         ),
         Tip(
@@ -532,12 +527,6 @@ object TipsRepository {
             id = "discover_ai_options",
             message = "No health or social ideas wanted? Turn them off in Settings → AI Settings → AI options.",
             contexts = setOf(TipContext.MEMOS, TipContext.TASKS),
-            isDiscovery = true
-        ),
-        Tip(
-            id = "discover_boox_notes",
-            message = "Your Boox Notes can be linked to calendar events, so meeting notes are one tap away.",
-            contexts = setOf(TipContext.TASKS),
             isDiscovery = true
         ),
     )

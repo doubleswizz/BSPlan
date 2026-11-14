@@ -114,8 +114,8 @@ enum class AccountType(
         val outlookTypes: List<AccountType>
             get() = listOf(OUTLOOK_PERSONAL, OUTLOOK_WORK_SCHOOL)
 
-        /** CalDAV choices, in the order the sign-in shows them (owner decision 59). */
+        /** CalDAV choices, in the order the sign-in shows them. */
         val calDavTypes: List<AccountType>
-            get() = listOf(CALDAV_ICLOUD, CALDAV_FASTMAIL, CALDAV_NEXTCLOUD, CALDAV_OTHER)
+            get() = listOf(CALDAV_FASTMAIL, CALDAV_NEXTCLOUD, CALDAV_OTHER)
     }
 }

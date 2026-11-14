@@ -172,16 +172,7 @@ fun SettingsMenu(
             // DATA SECTION
             SectionHeader("Data")
             SettingsMenuItemWithIcon("Data & Backup", Icons.Default.CloudSync) { onDataBackup() }
-            SettingsMenuItemWithIcon(
-                label = "Boox Notes",
-                icon = painterResource(R.drawable.boox_b_letter),  // Boox "B", as on the Memos toolbar
-                reason = attention.reasonFor(SettingsPlace.BOOX_NOTES),
-                onClick = {
-                    com.boox.day.ui.dialogs.BooxNotesPlaces.settingsPage = com.boox.day.ui.dialogs.BooxNotesPlaces.SettingsPage.SETUP
-                    onBooxNotesSettings()
-                }
-            )
-            // Reads memos and tasks too, so it has its own row (it used to sit inside Boox Notes)
+            // Reads memos and tasks for handwriting search
             SettingsMenuItemWithIcon("Handwriting Search", Icons.Default.Search) {
                 com.boox.day.ui.dialogs.BooxNotesPlaces.settingsPage = com.boox.day.ui.dialogs.BooxNotesPlaces.SettingsPage.HANDWRITING
                 onBooxNotesSettings()

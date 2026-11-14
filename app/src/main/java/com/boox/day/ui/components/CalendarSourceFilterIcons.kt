@@ -115,11 +115,11 @@ fun CalendarSourceFilterIcons(
             )
         }
 
-        // CalDAV calendars filter (iCloud & more; only when an account is connected)
+        // CalDAV calendars filter (only when an account is connected)
         if (hasCalDavAccount) {
             FilterIconButton(
                 iconRes = null,
-                contentDesc = "iCloud and other calendars",
+                contentDesc = "CalDAV calendars",
                 isSelected = filter.showCalDav,
                 onClick = { onToggleSource(CalendarSource.CALDAV) },
                 containerSize = containerSize,

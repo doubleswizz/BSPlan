@@ -149,9 +149,9 @@ fun SyncModeSelector(
             icon = Icons.Filled.Sync,
             title = "Cloud Sync",
             description = if (isSignedIn) {
-                "Your Google, Outlook or iCloud calendars appear alongside your on-device calendars. Only sync what you choose."
+                "Your Google, Outlook and CalDAV calendars appear alongside your on-device calendars. Only sync what you choose."
             } else {
-                "Connect Google, Outlook or iCloud to see all your events in one place. Your on-device calendars stay private."
+                "Connect Google, Outlook or a CalDAV server to see all your events in one place. Your on-device calendars stay private."
             },
             isSelected = currentMode == AppSettings.SyncMode.HYBRID,
             onClick = { onModeSelected(AppSettings.SyncMode.HYBRID) }

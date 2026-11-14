@@ -509,11 +509,11 @@ fun MainScreen(
     val localCalendarRepository = remember { LocalCalendarRepository(context) }
     val localEventRepository = remember { LocalEventRepository(context) }
 
-    // Boox Notes baseline is always enabled. Persist compatibility flag as true.
+    // Boox Notes integration is disabled. Persist compatibility flag as false.
     LaunchedEffect(Unit) {
-        if (!GlobalAppSettings.current.booxNotesEnabled || !booxNotesEnabled) {
-            booxNotesEnabled = true
-            val newSettings = GlobalAppSettings.current.copy(booxNotesEnabled = true)
+        if (GlobalAppSettings.current.booxNotesEnabled || booxNotesEnabled) {
+            booxNotesEnabled = false
+            val newSettings = GlobalAppSettings.current.copy(booxNotesEnabled = false)
             GlobalAppSettings.update(newSettings)
             withContext(Dispatchers.IO) {
                 appRepository.kvProxy.setAppSettings(newSettings)
@@ -558,13 +558,6 @@ fun MainScreen(
 
     val booxNoteIndexer = remember { BooxNoteIndexer(context, booxNotesIntegration, booxNoteRepository, eventRepository) }
     val cacheWarmupCoordinator = remember { CacheWarmupCoordinator(appRepository.dayPageRepository, localEventRepository, eventRepository, taskRepository, booxNoteRepository) }
-
-    LaunchedEffect(semanticGeniusService) {
-        booxNoteIndexer.semanticGeniusService = semanticGeniusService
-    }
-    LaunchedEffect(Unit) {
-        ocrIdleProcessor.booxNoteIndexer = booxNoteIndexer
-    }
 
     // Register memory pressure callback to clear repository caches during low memory
     DisposableEffect(Unit) {
@@ -1508,8 +1501,6 @@ fun MainScreen(
         if (showDayQuickView && quickViewDate != null) {
             val date = quickViewDate!!
             quickViewData = withContext(Dispatchers.IO) {
-                // Fetch all data in parallel for performance
-                val notesDeferred = async { booxNoteRepository.getNotesForDate(date) }
                 val eventsDeferred = async { eventsViewModel.getEventCountForDate(date).first() }
                 val tasksDeferred = async { taskRepository.getTasksDueOnDateCount(date).first() }
 
@@ -1521,28 +1512,10 @@ fun MainScreen(
                     if (parsedDate != null) outputFormat.format(parsedDate) else date
                 } catch (e: Exception) { date }
 
-                // Filter out empty notes (0 pages) for consistency with BooxNotesDialog
-                val notes = notesDeferred.await().filter { it.pageCount > 0 }
-
-                // Fetch links and linked events for each note
-                val notesWithEvents = notes.map { note ->
-                    async {
-                        val link = booxNoteRepository.getLinkForNote(note.uniqueId)
-                        val linkedEvent = link?.linkedEventId?.let { eventId ->
-                            eventRepository.getEventById(eventId)
-                        }
-                        BooxNoteWithEvent(
-                            note = note,
-                            linkedEvent = linkedEvent,
-                            isManualLink = link?.isManualLink ?: false
-                        )
-                    }
-                }.awaitAll()
-
                 DayQuickViewData(
                     date = date,
                     displayDate = displayDate,
-                    booxNotes = notesWithEvents,
+                    booxNotes = emptyList(),
                     eventCount = eventsDeferred.await(),
                     tasksDueCount = tasksDeferred.await()
                 )
@@ -1550,17 +1523,6 @@ fun MainScreen(
         } else if (!showDayQuickView) {
             // Clear data when popup closes
             quickViewData = null
-        }
-    }
-
-    // Load linked Boox Notes when an event is selected for details
-    LaunchedEffect(selectedEventForDetails, noteLinkRefreshTrigger) {
-        if (selectedEventForDetails != null) {
-            linkedBooxNotesForEvent = withContext(Dispatchers.IO) {
-                booxNoteRepository.getNotesLinkedToEvent(selectedEventForDetails!!.id)
-            }
-        } else {
-            linkedBooxNotesForEvent = emptyList()
         }
     }
 
@@ -1684,103 +1646,6 @@ fun MainScreen(
         }
     }
 
-    // Automatic Boox Notes scan on startup (runs once when MainScreen loads)
-    // OPTIMIZATION: Silent scan - only notify on errors, not on success
-    // This avoids blocking user perception with snack messages on every app launch
-    LaunchedEffect(Unit) {
-        val hasPerm = hasFilePermission(context)
-        val isAlreadyScanning = GlobalAppSettings.isBooxNotesScanning
-        Log.d("BooxScanDebug", "Startup Boox scan check: hasPerm=$hasPerm, isAlreadyScanning=$isAlreadyScanning")
-        if (hasPerm && !isAlreadyScanning) {
-            Log.d("BooxScanDebug", "Setting isBooxNotesScanning=true")
-            GlobalAppSettings.setBooxNotesScanning(true)
-            try {
-                Log.d("BooxScanDebug", "Starting fullScan...")
-                // Run initial scan in background (silent on success) - off main thread
-                val (scanResult, booxNoteDates) = withContext(Dispatchers.IO) {
-                    val result = booxNoteIndexer.fullScan()
-                    Log.d("BooxScanDebug", "fullScan returned: newNotes=${result.newNotes}, error=${result.error}")
-                    // PERFORMANCE: Invalidate links cache since note data may have changed
-                    booxNoteRepository.invalidateLinksCache()
-                    // Refresh the dates with Boox Notes for the current month
-                    val dates = booxNoteRepository.getDatesWithNotesForMonth(currentYearMonthState.value)
-                    Pair(result, dates)
-                }
-                datesWithBooxNotes = booxNoteDates
-                val scanSucceeded = scanResult.error == null ||
-                    scanResult.error.contains("UnsatisfiedLinkError")
-                if (scanSucceeded) {
-                    // Mark Boox Notes as ready (scan complete)
-                    GlobalAppSettings.setBooxNotesReady(true)
-                    Log.d("BooxScanDebug", "Scan complete, setBooxNotesReady(true)")
-
-                    // FIX: Repair corrupted backfill state from the premature-completion
-                    // race condition.  Must run AFTER isBooxNotesReady is true so the
-                    // guard in checkAndMarkBackfillComplete sees the correct state.
-                    withContext(Dispatchers.IO) {
-                        com.boox.day.ocr.OcrQuotaManager(context).repairBackfillStateIfCorrupted()
-                    }
-                } else {
-                    Log.d("BooxScanDebug", "Scan failed, not setting ready. Error: ${scanResult.error}")
-                }
-                // Only show message on ERROR - silent success for better UX
-                // Suppress UnsatisfiedLinkError - native library functions not available
-                if (scanResult.error != null && !scanResult.error.contains("UnsatisfiedLinkError")) {
-                    SnackState.globalSnackFlow.tryEmit(
-                        SnackConf(key = "boox-scan", text = "Boox Notes scan failed: ${scanResult.error}", duration = SnackConf.DURATION_ERROR)
-                    )
-                }
-                // Note: Success is silent on startup. Manual "Refresh All Notes" still shows results.
-            } finally {
-                Log.d("BooxScanDebug", "Finally block: setting isBooxNotesScanning=false")
-                GlobalAppSettings.setBooxNotesScanning(false)
-            }
-        }
-        // If permission is missing, readiness remains false until permission is granted and scan runs.
-    }
-
-    // Scan function that can be called from dialogs when permission/toggle changes
-    val triggerBooxNotesScan: () -> Unit = remember(scope, booxNoteIndexer, booxNoteRepository, currentYearMonth) {
-        {
-            if (hasFilePermission(context) && !GlobalAppSettings.isBooxNotesScanning) {
-                scope.launch {
-                    GlobalAppSettings.setBooxNotesScanning(true)
-                    try {
-                        SnackState.globalSnackFlow.tryEmit(
-                            SnackConf(key = "boox-scan", text = "Scanning Boox Notes...", duration = SnackConf.DURATION_ERROR)
-                        )
-
-                        val (scanResult, booxNoteDates) = withContext(Dispatchers.IO) {
-                            val result = booxNoteIndexer.fullScan()
-                            booxNoteRepository.invalidateLinksCache()
-                            val dates = booxNoteRepository.getDatesWithNotesForMonth(currentYearMonthState.value)
-                            Pair(result, dates)
-                        }
-                        datesWithBooxNotes = booxNoteDates
-                        if (scanResult.error == null || scanResult.error.contains("UnsatisfiedLinkError")) {
-                            GlobalAppSettings.setBooxNotesReady(true)
-                        }
-
-                        // Show completion message
-                        if (scanResult.error != null && !scanResult.error.contains("UnsatisfiedLinkError")) {
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(key = "boox-scan", text = "Boox Notes scan failed: ${scanResult.error}", duration = SnackConf.DURATION_ERROR)
-                            )
-                        } else {
-                            val totalFound = scanResult.newNotes + scanResult.updatedNotes
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(key = "boox-scan", text = "Boox Notes ready! Found $totalFound notes.", duration = SnackConf.DURATION_ERROR)
-                            )
-                        }
-                        noteLinkRefreshTrigger++
-                    } finally {
-                        GlobalAppSettings.setBooxNotesScanning(false)
-                    }
-                }
-            }
-        }
-    }
-
     // Action items added to Tasks (Oct 2026): show them if they landed on the page shown
     LaunchedEffect(com.boox.day.actionitems.ActionItemsUi.tasksAdded) {
         if (com.boox.day.actionitems.ActionItemsUi.tasksAdded > 0) loadTasksPage(selectedDate, currentTaskPageIndex)
@@ -1798,71 +1663,13 @@ fun MainScreen(
             com.boox.day.meetings.MeetingNotes.showOnCanvas(tabManager, target.date, target.pageId)
         }
     }
-    // Scan on app resume - handles both first-time permission grant and regular quick scan
+    // Check Task Sync on resume
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 // Tasks, when task sync is on: at most every 10 minutes (tasksync/TaskSyncTriggers)
                 com.boox.day.tasksync.TaskSyncTriggers.onReturn(context)
-            }
-            if (event == Lifecycle.Event.ON_RESUME && hasFilePermission(context) && !GlobalAppSettings.isBooxNotesScanning) {
-                scope.launch {
-                    // Check if this is a first-time permission grant (need full scan)
-                    val needsFullScan = !GlobalAppSettings.isBooxNotesReady
-
-                    if (needsFullScan) {
-                        // FIRST-TIME PERMISSION GRANT: Run full scan with progress notification
-                        GlobalAppSettings.setBooxNotesScanning(true)
-                        try {
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(key = "boox-scan", text = "Scanning Boox Notes...", duration = SnackConf.DURATION_ERROR)
-                            )
-
-                            val (scanResult, booxNoteDates) = withContext(Dispatchers.IO) {
-                                val result = booxNoteIndexer.fullScan()
-                                booxNoteRepository.invalidateLinksCache()
-                                val dates = booxNoteRepository.getDatesWithNotesForMonth(currentYearMonthState.value)
-                                Pair(result, dates)
-                            }
-                            datesWithBooxNotes = booxNoteDates
-
-                            // Mark Boox Notes as ready only on success
-                            if (scanResult.error == null || scanResult.error.contains("UnsatisfiedLinkError")) {
-                                GlobalAppSettings.setBooxNotesReady(true)
-                            }
-
-                            // Show completion message (replaces "Scanning..." message with same key)
-                            if (scanResult.error != null && !scanResult.error.contains("UnsatisfiedLinkError")) {
-                                SnackState.globalSnackFlow.tryEmit(
-                                    SnackConf(key = "boox-scan", text = "Boox Notes scan failed: ${scanResult.error}", duration = SnackConf.DURATION_ERROR)
-                                )
-                            } else {
-                                val totalFound = scanResult.newNotes + scanResult.updatedNotes
-                                SnackState.globalSnackFlow.tryEmit(
-                                    SnackConf(key = "boox-scan", text = "Boox Notes ready! Found $totalFound notes.", duration = SnackConf.DURATION_ERROR)
-                                )
-                            }
-                            noteLinkRefreshTrigger++
-                        } finally {
-                            GlobalAppSettings.setBooxNotesScanning(false)
-                        }
-                    } else {
-                        // REGULAR RESUME: Quick scan for recent notes (last 24 hours only)
-                        val scanResult = withContext(Dispatchers.IO) {
-                            booxNoteIndexer.scanIfStale()
-                        }
-                        if (scanResult != null && (scanResult.newNotes > 0 || scanResult.updatedNotes > 0)) {
-                            // Refresh UI if new/updated notes found
-                            booxNoteRepository.invalidateLinksCache()
-                            datesWithBooxNotes = withContext(Dispatchers.IO) {
-                                booxNoteRepository.getDatesWithNotesForMonth(currentYearMonthState.value)
-                            }
-                            // Trigger refresh for events grid badges
-                            noteLinkRefreshTrigger++
-                        }
-                    }
-                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -2063,35 +1870,6 @@ fun MainScreen(
         Log.i(TAG, "MainScreen: Setting eventsOverlayExpanded=$isEventsExpanded (isPinned=$isEventsPinned)")
         DrawCanvas.eventsOverlayExpanded.value = isEventsExpanded
     }
-
-    // Listen for Boox Notes signals from toolbar (only when feature is enabled)
-    LaunchedEffect(Unit) {
-        DrawCanvas.viewBooxNotes.collect { com.boox.day.ui.dialogs.BooxNotesPlaces.openNotes() }
-    }
-
-    LaunchedEffect(Unit) {
-        DrawCanvas.refreshBooxNotes.collect {
-            // PERFORMANCE: Run I/O operations off main thread (filesystem scan + DB queries)
-            val (result, dates) = withContext(Dispatchers.IO) {
-                val scanResult = booxNoteIndexer.fullScan()
-                // Invalidate links cache since note data may have changed
-                booxNoteRepository.invalidateLinksCache()
-                // Refresh the dates with Boox Notes for the current month
-                val booxDates = booxNoteRepository.getDatesWithNotesForMonth(currentYearMonthState.value)
-                Pair(scanResult, booxDates)
-            }
-            datesWithBooxNotes = dates
-            // Show result (on Main thread - correct for UI)
-            val message = if (result.error != null) {
-                "Could not check for new notes: ${result.error}"
-            } else {
-                "Checked ${result.totalScanned} notes (${result.newNotes} new)"
-            }
-            com.boox.day.ui.dialogs.BooxNotesPlaces.checkCount++
-            SnackState.globalSnackFlow.tryEmit(SnackConf(text = message, duration = SnackConf.DURATION_QUICK))
-        }
-    }
-
 
     // Show sync errors as brief banners while keeping user in the main screen
     LaunchedEffect(lastSyncMessage) {
@@ -4065,14 +3843,13 @@ fun MainScreen(
 
 
 
-        // Boox Notes Set Up and Handwriting Search
+        // Handwriting Search
         if (com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen) {
             com.boox.day.ui.dialogs.BooxNotesSettingsDialog(
-                // Its setup dot clears when file access is given (inside the dialog), not on close
                 onDismiss = { com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen = false },
                 booxNoteRepository = booxNoteRepository,
                 eventRepository = eventRepository,
-                onScanNeeded = triggerBooxNotesScan,
+                onScanNeeded = null,
                 onOpenCalendarAccounts = { showMultiProviderSyncDialog = true },
                 onIndexNow = {
                     scope.launch {
@@ -6042,37 +5819,9 @@ fun MainScreen(
             )
         }
 
-        // Boox Notes Dialog
-        if (com.boox.day.ui.dialogs.BooxNotesPlaces.notesOpen) {
-            BooxNotesDialog(
-                date = selectedDate,
-                booxNoteRepository = booxNoteRepository,
-                booxNotesIntegration = booxNotesIntegration,
-                booxNoteIndexer = booxNoteIndexer,  // Smart scan on dialog open
-                // Handwriting search only while reading is on
-                ocrRepository = if (GlobalAppSettings.current.ocrSettings.enabled) ocrRepository else null,
-                isOcrIndexingInProgress = GlobalAppSettings.isBooxNotesScanning || (ocrProcessingState?.isProcessing == true),
-                eventRepository = eventRepository,
-                onDismiss = { com.boox.day.ui.dialogs.BooxNotesPlaces.closeNotes() },
-                onLinkChanged = {
-                    // Refresh event links when a note-event link changes
-                    noteLinkRefreshTrigger++
-                },
-                sourceFilter = sourceFilter,
-                onOpenCalendarAccounts = {
-                    com.boox.day.ui.dialogs.BooxNotesPlaces.closeNotes()
-                    showMultiProviderSyncDialog = true
-                },
-                onOpenHelp = {
-                    com.boox.day.ui.dialogs.BooxNotesPlaces.closeNotes()
-                    showHelpDialog = true
-                }
-            )
-        }
-
         // ─────────────────────────────────────────────────────────────────────────────
         // Day Quick View Popup (long-press on calendar day)
-        // Shows Boox Notes, events count, and tasks due count for the day
+        // Shows events count and tasks due count for the day
         // ─────────────────────────────────────────────────────────────────────────────
         if (showDayQuickView && quickViewData != null) {
             DayQuickViewPopup(
@@ -7713,28 +7462,10 @@ private fun EventsGrid(
     // No need to sort again here - sortedEvents just references events directly
     val sortedEvents = events
 
-    // PERFORMANCE: Query all Boox Notes data in a single snapshot (replaces 3 separate calls)
-    var eventToNoteLinks by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var eventNoteCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    var eventsWithAttention by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    LaunchedEffect(selectedDate, noteLinkRefreshTrigger, events) {
-        // CROSS-DAY FIX: Query by event IDs to find ALL linked notes,
-        // regardless of when the note was created
-        val eventIds = events.map { it.id }
-        if (eventIds.isEmpty()) {
-            eventToNoteLinks = emptyMap()
-            eventNoteCounts = emptyMap()
-            eventsWithAttention = emptySet()
-            return@LaunchedEffect
-        }
-
-        booxNoteRepository.observeEventBadgeData(eventIds).collect { badgeData ->
-            eventToNoteLinks = badgeData.eventToNoteLinks
-            eventNoteCounts = badgeData.noteCounts
-            eventsWithAttention = badgeData.eventsWithAttention
-        }
-    }
+    // Note link badges removed along with Boox Notes integration
+    val eventToNoteLinks = emptyMap<String, String>()
+    val eventNoteCounts = emptyMap<String, Int>()
+    val eventsWithAttention = emptySet<String>()
 
     // Pagination state (Events tab)
     val eventsPerPage = 4
@@ -8332,28 +8063,10 @@ private fun ExpandedEventsList(
     // No need to sort again here - sortedEvents just references events directly
     val sortedEvents = events
 
-    // PERFORMANCE: Query all Boox Notes data in a single snapshot (replaces 3 separate calls)
-    var eventToNoteLinks by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var eventNoteCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    var eventsWithAttention by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    LaunchedEffect(selectedDate, noteLinkRefreshTrigger, events) {
-        // CROSS-DAY FIX: Query by event IDs to find ALL linked notes,
-        // regardless of when the note was created
-        val eventIds = events.map { it.id }
-        if (eventIds.isEmpty()) {
-            eventToNoteLinks = emptyMap()
-            eventNoteCounts = emptyMap()
-            eventsWithAttention = emptySet()
-            return@LaunchedEffect
-        }
-
-        booxNoteRepository.observeEventBadgeData(eventIds).collect { badgeData ->
-            eventToNoteLinks = badgeData.eventToNoteLinks
-            eventNoteCounts = badgeData.noteCounts
-            eventsWithAttention = badgeData.eventsWithAttention
-        }
-    }
+    // Note link badges removed along with Boox Notes integration
+    val eventToNoteLinks = emptyMap<String, String>()
+    val eventNoteCounts = emptyMap<String, Int>()
+    val eventsWithAttention = emptySet<String>()
 
     // Note preview overlay state
 

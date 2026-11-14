@@ -81,15 +81,6 @@ class CacheWarmupCoordinator(
         val tasksPrevDeferred = async { taskRepository.preWarmCacheForMonth(prevMonth) }
         val tasksNextDeferred = async { taskRepository.preWarmCacheForMonth(nextMonth) }
 
-        // Current month - Boox notes
-        val booxDeferred = async {
-            booxNoteRepository.preWarmLinksCacheForMonth(yearMonth)
-            booxNoteRepository.getDatesWithNotesForMonth(yearMonth)
-        }
-        // Adjacent months - Boox notes
-        val booxPrevDeferred = async { booxNoteRepository.getDatesWithNotesForMonth(prevMonth) }
-        val booxNextDeferred = async { booxNoteRepository.getDatesWithNotesForMonth(nextMonth) }
-
         // Event dots: the days the source filter shows (Nov 2026; the caches above hold every event)
         val eventDotsDeferred = listOf(prevMonth, yearMonth, nextMonth).map { month ->
             async { shownEventDaysInMonth(calendarEventRepository, localEventRepository, month, sourceFilter) }
@@ -103,7 +94,7 @@ class CacheWarmupCoordinator(
             datesWithNotes = notesDeferred.await() + notesPrevDeferred.await() + notesNextDeferred.await(),
             datesWithTasks = tasksDeferred.await() + tasksPrevDeferred.await() + tasksNextDeferred.await(),
             datesWithEvents = eventDotsDeferred.flatMap { it.await() }.toSet(),
-            datesWithBooxNotes = booxDeferred.await() + booxPrevDeferred.await() + booxNextDeferred.await()
+            datesWithBooxNotes = emptySet()
         )
 
         if (PERF_LOGS) {
@@ -133,16 +124,12 @@ class CacheWarmupCoordinator(
         val localEventsDeferred = async { localEventRepository.preWarmCacheForMonth(yearMonth) }
         val cloudEventsDeferred = async { calendarEventRepository.preWarmCacheForMonth(yearMonth) }
         val tasksDeferred = async { taskRepository.preWarmCacheForMonth(yearMonth) }
-        val booxDeferred = async {
-            booxNoteRepository.preWarmLinksCacheForMonth(yearMonth)
-            booxNoteRepository.getDatesWithNotesForMonth(yearMonth)
-        }
 
         CacheWarmupResult(
             datesWithNotes = notesDeferred.await(),
             datesWithTasks = tasksDeferred.await(),
             datesWithEvents = localEventsDeferred.await() + cloudEventsDeferred.await(),
-            datesWithBooxNotes = booxDeferred.await()
+            datesWithBooxNotes = emptySet()
         )
     }
 

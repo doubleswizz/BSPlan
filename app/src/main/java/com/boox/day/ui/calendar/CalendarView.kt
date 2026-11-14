@@ -966,24 +966,6 @@ fun DayHeader(
         }
 
         // Marks of the selected day (each only when the day has it)
-        if (hasBooxNotes) {
-            DayMark(contentDescription = "Boox Notes of this day", onClick = onBooxNotesClick) {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(EInkTheme.Colors.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.boox_b_letter_tiny),
-                        contentDescription = null,
-                        tint = EInkTheme.Colors.background,
-                        modifier = Modifier.size(13.dp)
-                    )
-                }
-            }
-        }
         if (hasMemo) {
             DayMark(contentDescription = "Memo of this day", onClick = onMemoClick) {
                 Icon(
@@ -1304,7 +1286,6 @@ fun CalendarGrid(
                     val isToday = dateString == today
                     val isPast = dateString < today && !(isOtherMonth as Boolean)
                     val hasEvents = badges.datesWithEvents.contains(dateString)
-                    val hasBooxNotes = badges.datesWithBooxNotes.contains(dateString)
 
                     DayCell(
                         day = displayDay,
@@ -1313,7 +1294,7 @@ fun CalendarGrid(
                         isToday = isToday,
                         isPast = isPast,
                         hasEvents = hasEvents,
-                        hasBooxNotes = hasBooxNotes,
+                        hasBooxNotes = false,
                         isOtherMonth = isOtherMonth as Boolean,
                         onClick = { onDateSelected(dateString) },
                         onLongPress = onDayLongPress,

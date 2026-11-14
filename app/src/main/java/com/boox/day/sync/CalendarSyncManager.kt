@@ -384,8 +384,8 @@ class CalendarSyncManager(
      * @return Map of month keys ("yyyy-MM") to their SyncResult
      */
     suspend fun syncMonthRange(
-        monthsBefore: Int = 3,
-        monthsAfter: Int = 3
+        monthsBefore: Int = SyncScheduler.DEFAULT_MONTHS_BEFORE,
+        monthsAfter: Int = SyncScheduler.DEFAULT_MONTHS_AFTER
     ): Map<String, SyncResult> = withContext(Dispatchers.IO) {
         val results = mutableMapOf<String, SyncResult>()
         val now = LocalDate.now()

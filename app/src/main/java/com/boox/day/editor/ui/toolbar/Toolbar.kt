@@ -1614,10 +1614,6 @@ fun SharedToolbar(
                         if (BarTool.TaskAi !in barOverflow) { ToolbarGap(REGULAR_TOOL_GAP); taskAiTool() }
                     }
 
-                    // Notes Button (Boox Notes integration), last of the tools on both tabs
-                    ToolbarGap(REGULAR_TOOL_GAP)
-                    notesTool()
-
                     // CENTER SECTION: Reset Zoom (Memos only, when zoomed)
                     // Paste button REMOVED - now accessible via two-finger tap gesture + hamburger menu
                     // ═══════════════════════════════════════════════════════════════
@@ -2006,15 +2002,15 @@ fun SharedToolbar(
                 if (!isCompactToolbar) {
                     midTools()
                 } else {
-                    // Memos: lasso + Boox Notes; Tasks: quick add + task actions; then page navigation
+                    // Memos: lasso; Tasks: quick add + task actions; then page navigation
                     // (a finger-width gap between neighbours so one tap never hits two)
                     if (compactFit.first) {
                         ToolbarGap(toolGap)
                         if (currentTab == EditorTab.Memos) selectionTool() else quickAddTool()
                     }
-                    if (compactFit.second) {
+                    if (compactFit.second && currentTab == EditorTab.Tasks) {
                         ToolbarGap(toolGap)
-                        if (currentTab == EditorTab.Memos) notesTool() else taskActionsTool()
+                        taskActionsTool()
                     }
                     if (hasPageNav) ToolbarGap(toolGap)
                     pageNav()
@@ -2404,18 +2400,6 @@ private fun toolbarMenuTools(
             ))
         }
     }
-    // Boox Notes is on the regular bar of both tabs; on the compact bar Memos may fit it
-    if (isCompactToolbar && (!isMemosTab || !compactFit.second)) {
-        add(ToolbarMenuTool(
-            label = "Boox Notes",
-            icon = { tint -> MenuIcon(R.drawable.boox_b_letter, tint, size = 18.dp) },
-            badge = showBooxAlert,
-            onClick = {
-                closeToolbarMenu()
-                openBooxNotes(context)
-            }
-        ))
-    }
     // Full screen (Oct 2026): here when the compact bar has no room for its button (Go 6), and on the
     // regular bar's Tasks tab when Task AI took its place (Go 10.3)
     if (if (isCompactToolbar) !compactFit.fullScreen else BarTool.FullScreen in barOverflow) {
@@ -2542,7 +2526,6 @@ internal fun regularToolbarOverflow(barWidth: Dp, isMemos: Boolean, hasPageNav: 
     val gap = REGULAR_TOOL_GAP
     val fixed = 2.dp + t.tabTotalWidth +                                             // padding, tabs
         gap + t.buttonSizeLarge + gap + 70.dp + gap + t.buttonSizeMedium +           // pen, pen size, eraser
-        gap + t.buttonSizeMedium +                                                   // Boox Notes
         gap + t.buttonSizeLarge + gap + t.buttonSizeLarge +                          // undo, redo
         (if (hasPageNav) gap + t.navChevronWidth * 2 + 32.dp else 0.dp) +           // page navigation (label 32dp)
         (if (isMemos) gap + t.buttonSizeMedium else 0.dp) +                          // full screen (Memos)

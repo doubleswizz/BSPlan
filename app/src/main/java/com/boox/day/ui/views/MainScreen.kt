@@ -138,8 +138,6 @@ import com.boox.day.data.db.TaskPageInfo
 import com.boox.day.data.db.DueDateResult
 import com.boox.day.data.db.CopyTasksResult
 import com.boox.day.data.db.DueTasksData
-import com.boox.day.data.db.SummaryCache
-import com.boox.day.data.db.SummaryCacheRepository
 import com.boox.day.sync.EventOperationResult
 import com.boox.day.sync.MultiAccountSyncManager
 import com.boox.day.sync.MultiAccountSyncViewModel
@@ -158,7 +156,6 @@ import com.boox.day.ui.dialogs.CalendarSyncSettingsDialog
 import com.boox.day.ui.dialogs.AddCalendarDialog
 import com.boox.day.ui.dialogs.CalendarSettingsDialog
 import com.boox.day.ui.dialogs.CloudAccountSummary
-import com.boox.day.ui.dialogs.HelpDialog
 import com.boox.day.ui.dialogs.EventDetailsDialog
 import com.boox.day.ui.dialogs.AboutDialog
 import com.boox.day.ui.dialogs.PreferencesDialog
@@ -184,29 +181,14 @@ import com.boox.day.editor.ui.SortProcessingState
 import com.boox.day.editor.ui.SortScopePopup
 import com.boox.day.editor.ui.SortScope
 import com.boox.day.editor.ui.PlacedSortedTask
-import com.boox.day.editor.ui.DailySummaryDialog
-import com.boox.day.editor.ui.WeeklySummaryDialog
-import com.boox.day.editor.ui.WeeklySummaryCacheInfo
-import com.boox.day.editor.ui.WeeklySummaryProcessingState
-import com.boox.day.editor.ui.DailySummaryProcessingState
-import com.boox.day.editor.ui.SmartSuggestionsDialog
-import com.boox.day.editor.ui.SmartSuggestionsProcessingState
 import com.boox.day.editor.ui.TaskBreakdownDialog
 import com.boox.day.editor.ui.TaskBreakdownProcessingState
 import com.boox.day.ai.TaskAiService
-import com.boox.day.ai.MemoToTasksService
-import com.boox.day.ai.MemoToTasksResult
-import com.boox.day.ai.MemoToTasksProcessingState
-import com.boox.day.ai.SuggestionContextBuilder
 import com.boox.day.ai.intelligence.IntelligenceEngine
 import com.boox.day.data.ai.IntelligenceFeature
 import com.boox.day.data.ai.ScoredContext
-import com.boox.day.data.ai.ProposalAction
-import com.boox.day.ui.dialogs.AiScope
-import com.boox.day.ui.dialogs.MemoToTasksDialog
 import com.boox.day.tips.TipsService
 import java.time.LocalDate
-import java.time.temporal.WeekFields
 import com.boox.day.data.datastore.AppSettings
 import com.boox.day.data.datastore.GlobalAppSettings
 import com.boox.day.data.datastore.SetupChecklist
@@ -291,22 +273,6 @@ enum class EditorTab {
     Memos,
     Tasks
 }
-
-private data class WeeklySummarySnapshot(
-    val tasksByDate: Map<String, List<Task>>,
-    val allTasks: List<Task>,
-    val contentHash: String,
-    val taskCount: Int,
-    val completedCount: Int,
-    val lastUpdatedAt: Long?
-)
-
-private data class MemoToTasksInsertPlan(
-    val tasksToInsert: List<com.boox.day.ai.ConvertedTask>,
-    val totalSelectedCount: Int,
-    val totalAvailableCount: Int,
-    val singleDateHasNoSlots: Boolean = false
-)
 
 /**
  * Main screen for BooxDay - combines calendar view with drawing canvas
@@ -395,7 +361,6 @@ fun MainScreen(
     var showEventDetailsDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showVoiceEventDialog by remember { mutableStateOf(false) }
-    var showHelpDialog by remember { mutableStateOf(false) }
     // Dec 2025 settings redesign - new dialogs
     var showPreferencesDialog by remember { mutableStateOf(false) }
     var showAiSettingsDialog by remember { mutableStateOf(false) }
@@ -516,7 +481,6 @@ fun MainScreen(
 
     // Pending sync count for toolbar indicator (local events waiting to sync to cloud)
     val pendingSyncCount by localEventRepository.observePendingSyncCount().collectAsState(initial = 0)
-    val summaryCacheRepository = remember { SummaryCacheRepository(context) }
     // Unified OCR repository for search (all content types)
     val ocrRepository = remember { UnifiedOcrRepository(context) }
     // Unified OCR idle processor - triggers OCR during foreground idle time
@@ -747,57 +711,12 @@ fun MainScreen(
     var sortScoredContext by remember { mutableStateOf<ScoredContext?>(null) }
     var sortPriorityAssignments by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    // Daily Summary dialog state
-    var showDailySummaryDialog by remember { mutableStateOf(false) }
-    var dailySummaryProcessingState by remember { mutableStateOf<DailySummaryProcessingState>(DailySummaryProcessingState.Processing()) }
-    var dailySummaryResult by remember { mutableStateOf<TaskAiService.DailySummary?>(null) }
-
-    // Weekly Summary dialog state
-    var showWeeklySummaryDialog by remember { mutableStateOf(false) }
-    var weeklySummaryProcessingState by remember { mutableStateOf<WeeklySummaryProcessingState>(WeeklySummaryProcessingState.Processing()) }
-    var weeklySummaryResult by remember { mutableStateOf<TaskAiService.WeeklySummary?>(null) }
-    var weeklySummaryCacheInfo by remember { mutableStateOf<WeeklySummaryCacheInfo?>(null) }
-
-    // Smart Suggestions dialog state
-    var showSmartSuggestionsDialog by remember { mutableStateOf(false) }
-    var smartSuggestionsProcessingState by remember { mutableStateOf<SmartSuggestionsProcessingState>(SmartSuggestionsProcessingState.Processing()) }
-    var smartSuggestionsResult by remember { mutableStateOf<TaskAiService.SuggestionsResult?>(null) }
-
-    // Agentic Plan ("Plan My Day") dialog state
-    var showAgenticPlanDialog by remember { mutableStateOf(false) }
-    var agenticPlanProcessingState by remember { mutableStateOf<com.boox.day.data.ai.AgenticPlanProcessingState>(com.boox.day.data.ai.AgenticPlanProcessingState.Processing("Initializing...")) }
-    var agenticPlanResult by remember { mutableStateOf<com.boox.day.data.ai.AgenticPlanResult?>(null) }
-    var agenticCompletedProposalIds by remember { mutableStateOf(setOf<String>()) }
-    var agenticInFlightProposalIds by remember { mutableStateOf(setOf<String>()) }
-    var agenticFocusEventId by remember { mutableStateOf<String?>(null) }
-    var agenticPendingTaskRefreshTarget by remember { mutableStateOf<Pair<String, Int>?>(null) }
-    var agenticNeedsVisibleTaskFlush by remember { mutableStateOf(false) }
-    val currentAgenticPlanKey = remember(agenticPlanResult) {
-        agenticPlanResult?.proposals?.joinToString("|") { it.id } ?: "none"
-    }
-
-    LaunchedEffect(currentAgenticPlanKey) {
-        agenticCompletedProposalIds = emptySet()
-        agenticInFlightProposalIds = emptySet()
-        agenticFocusEventId = null
-    }
-
     // Task Breakdown dialog state
     var showTaskBreakdownDialog by remember { mutableStateOf(false) }
     var taskBreakdownProcessingState by remember { mutableStateOf<TaskBreakdownProcessingState>(TaskBreakdownProcessingState.SelectTask) }
     var taskBreakdownResult by remember { mutableStateOf<TaskAiService.BreakdownResult?>(null) }
     var selectedTaskForBreakdown by remember { mutableStateOf<TaskAiService.TaskForBreakdown?>(null) }
     var tasksForBreakdown by remember { mutableStateOf<List<TaskAiService.TaskForBreakdown>>(emptyList()) }
-
-    // Memo to Tasks dialog state (Memos AI feature)
-    var showMemoToTasksDialog by remember { mutableStateOf(false) }
-    var memoToTasksProcessingState by remember { mutableStateOf<MemoToTasksProcessingState>(MemoToTasksProcessingState.Processing("")) }
-    var memoToTasksResult by remember { mutableStateOf<MemoToTasksResult?>(null) }
-    var memoToTasksTargetDate by remember { mutableStateOf(selectedDate) }
-    var memoToTasksProcessingStartTime by remember { mutableStateOf(0L) }
-    // The lasso conversion, which Retry runs again; null when the AI menu started it (page choice first)
-    var memoToTasksSelectionRun by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var memoToTasksDueDate by remember { mutableStateOf<Long?>(null) } // optional due date for converted tasks
 
     // ═══════════════════════════════════════════════════════════════════════════
     // AI GATING DIALOG STATE (Dual-Gate System)
@@ -984,195 +903,6 @@ fun MainScreen(
 
     // Trigger to refresh note-event links (incremented when links change in dialog)
     var noteLinkRefreshTrigger by remember { mutableStateOf(0) }
-
-    suspend fun collectWeeklySummarySnapshot(
-        startDate: LocalDate,
-        endDate: LocalDate,
-        canvasHeight: Float
-    ): WeeklySummarySnapshot = withContext(Dispatchers.IO) {
-        val tasksByDateRaw = mutableMapOf<String, MutableList<Task>>()
-        val pageIds = mutableSetOf<String>()
-
-        val totalDays = java.time.temporal.ChronoUnit.DAYS
-            .between(startDate, endDate)
-            .toInt()
-            .coerceAtLeast(0)
-        for (i in 0..totalDays) {
-            val date = startDate.plusDays(i.toLong())
-            val dateStr = date.toString()
-            val dayTasks = mutableListOf<Task>()
-            val maxPageIndex = appRepository.taskRepository.getMaxTaskPageIndex(dateStr)
-            if (maxPageIndex >= 0) {
-                // Read-only scan: avoid getOrCreateTasksForPage to prevent creating empty pages.
-                for (pageIndex in 0..maxPageIndex) {
-                    val tasks = appRepository.taskRepository.getTasksForPage(dateStr, pageIndex)
-                    if (tasks.isNotEmpty()) {
-                        dayTasks.addAll(tasks)
-                        tasks.forEach { pageIds.add(it.pageId) }
-                    }
-                }
-            }
-            tasksByDateRaw[dateStr] = dayTasks
-        }
-
-        val strokesByPage = if (pageIds.isEmpty()) {
-            emptyMap()
-        } else {
-            appRepository.strokeRepository.getAllForPages(pageIds.toList()).groupBy { it.pageId }
-        }
-
-        fun taskHasContent(task: Task): Boolean {
-            if (task.typedText?.isNotBlank() == true) return true
-            if (task.convertedText?.isNotBlank() == true) return true
-            if (task.recognizedText?.isNotBlank() == true) return true
-            if (task.isCompleted) return true
-            if (task.priority.isNotBlank()) return true
-            if (task.dueDay != null) return true
-            if (task.parentTaskId != null) return true
-
-            if (canvasHeight <= 2f) return false
-            val strokesForPage = strokesByPage[task.pageId]
-            val rowBounds = calculateRowBounds(task.rowIndex, canvasHeight, 10)
-            return hasIntentionalStrokeContent(strokesForPage, rowBounds)
-        }
-
-        val tasksByDate = mutableMapOf<String, List<Task>>()
-        val allTasks = mutableListOf<Task>()
-        var completedCount = 0
-        var maxUpdatedAt = 0L
-
-        for (i in 0..totalDays) {
-            val date = startDate.plusDays(i.toLong())
-            val dateStr = date.toString()
-            val dayTasks = tasksByDateRaw[dateStr].orEmpty()
-            val filtered = dayTasks.filter { taskHasContent(it) }
-            tasksByDate[dateStr] = filtered
-            allTasks.addAll(filtered)
-            completedCount += filtered.count { it.isCompleted }
-        }
-
-        allTasks.forEach { task ->
-            maxUpdatedAt = maxOf(maxUpdatedAt, task.updatedAt.time)
-        }
-        strokesByPage.values.flatten().forEach { stroke ->
-            maxUpdatedAt = maxOf(maxUpdatedAt, stroke.updatedAt.time)
-        }
-
-        WeeklySummarySnapshot(
-            tasksByDate = tasksByDate,
-            allTasks = allTasks,
-            contentHash = TaskAiService.computeWeeklySummaryContentHash(allTasks, strokesByPage),
-            taskCount = allTasks.size,
-            completedCount = completedCount,
-            lastUpdatedAt = if (maxUpdatedAt > 0L) maxUpdatedAt else null
-        )
-    }
-
-    fun launchWeeklySummary(forceRefresh: Boolean) {
-        weeklySummaryProcessingState = WeeklySummaryProcessingState.Processing("Checking cache...")
-        weeklySummaryResult = null
-        weeklySummaryCacheInfo = null
-        showWeeklySummaryDialog = true
-
-        scope.launch {
-            val weekFields = WeekFields.of(Locale.getDefault())
-            val selected = LocalDate.parse(selectedDate)
-            val startDate = selected.with(weekFields.dayOfWeek(), 1)
-            val endDate = startDate.plusDays(6)
-            val cacheId = SummaryCache.weeklyId(startDate.toString(), endDate.toString())
-
-            weeklySummaryProcessingState = WeeklySummaryProcessingState.Processing("Gathering 7 days of tasks...")
-            val snapshot = collectWeeklySummarySnapshot(startDate, endDate, actualCanvasHeight)
-
-            val cachedEntry = if (!forceRefresh) {
-                withContext(Dispatchers.IO) {
-                    summaryCacheRepository.getValidCache(cacheId, snapshot.contentHash)
-                }
-            } else null
-
-            if (cachedEntry != null) {
-                weeklySummaryProcessingState = WeeklySummaryProcessingState.Processing("Loading cached summary...")
-                val cached = TaskAiService.deserializeWeeklySummary(cachedEntry.resultJson)
-                if (cached != null) {
-                    weeklySummaryResult = cached
-                    weeklySummaryCacheInfo = WeeklySummaryCacheInfo(
-                        isCached = true,
-                        generatedAt = cachedEntry.generatedAt,
-                        lastUpdatedAt = cachedEntry.lastUpdatedAt ?: snapshot.lastUpdatedAt,
-                        taskCount = cachedEntry.taskCount ?: snapshot.taskCount,
-                        completedCount = cachedEntry.completedCount ?: snapshot.completedCount
-                    )
-                    weeklySummaryProcessingState = WeeklySummaryProcessingState.Ready
-                    return@launch
-                }
-            }
-
-            // A new summary needs the user's own OpenRouter key (Oct 2026); after Connect OpenRouter it goes on
-            if (!com.boox.day.ui.AiKeyGate.requireKey(resume = { launchWeeklySummary(forceRefresh) })) {
-                showWeeklySummaryDialog = false
-                return@launch
-            }
-            // It sends the week's events: the once-only "AI and your calendar" notice (ui/CalendarAiNotice)
-            if (!com.boox.day.ui.CalendarAiNotice.awaitAllowed()) {
-                showWeeklySummaryDialog = false
-                return@launch
-            }
-
-
-            weeklySummaryProcessingState = WeeklySummaryProcessingState.Processing("Analyzing patterns...")
-            val intelligenceEngine = IntelligenceEngine(context)
-            val scoredContext = intelligenceEngine.getScoredContext(
-                feature = IntelligenceFeature.WEEKLY_SUMMARY,
-                tasks = snapshot.allTasks
-            )
-
-            val result = TaskAiService.generateWeeklySummaryV3(
-                weeklyTasks = snapshot.tasksByDate,
-                startDate = startDate,
-                endDate = endDate,
-                scoredContext = scoredContext,
-                onStageChange = { stage ->
-                    weeklySummaryProcessingState = WeeklySummaryProcessingState.Processing(stage)
-                },
-                context = context
-            )
-
-            if (result.error == null) {
-                val generatedAt = System.currentTimeMillis()
-                withContext(Dispatchers.IO) {
-                    val json = TaskAiService.serializeWeeklySummary(result)
-                    summaryCacheRepository.save(SummaryCache(
-                        id = cacheId,
-                        type = SummaryCache.TYPE_WEEKLY,
-                        dateKey = endDate.toString(),
-                        rangeStart = startDate.toString(),
-                        rangeEnd = endDate.toString(),
-                        taskCount = snapshot.taskCount,
-                        completedCount = snapshot.completedCount,
-                        lastUpdatedAt = snapshot.lastUpdatedAt,
-                        contentHash = snapshot.contentHash,
-                        resultJson = json,
-                        generatedAt = generatedAt,
-                        validHours = SummaryCache.WEEKLY_VALID_HOURS
-                    ))
-                }
-                weeklySummaryCacheInfo = WeeklySummaryCacheInfo(
-                    isCached = false,
-                    generatedAt = generatedAt,
-                    lastUpdatedAt = snapshot.lastUpdatedAt,
-                    taskCount = snapshot.taskCount,
-                    completedCount = snapshot.completedCount
-                )
-            }
-
-            weeklySummaryResult = result
-            weeklySummaryProcessingState = if (result.error != null) {
-                WeeklySummaryProcessingState.Error(result.error!!)
-            } else {
-                WeeklySummaryProcessingState.Ready
-            }
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Day Quick View Popup State (long-press on calendar day)
@@ -1415,7 +1145,6 @@ fun MainScreen(
                 com.boox.day.ui.dialogs.BooxNotesPlaces.notesOpen ||
                 com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen ||
                 showVoiceEventDialog ||
-                showHelpDialog ||
                 showPreferencesDialog ||
                 showAiSettingsDialog ||
                 showVoiceSettingsDialog ||
@@ -1430,12 +1159,7 @@ fun MainScreen(
                 (showTaskPreviewDialog && voiceTaskResult != null) ||
                 showSortScopePopup ||
                 showSortPreviewDialog ||
-                showDailySummaryDialog ||
-                showWeeklySummaryDialog ||
-                showSmartSuggestionsDialog ||
-                showAgenticPlanDialog ||
                 showTaskBreakdownDialog ||
-                showMemoToTasksDialog ||
                 showNoTaskSlotsDialog ||
                 showPartialInsertDialog ||
                 showDeleteTaskPageConfirmation ||
@@ -1456,36 +1180,6 @@ fun MainScreen(
                 com.boox.day.ui.AppOverlays.isOpen ||
                 com.boox.day.ui.FullScreenState.transitioning ||
                 onboardingDismissedAt == 0L
-        }
-    }
-
-    LaunchedEffect(isMainScreenModalBlockingCanvas, agenticPendingTaskRefreshTarget, agenticNeedsVisibleTaskFlush) {
-        val refreshTarget = agenticPendingTaskRefreshTarget
-        val needsVisibleTaskFlush = agenticNeedsVisibleTaskFlush
-        if (refreshTarget == null && !needsVisibleTaskFlush) return@LaunchedEffect
-        if (isMainScreenModalBlockingCanvas) return@LaunchedEffect
-
-        if (needsVisibleTaskFlush && currentEditorTab == EditorTab.Tasks) {
-            agenticNeedsVisibleTaskFlush = false
-            DrawCanvas.forceUnfreeze()
-        } else if (needsVisibleTaskFlush) {
-            agenticNeedsVisibleTaskFlush = false
-        }
-
-        val resolvedRefreshTarget = refreshTarget ?: return@LaunchedEffect
-        agenticPendingTaskRefreshTarget = null
-        val (refreshDate, refreshPageIndex) = resolvedRefreshTarget
-
-        if (refreshDate != selectedDate) {
-            pendingTaskPageNavigationIndex = refreshPageIndex
-            pendingTaskCanvasForceRefresh = true
-            selectedDate = refreshDate
-        } else {
-            val previousTaskPageId = currentTaskPageId
-            loadTasksPage(refreshDate, refreshPageIndex)
-            if (currentEditorTab == EditorTab.Tasks && currentTaskPageId == previousTaskPageId) {
-                DrawCanvas.forceUnfreeze()
-            }
         }
     }
 
@@ -2137,9 +1831,6 @@ fun MainScreen(
                     onBooxNotesSettings = {
                         com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen = true
                     },
-                    onHelp = {
-                        showHelpDialog = true
-                    },
                     onAbout = {
                         showAboutDialog = true
                     },
@@ -2373,8 +2064,6 @@ fun MainScreen(
                                 noteLinkRefreshTrigger = noteLinkRefreshTrigger,
                                 isSyncing = syncInProgress,
                                 selectedEventsTab = selectedEventsTab,
-                                focusEventId = agenticFocusEventId,
-                                onFocusedEventShown = { agenticFocusEventId = null },
                                 onDueTaskClick = { task ->
                                     // Open the task (its day, page and row) — plan T3
                                     goToTask(task.id, task.dayDate)
@@ -2453,109 +2142,10 @@ fun MainScreen(
                     onVoiceSettings = { showVoiceSettingsDialog = true },
                     onDataBackup = { showDataBackupDialog = true },
                     onBooxNotesSettings = { com.boox.day.ui.dialogs.BooxNotesPlaces.setupOpen = true },
-                    onHelp = { showHelpDialog = true },
                     onAbout = { showAboutDialog = true }
                 )
                 // Full screen: the selected day above the toolbar (the calendar header is hidden)
                 com.boox.day.ui.FullScreenDateLine(selectedDate)
-                // Daily Summary in its own function, so it can go on after Connect OpenRouter (ui/AiKeyGate)
-                fun launchDailySummary() {
-                    // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
-                    com.boox.day.ui.FullScreenState.exitThen {
-                        dailySummaryProcessingState = DailySummaryProcessingState.Processing("Checking cache...")
-                        dailySummaryResult = null
-                        showDailySummaryDialog = true
-
-                        scope.launch {
-                            val cacheId = SummaryCache.dailyId(selectedDate)
-                            val (tasksForDay, contentHash) = withContext(Dispatchers.IO) {
-                                val tasks = appRepository.taskRepository.getTasksForDay(selectedDate)
-                                val hash = TaskAiService.computeDailySummaryContentHash(tasks)
-                                tasks to hash
-                            }
-                            val tasksById = tasksForDay.associateBy { it.id }
-
-                            // Check cache first (valid for 4 hours)
-                            val cachedEntry = withContext(Dispatchers.IO) {
-                                summaryCacheRepository.getValidCache(cacheId, contentHash)
-                            }
-
-                            if (cachedEntry != null) {
-                                // Cache hit - deserialize and show
-                                dailySummaryProcessingState = DailySummaryProcessingState.Processing("Loading cached summary...")
-                                val cached = TaskAiService.deserializeDailySummary(
-                                    json = cachedEntry.resultJson,
-                                    taskLookup = { taskIds ->
-                                        taskIds.mapNotNull { tasksById[it] }
-                                    }
-                                )
-                                if (cached != null) {
-                                    dailySummaryResult = cached
-                                    dailySummaryProcessingState = DailySummaryProcessingState.Ready
-                                    return@launch
-                                }
-                                // Cache invalid, fall through to generate fresh
-                            }
-
-                            // A new summary needs the user's own OpenRouter key (Oct 2026); after Connect OpenRouter it goes on
-                            if (!com.boox.day.ui.AiKeyGate.requireKey(resume = { launchDailySummary() })) {
-                                showDailySummaryDialog = false
-                                return@launch
-                            }
-                            // It sends today's events: the once-only notice (ui/CalendarAiNotice)
-                            if (!com.boox.day.ui.CalendarAiNotice.awaitAllowed()) {
-                                showDailySummaryDialog = false
-                                return@launch
-                            }
-
-                            // Generate fresh summary using Intelligence Engine V3
-                            dailySummaryProcessingState = DailySummaryProcessingState.Processing("Analyzing your day...")
-
-                            // Get scored context from Intelligence Engine
-                            val intelligenceEngine = IntelligenceEngine(context)
-                            val scoredContext = intelligenceEngine.getScoredContext(
-                                feature = IntelligenceFeature.DAILY_SUMMARY,
-                                tasks = tasksForDay
-                            )
-
-                            val result = TaskAiService.generateDailySummaryV3(
-                                tasksForDay = tasksForDay,
-                                currentDate = LocalDate.parse(selectedDate),
-                                density = context.resources.displayMetrics.density,
-                                scoredContext = scoredContext,
-                                onStageChange = { stage ->
-                                    dailySummaryProcessingState = DailySummaryProcessingState.Processing(stage)
-                                },
-                                context = context
-                            )
-
-                            // Save to cache and record usage if successful
-                            if (result.error == null) {
-                                withContext(Dispatchers.IO) {
-                                    val json = TaskAiService.serializeDailySummary(result)
-                                    val refreshedTasks = appRepository.taskRepository.getTasksForDay(selectedDate)
-                                    val cacheContentHash = TaskAiService.computeDailySummaryContentHash(refreshedTasks)
-                                    summaryCacheRepository.save(SummaryCache(
-                                        id = cacheId,
-                                        type = SummaryCache.TYPE_DAILY,
-                                        dateKey = selectedDate,
-                                        contentHash = cacheContentHash,
-                                        resultJson = json,
-                                        generatedAt = System.currentTimeMillis(),
-                                        validHours = SummaryCache.DAILY_VALID_HOURS
-                                    ))
-                                }
-                            }
-
-                            dailySummaryResult = result
-                            dailySummaryProcessingState = if (result.error != null) {
-                                DailySummaryProcessingState.Error(result.error!!)
-                            } else {
-                                DailySummaryProcessingState.Ready
-                            }
-                        }
-                    }
-                }
 
                 // SHARED TOOLBAR (single instance for both canvases)
                 // PERFORMANCE: Eliminates dual-toolbar sync overhead and latency
@@ -2686,110 +2276,6 @@ fun MainScreen(
                             showSortScopePopup = true
                         }
                     },
-                    onDailySummary = { launchDailySummary() },
-                    onWeeklySummary = {
-                        // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
-                        com.boox.day.ui.FullScreenState.exitThen {
-                            launchWeeklySummary(forceRefresh = false)
-                        }
-                    },
-                    onSmartSuggestions = {
-                        // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
-                        // Needs the user's own OpenRouter key; after Connect OpenRouter it goes on (ui/AiKeyGate)
-                        com.boox.day.ui.AiKeyGate.withKey { com.boox.day.ui.FullScreenState.exitThen {
-                            // ─────────────────────────────────────────────────────────────────
-                            // SMART SUGGESTIONS V2 - Full Context AI Personal Assistant
-                            // ─────────────────────────────────────────────────────────────────
-
-                            scope.launch {
-                                // It sends events: the once-only notice (ui/CalendarAiNotice)
-                                if (!com.boox.day.ui.CalendarAiNotice.awaitAllowed()) return@launch
-                                // Free task rows for the results (TaskSlotCalculator: at most 10 task pages a day)
-                                val slots = TaskSlotCalculator.getAvailableSlots(
-                                    date = selectedDate,
-                                    taskRepository = appRepository.taskRepository,
-                                    strokeRepository = appRepository.strokeRepository,
-                                    canvasHeight = actualCanvasHeight
-                                )
-                                if (slots.totalAvailable == 0) {
-                                    showNoTaskSlotsDialog = true
-                                    return@launch  // EXIT - No slots, don't waste an AI call
-                                }
-
-                                // Initialize dialog state
-                                smartSuggestionsProcessingState = SmartSuggestionsProcessingState.Processing("Gathering context...")
-                                smartSuggestionsResult = null
-                                showSmartSuggestionsDialog = true
-                                val currentDate = LocalDate.parse(selectedDate)
-
-                                // ─────────────────────────────────────────────────────────────────
-                                // STAGE 1: Build OCR results for handwritten tasks (Digital Ink API)
-                                // ─────────────────────────────────────────────────────────────────
-                                smartSuggestionsProcessingState = SmartSuggestionsProcessingState.Processing("Reading handwritten tasks...")
-
-                                // Ticked tasks too, as Daily Summary does (29 Oct 2026: they had no
-                                // words, so suggestions repeated them; ai/SuggestionDuplicates)
-                                val tasksToRecognize = currentTasks.filter {
-                                    it.typedText.isNullOrBlank()
-                                }
-
-                                val ocrBatchResult = TaskOcrService.getTextForTasks(
-                                    tasks = tasksToRecognize,
-                                    density = context.resources.displayMetrics.density
-                                )
-
-                                val ocrResults = ocrBatchResult.results
-                                    .filter { it.value.isHandwritten && it.value.text.isNotBlank() }
-                                    .mapValues { it.value.text }
-
-                                // ─────────────────────────────────────────────────────────────────
-                                // STAGE 2: Build full context using SuggestionContextBuilder
-                                // ─────────────────────────────────────────────────────────────────
-                                val suggestionContext = SuggestionContextBuilder.buildContext(
-                                    context = context,
-                                    currentDate = currentDate,
-                                    pageDataManager = com.boox.day.data.PageDataManager,
-                                    includeMemoContext = true,  // Enable memo OCR for richer context
-                                    includePatternAnalysis = true,
-                                    ocrResults = ocrResults,
-                                    onStageChange = { stage ->
-                                        smartSuggestionsProcessingState = SmartSuggestionsProcessingState.Processing(stage)
-                                    }
-                                )
-
-                                // ─────────────────────────────────────────────────────────────────
-                                // STAGE 2.5: Get scored context from Intelligence Engine
-                                // ─────────────────────────────────────────────────────────────────
-                                smartSuggestionsProcessingState = SmartSuggestionsProcessingState.Processing("Analyzing priorities...")
-                                val intelligenceEngine = IntelligenceEngine(context)
-                                val scoredContext = intelligenceEngine.getScoredContextFromExisting(
-                                    feature = IntelligenceFeature.SMART_SUGGESTIONS,
-                                    existingContext = suggestionContext,
-                                    tasks = currentTasks,
-                                    taskTextOverrides = ocrResults
-                                )
-
-                                // ─────────────────────────────────────────────────────────────────
-                                // STAGE 3: Generate V3 smart suggestions with pre-scored context
-                                // ─────────────────────────────────────────────────────────────────
-                                val result = TaskAiService.generateSmartSuggestionsV3(
-                                    context = context,
-                                    scoredContext = scoredContext,
-                                    suggestionContext = suggestionContext,
-                                    onStageChange = { stage ->
-                                        smartSuggestionsProcessingState = SmartSuggestionsProcessingState.Processing(stage)
-                                    }
-                                )
-
-                                smartSuggestionsResult = result
-                                smartSuggestionsProcessingState = if (result.error != null) {
-                                    SmartSuggestionsProcessingState.Error(result.error!!)
-                                } else {
-                                    SmartSuggestionsProcessingState.Ready
-                                }
-                            }
-                        } }
-                    },
                     onTaskBreakdown = {
                         // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
                         // Needs the user's own OpenRouter key; after Connect OpenRouter it goes on (ui/AiKeyGate)
@@ -2829,85 +2315,6 @@ fun MainScreen(
                                 )
                                 tasksForBreakdown = tasks
                                 taskBreakdownProcessingState = TaskBreakdownProcessingState.SelectTask
-                            }
-                        } }
-                    },
-                    // Memos AI - Convert Memo to Tasks
-                    onConvertMemoToTasks = {
-                        // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
-                        // Needs the user's own OpenRouter key; after Connect OpenRouter it goes on (ui/AiKeyGate)
-                        com.boox.day.ui.AiKeyGate.withKey { com.boox.day.ui.FullScreenState.exitThen {
-                            scope.launch {
-                                // Free task rows for the results (TaskSlotCalculator: at most 10 task pages a day)
-                                val slots = TaskSlotCalculator.getAvailableSlots(
-                                    date = selectedDate,
-                                    taskRepository = appRepository.taskRepository,
-                                    strokeRepository = appRepository.strokeRepository,
-                                    canvasHeight = actualCanvasHeight
-                                )
-                                if (slots.totalAvailable == 0) {
-                                    showNoTaskSlotsDialog = true
-                                    return@launch  // EXIT - No slots, don't waste an AI call
-                                }
-
-                                // Reset state and show scope selection first
-                                memoToTasksTargetDate = selectedDate
-                                memoToTasksResult = null
-                                memoToTasksProcessingState = MemoToTasksProcessingState.Processing("Starting...")
-                                memoToTasksSelectionRun = null  // Show scope selection for toolbar trigger
-                                showMemoToTasksDialog = true
-                            }
-                        } }
-                    },
-                    // Plan My Day - Agentic Planning System
-                    onPlanMyDay = {
-                        // Full screen (Oct 2026): this tool runs in the normal view (ui/FullScreenState)
-                        // Needs the user's own OpenRouter key; after Connect OpenRouter it goes on (ui/AiKeyGate)
-                        com.boox.day.ui.AiKeyGate.withKey { com.boox.day.ui.FullScreenState.exitThen {
-                            com.boox.day.ui.CalendarAiNotice.afterNotice {  // sends events: notice once (Oct 2026)
-                                agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing("Initializing...")
-                                agenticPlanResult = null
-                                agenticPendingTaskRefreshTarget = null
-                                agenticNeedsVisibleTaskFlush = false
-                                showAgenticPlanDialog = true
-
-                                scope.launch {
-                                // Build context and generate plan using Intelligence Engine V3
-                                val contextBuilder = com.boox.day.ai.AgenticContextBuilder(context)
-                                val planningContext = contextBuilder.buildContext(
-                                    planningDate = LocalDate.parse(selectedDate),
-                                    onStageChange = { stage ->
-                                        agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing(stage)
-                                    }
-                                )
-
-                                // Get scored context from Intelligence Engine
-                                agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing("Analyzing priorities...")
-                                val allPlanningTasks = planningContext.todayTasks + planningContext.overdueTasks + planningContext.zombieTasks
-                                val intelligenceEngine = IntelligenceEngine(context)
-                                val scoredContext = intelligenceEngine.getScoredContext(
-                                    feature = IntelligenceFeature.PLAN_MY_DAY,
-                                    tasks = allPlanningTasks,
-                                    referenceDate = planningContext.planningDate,
-                                    referenceHour = planningContext.currentHour
-                                )
-
-                                // Generate proposals with V3
-                                val result = com.boox.day.ai.AgenticPlanningService.generatePlanV3(
-                                    context = planningContext,
-                                    scoredContext = scoredContext,
-                                    onStageChange = { stage ->
-                                        agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing(stage)
-                                    }
-                                )
-
-                                agenticPlanResult = result
-                                agenticPlanProcessingState = if (result.error != null) {
-                                    com.boox.day.data.ai.AgenticPlanProcessingState.Error(result.error)
-                                } else {
-                                    com.boox.day.data.ai.AgenticPlanProcessingState.Ready
-                                }
-                                }
                             }
                         } }
                     },
@@ -3116,56 +2523,9 @@ fun MainScreen(
                         onDateChange = { newDate ->
                             selectedDate = newDate
                         },
-                        // Convert lasso selection to tasks (Memos AI feature)
+                        // Break down task (Task card action)
                         highlightedTaskId = highlightedTaskId,
-                        onBreakDownTask = { task -> startTaskBreakdown(task) },
-                        onConvertSelectionToTasks = convert@{ selectionStrokes ->
-                            // Needs the user's own OpenRouter key (Oct 2026): the key popup opens instead
-                            if (!com.boox.day.ui.AiKeyGate.requireKey()) return@convert
-                            // Full screen Tasks (Oct 2026): the new tasks go on pages of 10; the day is back
-                            // on them long before recognition and AI are done
-                            if (com.boox.day.tasks.TaskPagination.current != null) com.boox.day.ui.FullScreenState.collapse()
-                            // Trigger memo-to-tasks conversion with selected strokes
-                            memoToTasksTargetDate = selectedDate
-                            memoToTasksResult = null
-                            showMemoToTasksDialog = true
-
-                            // 2 Nov 2026: the selection is read by the AI handwriting models, like a page
-                            // and AI Recognize (ML Kit read it as one line), and Retry runs this again
-                            val run: () -> Unit = { scope.launch {
-                                memoToTasksProcessingState = MemoToTasksProcessingState.Processing("Starting...")
-                                memoToTasksProcessingStartTime = System.currentTimeMillis()
-
-                                // Fetch semantic context for prompt enrichment
-                                val dayContext = withContext(Dispatchers.IO) {
-                                    try {
-                                        semanticGeniusService.getDateContext(memoToTasksTargetDate)
-                                    } catch (e: Exception) {
-                                        null
-                                    }
-                                }
-
-                                val result = MemoToTasksService.convertSelectionToTasks(
-                                    strokes = selectionStrokes,
-                                    dayContext = dayContext,
-                                    onStageChange = { stage ->
-                                        memoToTasksProcessingState = MemoToTasksProcessingState.Processing(stage)
-                                    }
-                                )
-
-                                // Enforce minimum display time (9 seconds = 3 messages × 3 seconds)
-                                val minDisplayMs = 9000L
-                                val elapsed = System.currentTimeMillis() - memoToTasksProcessingStartTime
-                                if (elapsed < minDisplayMs) {
-                                    delay(minDisplayMs - elapsed)
-                                }
-
-                                memoToTasksResult = result
-                                memoToTasksProcessingState = MemoToTasksProcessingState.of(result)
-                            } }
-                            memoToTasksSelectionRun = run
-                            run()
-                        }
+                        onBreakDownTask = { task -> startTaskBreakdown(task) }
                     )
                 }
                 if (com.boox.day.ui.calendar.PlannerNavigationState.mode ==
@@ -3567,13 +2927,6 @@ fun MainScreen(
                     }
                 },
                 existingNames = localCalendars.map { it.name }.toSet()
-            )
-        }
-
-        // Help Dialog
-        if (showHelpDialog) {
-            HelpDialog(
-                onDismiss = { showHelpDialog = false }
             )
         }
 
@@ -4511,489 +3864,6 @@ fun MainScreen(
 
       SplitOutDialogs {
 
-        // Daily Summary Dialog - end-of-day task review with migration option
-        if (showDailySummaryDialog) {
-            DailySummaryDialog(
-                summary = dailySummaryResult,
-                processingState = dailySummaryProcessingState,
-                onMigrateTask = { task ->
-                    val capturedDate = selectedDate
-                    val capturedPageIndex = currentTaskPageIndex
-                    val tomorrow = LocalDate.parse(capturedDate).plusDays(1)
-                    val tomorrowStr = tomorrow.toString()
-
-                    val result = withContext(Dispatchers.IO) {
-                        appRepository.taskRepository.moveTaskWithStrokes(
-                            task = task,
-                            targetDate = tomorrowStr,
-                            targetPageIndex = 0,
-                            canvasHeight = actualCanvasHeight,
-                            context = context
-                        )
-                    }
-
-                    if (result.success) {
-                        SnackState.globalSnackFlow.tryEmit(
-                            SnackConf(text = "Task moved to tomorrow", duration = SnackConf.DURATION_STANDARD)
-                        )
-
-                        val (tasks, pageInfo) = withContext(Dispatchers.IO) {
-                            appRepository.taskRepository.getOrCreateTasksForPage(capturedDate, capturedPageIndex)
-                        }
-                        currentTasks = tasks
-                        currentTaskPageInfo = pageInfo
-                        true
-                    } else {
-                        val errorMessage = when (result.errorReason) {
-                            MoveTaskError.TARGET_PAGE_FULL -> "Target page is full"
-                            MoveTaskError.SOURCE_PAGE_NOT_LOADED -> "Source page not loaded"
-                            MoveTaskError.DATABASE_ERROR -> "Task move failed"
-                            MoveTaskError.SAME_LOCATION -> "Task already on target day"
-                            null -> "Task move failed"
-                        }
-                        SnackState.globalSnackFlow.tryEmit(
-                            SnackConf(text = errorMessage, duration = SnackConf.DURATION_ERROR)
-                        )
-                        false
-                    }
-                },
-                onBreakDownTask = { task ->
-                    // Capture OCR text before clearing summary result
-                    val summaryOcrMap = dailySummaryResult?.handwrittenOcrMap ?: emptyMap()
-                    val taskText = summaryOcrMap[task.id] ?: task.typedText ?: ""
-                    val isHandwritten = summaryOcrMap.containsKey(task.id)
-
-                    // Close daily summary
-                    showDailySummaryDialog = false
-                    dailySummaryResult = null
-
-                    if (taskText.isNotBlank()) {
-                        // Pre-select this task and open breakdown dialog
-                        selectedTaskForBreakdown = TaskAiService.TaskForBreakdown(
-                            task = task,
-                            displayText = taskText,
-                            isHandwritten = isHandwritten
-                        )
-                        taskBreakdownProcessingState = TaskBreakdownProcessingState.ProcessingBreakdown
-                        taskBreakdownResult = null
-                        showTaskBreakdownDialog = true
-
-                        // Generate breakdown for the selected task using Intelligence Engine V3
-                        scope.launch {
-                            // Get current tasks for context
-                            val (tasksForContext, _) = appRepository.taskRepository.getOrCreateTasksForPage(selectedDate, currentTaskPageIndex)
-
-                            // Get scored context with ComplexityScorer signals
-                            val planningDate = LocalDate.parse(selectedDate)
-                            val referenceHour = resolveTaskAiReferenceHour(planningDate)
-                            val intelligenceEngine = IntelligenceEngine(context)
-                            val scoredContext = intelligenceEngine.getScoredContext(
-                                feature = IntelligenceFeature.BREAK_DOWN_TASK,
-                                tasks = tasksForContext,
-                                referenceDate = planningDate,
-                                referenceHour = referenceHour
-                            )
-
-                            val result = TaskAiService.breakDownTaskV3(
-                                taskText = taskText,
-                                task = task,
-                                existingTasks = tasksForContext,
-                                currentDate = LocalDate.parse(selectedDate),
-                                scoredContext = scoredContext
-                            )
-                            taskBreakdownResult = result
-                            taskBreakdownProcessingState = if (result.error != null) {
-                                TaskBreakdownProcessingState.Error(result.error!!)
-                            } else {
-                                TaskBreakdownProcessingState.Ready
-                            }
-                        }
-                    }
-                },
-                onDismiss = {
-                    showDailySummaryDialog = false
-                    dailySummaryResult = null
-                }
-            )
-        }
-
-        // Weekly Summary Dialog - 7-day task review with trends and patterns
-        if (showWeeklySummaryDialog) {
-            WeeklySummaryDialog(
-                summary = weeklySummaryResult,
-                processingState = weeklySummaryProcessingState,
-                cacheInfo = weeklySummaryCacheInfo,
-                onRefresh = {
-                    launchWeeklySummary(forceRefresh = true)
-                },
-                onBreakDownTask = { taskText ->
-                    // Close weekly summary and open Task Breakdown for recurring task
-                    showWeeklySummaryDialog = false
-                    weeklySummaryResult = null
-                    weeklySummaryCacheInfo = null
-
-                    if (taskText.isNotBlank()) {
-                        // Open breakdown dialog with the task text
-                        selectedTaskForBreakdown = null // No specific task entity for recurring
-                        taskBreakdownProcessingState = TaskBreakdownProcessingState.ProcessingBreakdown
-                        taskBreakdownResult = null
-                        showTaskBreakdownDialog = true
-
-                        // Generate breakdown for the recurring task using Intelligence Engine V3
-                        scope.launch {
-                            // Get current tasks for context
-                            val (tasksForContext, _) = appRepository.taskRepository.getOrCreateTasksForPage(selectedDate, currentTaskPageIndex)
-
-                            // Create a temporary task for the V3 call (recurring tasks don't have a specific entity)
-                            // The task ID won't match scored items, so complexity signals will be empty,
-                            // but the V3 prompt structure is still superior to V1
-                            val tempTask = Task(
-                                dayDate = selectedDate,
-                                taskPageIndex = currentTaskPageIndex,
-                                rowIndex = 0,
-                                pageId = "",
-                                typedText = taskText
-                            )
-
-                            // Get scored context with ComplexityScorer signals
-                            val planningDate = LocalDate.parse(selectedDate)
-                            val referenceHour = resolveTaskAiReferenceHour(planningDate)
-                            val intelligenceEngine = IntelligenceEngine(context)
-                            val scoredContext = intelligenceEngine.getScoredContext(
-                                feature = IntelligenceFeature.BREAK_DOWN_TASK,
-                                tasks = tasksForContext,
-                                referenceDate = planningDate,
-                                referenceHour = referenceHour
-                            )
-
-                            val result = TaskAiService.breakDownTaskV3(
-                                taskText = taskText,
-                                task = tempTask,
-                                existingTasks = tasksForContext,
-                                currentDate = LocalDate.parse(selectedDate),
-                                scoredContext = scoredContext
-                            )
-                            taskBreakdownResult = result
-                            taskBreakdownProcessingState = if (result.error != null) {
-                                TaskBreakdownProcessingState.Error(result.error!!)
-                            } else {
-                                TaskBreakdownProcessingState.Ready
-                            }
-                        }
-                    }
-                },
-                onDismiss = {
-                    showWeeklySummaryDialog = false
-                    weeklySummaryResult = null
-                    weeklySummaryCacheInfo = null
-                }
-            )
-        }
-
-        // Agentic Plan Dialog - AI-powered day planning with proposals
-        if (showAgenticPlanDialog) {
-            val planningDate = remember(showAgenticPlanDialog) {
-                java.time.LocalDate.parse(selectedDate)
-            }
-            val planningDateString = remember(planningDate) { planningDate.toString() }
-            val proposalStartPageIndex = remember(showAgenticPlanDialog) { currentTaskPageIndex }
-            val proposalExecutor = remember(actualCanvasHeight, planningDate, proposalStartPageIndex) {
-                com.boox.day.ai.ProposalExecutor(
-                    context = context,
-                    canvasHeight = actualCanvasHeight,
-                    planningDate = planningDate,
-                    startPageIndex = proposalStartPageIndex,
-                    taskRepository = appRepository.taskRepository,
-                    localEventRepository = appRepository.localEventRepository,
-                    getInFlightProposalIds = { agenticInFlightProposalIds },
-                    getCompletedProposalIds = { agenticCompletedProposalIds },
-                    updateExecutionState = { inFlight, completed ->
-                        agenticInFlightProposalIds = inFlight
-                        agenticCompletedProposalIds = completed
-                    }
-                )
-            }
-
-            com.boox.day.editor.ui.AgenticPlanDialog(
-                planResult = agenticPlanResult,
-                processingState = agenticPlanProcessingState,
-                completedProposalIds = agenticCompletedProposalIds,
-                inFlightProposalIds = agenticInFlightProposalIds,
-                onExecuteProposal = { proposal ->
-                    scope.launch {
-                        agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Executing(proposal.id)
-
-                        val result = proposalExecutor.execute(
-                            proposal = proposal,
-                            onNavigateToTask = { taskId, date ->
-                                val task = appRepository.taskRepository.getById(taskId)
-                                if (task == null) {
-                                    false
-                                } else {
-                                    val targetPageIndex = task.taskPageIndex
-                                    if (date != selectedDate) {
-                                        pendingTaskPageNavigationIndex = targetPageIndex
-                                        pendingTaskCanvasForceRefresh = true
-                                        selectedDate = date
-                                    } else {
-                                        scope.launch {
-                                            loadTasksPage(date, targetPageIndex)
-                                            // STROKE_CLEAR_FIX: Only refresh canvas when Tasks tab is active
-                                            if (currentEditorTab == EditorTab.Tasks) {
-                                                DrawCanvas.forceUpdate.emit(null)
-                                            }
-                                        }
-                                    }
-                                    true
-                                }
-                            },
-                            onOpenBreakdownDialog = { taskId ->
-                                val task = appRepository.taskRepository.getById(taskId)
-                                if (task == null) {
-                                    false
-                                } else {
-                                    selectedTaskForBreakdown = TaskAiService.TaskForBreakdown(
-                                        task = task,
-                                        displayText = task.typedText ?: "",
-                                        isHandwritten = false
-                                    )
-                                    taskBreakdownProcessingState = TaskBreakdownProcessingState.ProcessingBreakdown
-                                    taskBreakdownResult = null
-                                    showTaskBreakdownDialog = true
-                                    showAgenticPlanDialog = false
-
-                                    scope.launch {
-                                        val (tasksForContext, _) = appRepository.taskRepository.getOrCreateTasksForPage(selectedDate, currentTaskPageIndex)
-
-                                        val planningDate = LocalDate.parse(selectedDate)
-                                        val referenceHour = resolveTaskAiReferenceHour(planningDate)
-                                        val intelligenceEngine = IntelligenceEngine(context)
-                                        val scoredContext = intelligenceEngine.getScoredContext(
-                                            feature = IntelligenceFeature.BREAK_DOWN_TASK,
-                                            tasks = tasksForContext,
-                                            referenceDate = planningDate,
-                                            referenceHour = referenceHour
-                                        )
-
-                                        val breakdownResult = TaskAiService.breakDownTaskV3(
-                                            taskText = task.typedText ?: "",
-                                            task = task,
-                                            existingTasks = tasksForContext,
-                                            currentDate = LocalDate.parse(selectedDate),
-                                            scoredContext = scoredContext
-                                        )
-                                        taskBreakdownResult = breakdownResult
-                                        taskBreakdownProcessingState = if (breakdownResult.error != null) {
-                                            TaskBreakdownProcessingState.Error(breakdownResult.error!!)
-                                        } else {
-                                            TaskBreakdownProcessingState.Ready
-                                        }
-                                    }
-                                    true
-                                }
-                            }
-                        )
-
-                        agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Ready
-
-                        if (result.success) {
-                            when (proposal.action) {
-                                ProposalAction.ADD_TASK -> {
-                                    val targetDate = result.affectedDate ?: planningDateString
-                                    val targetPageIndex = result.resultPageIndex ?: proposalStartPageIndex
-                                    val createdTaskId = result.createdTaskId
-                                    val addedTaskText = proposal.taskText?.trim().orEmpty()
-                                    val isVisibleTarget =
-                                        targetDate == selectedDate &&
-                                            targetPageIndex == currentTaskPageIndex &&
-                                            createdTaskId != null &&
-                                            addedTaskText.isNotBlank()
-
-                                    if (isVisibleTarget) {
-                                        currentTasks = currentTasks.map { task ->
-                                            if (task.id == createdTaskId) task.copy(typedText = addedTaskText) else task
-                                        }
-                                        agenticNeedsVisibleTaskFlush = true
-                                        agenticPendingTaskRefreshTarget = null
-                                    } else {
-                                        agenticNeedsVisibleTaskFlush = false
-                                        agenticPendingTaskRefreshTarget = targetDate to targetPageIndex
-                                    }
-                                }
-                                ProposalAction.CREATE_TIMEBLOCK, ProposalAction.SCHEDULE_BUFFER -> {
-                                    agenticFocusEventId = result.createdEventId
-                                    result.affectedDate?.let { affectedDate ->
-                                        if (affectedDate != selectedDate) {
-                                            selectedDate = affectedDate
-                                        }
-                                    }
-                                    eventsViewModel.refreshEvents()
-                                }
-                                ProposalAction.MOVE_TASK -> {
-                                    val refreshDate = planningDateString
-                                    val refreshPageIndex = if (result.affectedDate == refreshDate && result.resultPageIndex != null) {
-                                        result.resultPageIndex
-                                    } else {
-                                        proposalStartPageIndex
-                                    }
-                                    if (refreshDate != selectedDate) {
-                                        pendingTaskPageNavigationIndex = refreshPageIndex
-                                        pendingTaskCanvasForceRefresh = true
-                                        selectedDate = refreshDate
-                                    } else {
-                                        loadTasksPage(refreshDate, refreshPageIndex)
-                                        // STROKE_CLEAR_FIX: Only refresh canvas when Tasks tab is active
-                                        if (currentEditorTab == EditorTab.Tasks) {
-                                            DrawCanvas.forceUpdate.emit(null)
-                                        }
-                                    }
-                                }
-                                else -> { /* Informational actions — no refresh needed */ }
-                            }
-                            showHint(result.message, scope)
-                        } else {
-                            showHint(result.error ?: "Action failed", scope)
-                        }
-                    }
-                },
-                onSkipProposal = { proposal ->
-                    agenticCompletedProposalIds = agenticCompletedProposalIds + proposal.id
-                    val message = when (proposal.action) {
-                        com.boox.day.data.ai.ProposalAction.FLAG_ZOMBIE -> "Skipped zombie - consider addressing soon"
-                        com.boox.day.data.ai.ProposalAction.DELEGATE_OR_DROP -> "Noted - task kept for now"
-                        else -> "Skipped - will reconsider tomorrow"
-                    }
-                    showHint(message, scope)
-                },
-                onDismiss = {
-                    showAgenticPlanDialog = false
-                    agenticPlanResult = null
-                },
-                onRetry = {
-                    // Re-trigger the plan generation using Intelligence Engine V3
-                    agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing("Retrying...")
-                    agenticPlanResult = null
-
-                    scope.launch {
-                        val contextBuilder = com.boox.day.ai.AgenticContextBuilder(context)
-                        val planningContext = contextBuilder.buildContext(
-                            planningDate = LocalDate.parse(selectedDate),
-                            onStageChange = { stage ->
-                                agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing(stage)
-                            }
-                        )
-
-                        // Get scored context from Intelligence Engine
-                        agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing("Analyzing priorities...")
-                        val allPlanningTasks = planningContext.todayTasks + planningContext.overdueTasks + planningContext.zombieTasks
-                        val intelligenceEngine = IntelligenceEngine(context)
-                        val scoredContext = intelligenceEngine.getScoredContext(
-                            feature = IntelligenceFeature.PLAN_MY_DAY,
-                            tasks = allPlanningTasks,
-                            referenceDate = planningContext.planningDate,
-                            referenceHour = planningContext.currentHour
-                        )
-
-                        val result = com.boox.day.ai.AgenticPlanningService.generatePlanV3(
-                            context = planningContext,
-                            scoredContext = scoredContext,
-                            onStageChange = { stage ->
-                                agenticPlanProcessingState = com.boox.day.data.ai.AgenticPlanProcessingState.Processing(stage)
-                            }
-                        )
-
-                        agenticPlanResult = result
-                        agenticPlanProcessingState = if (result.error != null) {
-                            com.boox.day.data.ai.AgenticPlanProcessingState.Error(result.error)
-                        } else {
-                            com.boox.day.data.ai.AgenticPlanProcessingState.Ready
-                        }
-                    }
-                }
-            )
-        }
-
-        // Smart Suggestions Dialog - AI-powered task recommendations
-        if (showSmartSuggestionsDialog) {
-            SmartSuggestionsDialog(
-                suggestionsResult = smartSuggestionsResult,
-                processingState = smartSuggestionsProcessingState,
-                onAddSuggestion = { suggestion ->
-                    // Add single suggestion using centralized SlotAllocator
-                    scope.launch {
-                        // Use SlotAllocator for consistent slot detection across all features
-                        val refreshPageIndex: Int
-                        val slot = SlotAllocator.allocateSingle(
-                            date = selectedDate,
-                            canvasHeight = actualCanvasHeight,
-                            taskRepository = appRepository.taskRepository,
-                            startPageIndex = currentTaskPageIndex
-                        )
-
-                        if (slot != null) {
-                            appRepository.taskRepository.setTypedText(slot.task.id, suggestion.text)
-                            refreshPageIndex = slot.pageIndex
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(text = "Task added", duration = SnackConf.DURATION_QUICK)
-                            )
-                        } else {
-                            refreshPageIndex = currentTaskPageIndex
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(text = "No empty slots available", duration = SnackConf.DURATION_STANDARD)
-                            )
-                        }
-
-                        // Refresh the actual page where the suggestion landed.
-                        loadTasksPage(selectedDate, refreshPageIndex)
-                    }
-                },
-                onAddAll = { suggestions ->
-                    // Add all remaining suggestions using centralized SlotAllocator
-                    scope.launch {
-                        // Use SlotAllocator.allocateMultiple for batch allocation
-                        val slots = SlotAllocator.allocateMultiple(
-                            date = selectedDate,
-                            count = suggestions.size,
-                            canvasHeight = actualCanvasHeight,
-                            taskRepository = appRepository.taskRepository,
-                            startPageIndex = currentTaskPageIndex
-                        )
-
-                        // Place suggestions in allocated slots
-                        val refreshPageIndex = slots.maxOfOrNull { it.pageIndex } ?: currentTaskPageIndex
-                        var addedCount = 0
-                        for ((index, suggestion) in suggestions.withIndex()) {
-                            val slot = slots.getOrNull(index)
-                            if (slot != null) {
-                                appRepository.taskRepository.setTypedText(slot.task.id, suggestion.text)
-                                addedCount++
-                            }
-                        }
-                        val skippedCount = suggestions.size - addedCount
-
-                        // Show confirmation with detail
-                        val message = when {
-                            skippedCount > 0 && addedCount > 0 -> "$addedCount added, $skippedCount skipped (no slots)"
-                            skippedCount > 0 -> "No empty slots available"
-                            addedCount == 1 -> "Task added"
-                            else -> "$addedCount tasks added"
-                        }
-                        SnackState.globalSnackFlow.tryEmit(
-                            SnackConf(text = message, duration = SnackConf.DURATION_STANDARD)
-                        )
-
-                        // Refresh the last page affected by the batch add so the new tasks are visible.
-                        loadTasksPage(selectedDate, refreshPageIndex)
-                    }
-                },
-                onDismiss = {
-                    showSmartSuggestionsDialog = false
-                    smartSuggestionsResult = null
-                }
-            )
-        }
-
-
         // Task Breakdown Dialog - break complex tasks into subtasks
         if (showTaskBreakdownDialog) {
             TaskBreakdownDialog(
@@ -5171,288 +4041,6 @@ fun MainScreen(
                     selectedTaskForBreakdown = null
                     tasksForBreakdown = emptyList()
                 }
-            )
-        }
-
-        val onMemoToTasksScopeSelected: (AiScope) -> Unit = { scopeSelection ->
-            memoToTasksProcessingState = MemoToTasksProcessingState.Processing("Starting...")
-            memoToTasksProcessingStartTime = System.currentTimeMillis()
-
-            scope.launch {
-                // Fetch semantic context for prompt enrichment
-                val dayContext = withContext(Dispatchers.IO) {
-                    try {
-                        semanticGeniusService.getDateContext(memoToTasksTargetDate)
-                    } catch (e: Exception) {
-                        null  // Proceed without context if unavailable
-                    }
-                }
-
-                // Get existing tasks to avoid duplicates
-                val existingTasks = withContext(Dispatchers.IO) {
-                    appRepository.taskRepository
-                        .getTasksForDateRange(memoToTasksTargetDate, memoToTasksTargetDate)
-                        .mapNotNull { it.typedText ?: it.convertedText ?: it.recognizedText }
-                }
-
-                // Whole pages from their data (Oct 2026): the canvas image and the saved previews hold only
-                // the part of a page that was on screen, and a page never shown had a placeholder
-                val result = when (scopeSelection) {
-                    AiScope.CurrentPage -> {
-                        val pageId = tabManager.activeEditorState?.pageView?.currentPageId
-                        if (pageId == null) {
-                            memoToTasksProcessingState = MemoToTasksProcessingState.Error(
-                                "Could not read the memo page. Please try again."
-                            )
-                            return@launch
-                        }
-                        val bitmap = com.boox.day.ai.MemoPageContent.renderWholePage(context, pageId)
-                        if (bitmap == null) {
-                            memoToTasksProcessingState = MemoToTasksProcessingState.Error(
-                                "There is nothing on this memo page to turn into tasks."
-                            )
-                            return@launch
-                        }
-
-                        val conversion = MemoToTasksService.convertMemoToTasks(
-                            bitmap = bitmap,
-                            dayContext = dayContext,
-                            existingTasks = existingTasks,
-                            onStageChange = { stage ->
-                                memoToTasksProcessingState = MemoToTasksProcessingState.Processing(stage)
-                            }
-                        )
-                        bitmap.recycle()
-                        conversion
-                    }
-                    AiScope.AllPages -> {
-                        // Every memo page of the day; pages with nothing on them are left out
-                        val pageIds = tabManager.activeEditorState?.dayPageInfo?.pageIds.orEmpty()
-                        val pages = com.boox.day.ai.MemoPageContent.loadAll(context, pageIds).filterNot { it.isEmpty }
-                        if (pages.isEmpty()) {
-                            memoToTasksProcessingState = MemoToTasksProcessingState.Error(
-                                "There is nothing on this day's memo pages to turn into tasks."
-                            )
-                            return@launch
-                        }
-
-                        MemoToTasksService.convertMultiplePagesToTasks(
-                            // Each page is drawn just before it is read, so one page is in memory at a time
-                            pages = pages.map { page ->
-                                suspend { withContext(Dispatchers.Default) { com.boox.day.ai.MemoPageContent.render(context, page) } }
-                            },
-                            dayContext = dayContext,
-                            existingTasks = existingTasks,
-                            onPageProgress = { current, total ->
-                                memoToTasksProcessingState = MemoToTasksProcessingState.Processing(
-                                    "Processing page $current of $total..."
-                                )
-                            },
-                            onStageChange = { stage ->
-                                memoToTasksProcessingState = MemoToTasksProcessingState.Processing(stage)
-                            }
-                        )
-                    }
-                }
-
-                // Enforce minimum display time (9 seconds = 3 messages × 3 seconds)
-                val minDisplayMs = 9000L
-                val elapsed = System.currentTimeMillis() - memoToTasksProcessingStartTime
-                if (elapsed < minDisplayMs) {
-                    delay(minDisplayMs - elapsed)
-                }
-
-                // Update state with result
-                // Show error only if no tasks were extracted at all;
-                // if some pages failed but others produced tasks, show the tasks
-                memoToTasksResult = result
-                memoToTasksProcessingState = MemoToTasksProcessingState.of(result)
-            }
-        }
-
-        // Memo to Tasks Dialog - Convert Memos handwriting to Tasks
-        if (showMemoToTasksDialog) {
-            MemoToTasksDialog(
-                processingState = memoToTasksProcessingState,
-                result = memoToTasksResult,
-                defaultTargetDate = memoToTasksTargetDate,
-                defaultDueDate = memoToTasksDueDate,
-                totalMemoPages = tabManager.activeEditorState?.dayPageInfo?.totalPages ?: 1,
-                onScopeSelected = onMemoToTasksScopeSelected,
-                onDefaultTargetDateSelected = { date ->
-                    memoToTasksTargetDate = date
-                },
-                onDefaultDueDateSelected = { dueDate ->
-                    memoToTasksDueDate = dueDate
-                },
-                onTaskToggle = { index ->
-                    memoToTasksResult = memoToTasksResult?.let { r ->
-                        r.copy(tasks = r.tasks.mapIndexed { i, t ->
-                            if (i == index) t.copy(isSelected = !t.isSelected) else t
-                        })
-                    }
-                },
-                onTaskTargetDateChange = { index, dateOverride ->
-                    memoToTasksResult = memoToTasksResult?.let { r ->
-                        r.copy(tasks = r.tasks.mapIndexed { i, t ->
-                            if (i == index) t.copy(targetDateOverride = dateOverride) else t
-                        })
-                    }
-                },
-                onTaskDueDateChange = { index, dueDateOverride ->
-                    memoToTasksResult = memoToTasksResult?.let { r ->
-                        r.copy(tasks = r.tasks.mapIndexed { i, t ->
-                            if (i == index) t.copy(dueDateOverride = dueDateOverride) else t
-                        })
-                    }
-                },
-                onTaskPriorityChange = { index, priority ->
-                    memoToTasksResult = memoToTasksResult?.let { r ->
-                        r.copy(tasks = r.tasks.mapIndexed { i, t ->
-                            if (i == index) t.copy(suggestedPriority = priority) else t
-                        })
-                    }
-                },
-                onAddTasks = {
-                    scope.launch {
-                        val result = memoToTasksResult ?: return@launch
-                        val selectedTasks = result.tasks.filter { it.isSelected }
-                        if (selectedTasks.isEmpty()) {
-                            showMemoToTasksDialog = false
-                            return@launch
-                        }
-
-                        suspend fun performMemoToTasksInsert(tasksToInsert: List<com.boox.day.ai.ConvertedTask>) {
-                            val addResult = withContext(Dispatchers.IO) {
-                                appRepository.taskRepository.addConvertedTasksToDate(
-                                    tasks = tasksToInsert,
-                                    defaultTargetDate = memoToTasksTargetDate,
-                                    canvasHeight = actualCanvasHeight,
-                                    defaultDueDate = memoToTasksDueDate
-                                )
-                            }
-
-                            showMemoToTasksDialog = false
-                            memoToTasksResult = null
-                            memoToTasksProcessingState = MemoToTasksProcessingState.Processing("")
-                            memoToTasksDueDate = null
-
-                            val refreshPageIndex = addResult.latestPageIndexByDate[selectedDate]
-                            if (refreshPageIndex != null) {
-                                val previousTaskPageId = currentTaskPageId
-                                loadTasksPage(selectedDate, refreshPageIndex)
-                                if (currentEditorTab == EditorTab.Tasks) {
-                                    if (currentTaskPageId == previousTaskPageId) {
-                                        DrawCanvas.forceUnfreeze()
-                                    } else {
-                                        DrawCanvas.forceUpdate.emit(null)
-                                    }
-                                }
-                            }
-
-                            val requestedCount = tasksToInsert.size
-                            val addedCount = addResult.tasksAdded
-                            val toastText = if (addResult.targetDates.size == 1) {
-                                val targetDate = addResult.targetDates.first()
-                                if (addedCount < requestedCount) {
-                                    "Added $addedCount of $requestedCount tasks to $targetDate"
-                                } else {
-                                    "Added $addedCount task${if (addedCount != 1) "s" else ""} to $targetDate"
-                                }
-                            } else {
-                                if (addedCount < requestedCount) {
-                                    "Added $addedCount of $requestedCount tasks across ${addResult.targetDates.size} dates"
-                                } else {
-                                    "Added $addedCount task${if (addedCount != 1) "s" else ""} across ${addResult.targetDates.size} dates"
-                                }
-                            }
-                            SnackState.globalSnackFlow.tryEmit(
-                                SnackConf(
-                                    text = toastText,
-                                    duration = SnackConf.DURATION_STANDARD
-                                )
-                            )
-                        }
-
-                        val insertPlan = withContext(Dispatchers.IO) {
-                            val tasksByDate = selectedTasks.groupBy { task ->
-                                task.targetDateOverride ?: memoToTasksTargetDate
-                            }
-
-                            val availableByDate = mutableMapOf<String, Int>()
-                            var singleDateHasNoSlots = false
-
-                            for ((targetDate, _) in tasksByDate) {
-                                val slotsResult = TaskSlotCalculator.getAvailableSlots(
-                                    date = targetDate,
-                                    taskRepository = appRepository.taskRepository,
-                                    strokeRepository = appRepository.strokeRepository,
-                                    canvasHeight = actualCanvasHeight
-                                )
-                                availableByDate[targetDate] = slotsResult.totalAvailable
-                                if (tasksByDate.size == 1 && slotsResult.totalAvailable == 0) {
-                                    singleDateHasNoSlots = true
-                                }
-                            }
-
-                            val remainingByDate = availableByDate.toMutableMap()
-                            val tasksToInsert = mutableListOf<com.boox.day.ai.ConvertedTask>()
-
-                            for (task in selectedTasks) {
-                                val effectiveTargetDate = task.targetDateOverride ?: memoToTasksTargetDate
-                                val remaining = remainingByDate[effectiveTargetDate] ?: 0
-                                if (remaining > 0) {
-                                    tasksToInsert.add(task)
-                                    remainingByDate[effectiveTargetDate] = remaining - 1
-                                }
-                            }
-
-                            MemoToTasksInsertPlan(
-                                tasksToInsert = tasksToInsert,
-                                totalSelectedCount = selectedTasks.size,
-                                totalAvailableCount = tasksToInsert.size,
-                                singleDateHasNoSlots = singleDateHasNoSlots
-                            )
-                        }
-
-                        if (insertPlan.totalAvailableCount == 0) {
-                            if (insertPlan.singleDateHasNoSlots) {
-                                showNoTaskSlotsDialog = true
-                            } else {
-                                SnackState.globalSnackFlow.tryEmit(
-                                    SnackConf(
-                                        text = "No empty task slots are available on the selected dates",
-                                        duration = SnackConf.DURATION_ERROR
-                                    )
-                                )
-                            }
-                            return@launch
-                        }
-
-                        if (insertPlan.totalAvailableCount < insertPlan.totalSelectedCount) {
-                            partialInsertDialogSelectedCount = insertPlan.totalSelectedCount
-                            partialInsertDialogAvailableSlots = insertPlan.totalAvailableCount
-                            partialInsertDialogItemName = "tasks"
-                            partialInsertDialogOnConfirm = {
-                                scope.launch {
-                                    performMemoToTasksInsert(insertPlan.tasksToInsert)
-                                }
-                            }
-                            showPartialInsertDialog = true
-                            return@launch
-                        }
-
-                        performMemoToTasksInsert(insertPlan.tasksToInsert)
-                    }
-                },
-                onDismiss = {
-                    showMemoToTasksDialog = false
-                    memoToTasksResult = null
-                    memoToTasksProcessingState = MemoToTasksProcessingState.Processing("")
-                    memoToTasksDueDate = null
-                },
-                skipScopeSelection = memoToTasksSelectionRun != null,
-                onRetrySelection = memoToTasksSelectionRun
             )
         }
 
@@ -5797,8 +4385,6 @@ private fun PersistentCanvasHost(
     onTasksNeedRefresh: ((pageIndex: Int?) -> Unit)? = null,
     // Callback to navigate to a different date (used by the task card's Show Day)
     onDateChange: ((String) -> Unit)? = null,
-    // Convert lasso selection to tasks (Memos AI feature)
-    onConvertSelectionToTasks: ((List<com.boox.day.data.db.Stroke>) -> Unit)? = null,
     // Task card "Break down" (plan T3): AI break-down of one task; null hides the button
     onBreakDownTask: ((Task) -> Unit)? = null,
     // Go to task (plan T3): row to highlight briefly
@@ -6391,8 +4977,6 @@ private fun PersistentCanvasHost(
                 SelectedBitmap(
                     context = context,
                     controlTower = activeControlTower,
-                    // Only show "Convert to Tasks" on Memos tab - callback passed from MainScreen
-                    onConvertSelectionToTasks = if (currentTab == EditorTab.Memos) onConvertSelectionToTasks else null,
                     onScheduleSelection = if (currentTab == EditorTab.Memos) { strokes -> com.boox.day.proposals.ScheduleUi.start(strokes, selectedDate) } else null
                 )
                 TextBoxOverlay(context = context, controlTower = activeControlTower)

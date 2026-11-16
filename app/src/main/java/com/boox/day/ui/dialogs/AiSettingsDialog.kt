@@ -157,7 +157,7 @@ fun AiSettingsDialog(
                         // AI Features Master Toggle
                         SettingCard(
                             title = "AI Features",
-                            description = "Voice input, the AI tools in Memos and Tasks (such as Recognize Handwriting, Summarize, Translate and Smart Suggestions), and reading pages for search."
+                            description = "Voice input, the AI tools in Memos and Tasks (such as Recognize Handwriting, Sort by Priority and Break Down Task), and reading pages for search."
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

@@ -19,7 +19,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Summarize
-import androidx.compose.material.icons.filled.Translate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,14 +57,9 @@ import com.boox.day.ui.theme.EInkTheme
  */
 @Composable
 fun AiToolbarButton(
-    hasSelectedStrokes: Boolean,
     hasPageContent: Boolean,
-    hasTextAnnotations: Boolean = false,
     onRecognizePage: () -> Unit,
     onVoiceInput: () -> Unit,
-    onSummarize: () -> Unit,
-    onTranslate: () -> Unit,
-    onConvertMemoToTasks: () -> Unit,
     pageId: String? = null,
     onMenuOpenChange: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -127,14 +121,9 @@ fun AiToolbarButton(
                         .width(EInkTheme.PopupMenu.width)
                 ) {
                     AiMenuItems(
-                        hasSelectedStrokes = hasSelectedStrokes,
                         hasPageContent = hasPageContent,
-                        hasTextAnnotations = hasTextAnnotations,
                         onRecognizePage = onRecognizePage,
                         onVoiceInput = onVoiceInput,
-                        onSummarize = onSummarize,
-                        onTranslate = onTranslate,
-                        onConvertMemoToTasks = onConvertMemoToTasks,
                         pageId = pageId,
                         onDone = { setMenuOpen(false) }
                     )
@@ -148,18 +137,13 @@ fun AiToolbarButton(
  * The Memos AI menu's items, shared by the toolbar dropdown and the toolbar menu (≡) when AI is not
  * on the bar (Oct 2026). [onDone] closes whichever menu shows them. Each needs the user's OpenRouter
  * key ([AiKeyGate.withKey][com.boox.day.ui.AiKeyGate.withKey]): without one the key popup opens, and
- * after Connect OpenRouter the tool goes on. Convert Memo to Tasks checks it in MainScreen.
+ * after Connect OpenRouter the tool goes on.
  */
 @Composable
 fun AiMenuItems(
-    hasSelectedStrokes: Boolean,
     hasPageContent: Boolean,
-    hasTextAnnotations: Boolean,
     onRecognizePage: () -> Unit,
     onVoiceInput: () -> Unit,
-    onSummarize: () -> Unit,
-    onTranslate: () -> Unit,
-    onConvertMemoToTasks: () -> Unit,
     pageId: String? = null,
     onDone: () -> Unit
 ) {
@@ -184,45 +168,6 @@ fun AiMenuItems(
         onClick = {
             onDone()
             com.boox.day.ui.AiKeyGate.withKey(onRecognizePage)
-        }
-    )
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Summarize - Enabled when page has content AND feature accessible
-    AiMenuItemVector(
-        label = "Summarize",
-        icon = Icons.Default.Summarize,
-        enabled = (hasPageContent || hasTextAnnotations),
-        onClick = {
-            onDone()
-            com.boox.day.ui.AiKeyGate.withKey(onSummarize)
-        }
-    )
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Translate - Enabled when page has content AND feature accessible
-    AiMenuItemVector(
-        label = "Translate",
-        icon = Icons.Default.Translate,
-        enabled = (hasPageContent || hasTextAnnotations),
-        onClick = {
-            onDone()
-            com.boox.day.ui.AiKeyGate.withKey(onTranslate)
-        }
-    )
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Convert Memo to Tasks - Enabled when page has content AND feature accessible
-    AiMenuItem(
-        label = "Convert Memo to Tasks",
-        icon = R.drawable.ai_memo_to_task_lasso,
-        enabled = (hasPageContent || hasSelectedStrokes),
-        onClick = {
-            onDone()
-            onConvertMemoToTasks()
         }
     )
 

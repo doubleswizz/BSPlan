@@ -99,7 +99,6 @@ fun UnifiedPlannerHeaderBar(
     onVoiceSettings: () -> Unit = {},
     onDataBackup: () -> Unit = {},
     onBooxNotesSettings: () -> Unit = {},
-    onHelp: () -> Unit = {},
     onAbout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -122,7 +121,6 @@ fun UnifiedPlannerHeaderBar(
             onVoiceSettings = onVoiceSettings,
             onDataBackup = onDataBackup,
             onBooxNotesSettings = onBooxNotesSettings,
-            onHelp = onHelp,
             onAbout = onAbout,
             modifier = modifier
         )
@@ -141,7 +139,6 @@ fun UnifiedPlannerHeaderBar(
             onVoiceSettings = onVoiceSettings,
             onDataBackup = onDataBackup,
             onBooxNotesSettings = onBooxNotesSettings,
-            onHelp = onHelp,
             onAbout = onAbout,
             modifier = modifier
         )
@@ -167,7 +164,6 @@ fun DayPlannerHeaderBar(
     onVoiceSettings: () -> Unit = {},
     onDataBackup: () -> Unit = {},
     onBooxNotesSettings: () -> Unit = {},
-    onHelp: () -> Unit = {},
     onAbout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -361,10 +357,6 @@ fun DayPlannerHeaderBar(
                 onBooxNotesSettings = {
                     showSettingsMenu = false
                     onBooxNotesSettings()
-                },
-                onHelp = {
-                    showSettingsMenu = false
-                    onHelp()
                 },
                 onAbout = {
                     showSettingsMenu = false

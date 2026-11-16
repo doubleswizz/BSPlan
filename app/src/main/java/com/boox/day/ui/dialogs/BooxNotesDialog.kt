@@ -113,8 +113,7 @@ fun BooxNotesDialog(
     onDismiss: () -> Unit,
     onLinkChanged: () -> Unit = {},  // A link changed (refreshes the events panel)
     sourceFilter: CalendarSourceFilter = CalendarSourceFilter(),
-    onOpenCalendarAccounts: () -> Unit = {},  // No events to match: open Calendar Accounts (host closes this window)
-    onOpenHelp: () -> Unit = {}
+    onOpenCalendarAccounts: () -> Unit = {}  // No events to match: open Calendar Accounts (host closes this window)
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -838,8 +837,7 @@ fun BooxNotesDialog(
                                         NotesMoreMenu(
                                             onReview = ::openSuggestions,
                                             onCheck = { DrawCanvas.refreshBooxNotes.tryEmit(Unit) },
-                                            onSetup = { BooxNotesPlaces.openSetup() },
-                                            onHelp = onOpenHelp
+                                            onSetup = { BooxNotesPlaces.openSetup() }
                                         )
                                     },
                                     allControls = {
@@ -1106,7 +1104,7 @@ private fun NotesFirstUseHint(onClose: () -> Unit) {
 
 /** More: everything that isn't a note. A word, because three dots are easy to miss */
 @Composable
-internal fun NotesMoreMenu(onReview: () -> Unit, onCheck: () -> Unit, onSetup: () -> Unit, onHelp: () -> Unit) {
+internal fun NotesMoreMenu(onReview: () -> Unit, onCheck: () -> Unit, onSetup: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     val menuOffsetY = with(LocalDensity.current) { EInkTheme.Global.touchTarget.roundToPx() }
     Box {
@@ -1127,8 +1125,7 @@ internal fun NotesMoreMenu(onReview: () -> Unit, onCheck: () -> Unit, onSetup: (
                     listOf(
                         "Review Suggestions" to onReview,
                         "Check for New Notes" to onCheck,
-                        "Boox Notes Setup" to onSetup,
-                        "Help" to onHelp
+                        "Boox Notes Setup" to onSetup
                     ).forEach { (label, action) ->
                         FilterMenuItem(text = label, selected = false) {
                             open = false

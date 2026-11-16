@@ -122,14 +122,7 @@ import com.boox.day.ui.dialogs.HandwritingRecognitionDialog
 import com.boox.day.ui.dialogs.AiProcessingDialog
 import com.boox.day.ui.dialogs.RecognitionAction
 import com.boox.day.ai.RecognitionModelConfig
-import com.boox.day.ui.dialogs.SummarizationDialog
-import com.boox.day.ui.dialogs.SummarizationAction
-import com.boox.day.ui.dialogs.PageDataForSummarization
 import com.boox.day.ui.dialogs.PageManagementDialog
-import com.boox.day.ui.dialogs.TranslationDialog
-import com.boox.day.ui.dialogs.TranslationAction
-import com.boox.day.ui.dialogs.PageDataForTranslation
-import com.boox.day.utils.TextSplitUtils
 import com.boox.day.data.PageDataManager
 import com.boox.day.data.db.Attachment
 import com.boox.day.data.db.TextAnnotation
@@ -161,20 +154,6 @@ data class TaskStats(
 private data class HandwritingRecognitionRequest(
     val strokes: List<com.boox.day.data.db.Stroke>,
     val fromLassoSelection: Boolean
-)
-
-private data class SummarizationRequest(
-    val currentPageStrokes: List<com.boox.day.data.db.Stroke>,
-    val currentPageTextAnnotations: List<TextAnnotation>,
-    val allPagesData: List<PageDataForSummarization>,
-    val totalPages: Int
-)
-
-private data class TranslationRequest(
-    val currentPageStrokes: List<com.boox.day.data.db.Stroke>,
-    val currentPageTextAnnotations: List<TextAnnotation>,
-    val allPagesData: List<PageDataForTranslation>,
-    val totalPages: Int
 )
 
 
@@ -303,13 +282,7 @@ fun SharedToolbar(
     // AI callbacks for Tasks
     onVoiceToTask: (() -> Unit)? = null,
     onSortByPriority: (() -> Unit)? = null,
-    onDailySummary: (() -> Unit)? = null,
-    onWeeklySummary: (() -> Unit)? = null,
-    onSmartSuggestions: (() -> Unit)? = null,
     onTaskBreakdown: (() -> Unit)? = null,
-    onPlanMyDay: (() -> Unit)? = null,
-    // Memos AI callback - Convert memo to tasks
-    onConvertMemoToTasks: (() -> Unit)? = null,
     // Stats data for Tasks
     taskStats: TaskStats? = null,
     // Canvas height for stroke detection in task export
@@ -422,12 +395,6 @@ fun SharedToolbar(
         }
     }
 
-    // State for summarization dialog
-    var summarizationRequest by remember { mutableStateOf<SummarizationRequest?>(null) }
-
-    // State for translation dialog
-    var translationRequest by remember { mutableStateOf<TranslationRequest?>(null) }
-
     // State for AI processing dialog
     var isAiProcessing by remember { mutableStateOf(false) }
 
@@ -452,8 +419,6 @@ fun SharedToolbar(
                 isVoiceInputDialogOpen ||
                 voiceResultText != null ||
                 handwritingRecognitionRequest != null ||
-                summarizationRequest != null ||
-                translationRequest != null ||
                 isAiProcessing ||
                 isPageManagementDialogOpen ||
                 activeToolDropdown != null
@@ -1001,185 +966,6 @@ fun SharedToolbar(
             config = handwritingConfig  // Smart selection: Digital Ink for small, Cloud LLM for large
         )
     }
-
-    // Summarization dialog - supports scope selection (Current Page / All Pages) and result actions
-    val currentSummarizationRequest = summarizationRequest
-    if (currentSummarizationRequest != null) {
-        SummarizationDialog(
-            currentPageStrokes = currentSummarizationRequest.currentPageStrokes,
-            currentPageTextAnnotations = currentSummarizationRequest.currentPageTextAnnotations,
-            allPagesData = currentSummarizationRequest.allPagesData,
-            totalPages = currentSummarizationRequest.totalPages,
-            onAction = { action ->
-                when (action) {
-                    is SummarizationAction.CopyToClipboard -> {
-                        // Copy summary to clipboard
-                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Summary", action.summary)
-                        clipboard.setPrimaryClip(clip)
-                        android.widget.Toast.makeText(context, "Summary copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
-                        toolbarLog.i("Summary copied to clipboard: ${action.summary.length} chars")
-                    }
-                    is SummarizationAction.PlaceOnNewPage -> {
-                        // Split text if needed and place on new page(s)
-                        val textChunks = TextSplitUtils.splitForPages(action.summary)
-
-                        scope.launch(Dispatchers.IO) {
-                            var firstNewPageId: String? = null
-
-                            for ((index, chunk) in textChunks.withIndex()) {
-                                // Create new page for this chunk
-                                val newPageId = activeState.createNewDayPage()
-                                if (newPageId != null) {
-                                    if (firstNewPageId == null) firstNewPageId = newPageId
-
-                                    // Convert markdown to plain text + spans
-                                    val (plainText, spans) = RichTextConverter.markdownToSpans(chunk)
-                                    val spansJson = if (spans.isNotEmpty()) {
-                                        RichTextSpanSerializer.encode(spans)
-                                    } else {
-                                        null
-                                    }
-
-                                    // Create text annotation at top of new page
-                                    val annotation = TextAnnotation(
-                                        content = plainText,
-                                        x = 50f,
-                                        y = 50f,
-                                        width = 800f,
-                                        height = 600f,
-                                        fontSize = 48f,
-                                        pageId = newPageId,
-                                        sourceType = "summarization",
-                                        sourceStrokeIds = null,
-                                        spans = spansJson
-                                    )
-
-                                    // Add to PageDataManager for immediate display
-                                    PageDataManager.addTextAnnotation(newPageId, annotation)
-
-                                    // Save to database
-                                    textAnnotationRepository.insert(annotation)
-
-                                    // Index for semantic search
-                                    TextAnnotationIndexer.getInstanceOrNull()?.onAnnotationChanged(annotation)
-
-                                    toolbarLog.i("Summary chunk ${index + 1}/${textChunks.size} placed on new page: $newPageId")
-                                }
-                            }
-
-                            // Navigate to first new page directly (don't use goToNextDayPage
-                            // which would create yet another blank page since createNewDayPage
-                            // already sets openPageId to the new page)
-                            if (firstNewPageId != null) {
-                                withContext(Dispatchers.Main) {
-                                    activeState.refreshDayPageInfo()
-                                    activeTower.navigateToPage(firstNewPageId)
-                                    DrawCanvas.forceUpdate.emit(null)
-                                    android.widget.Toast.makeText(
-                                        context,
-                                        if (textChunks.size > 1) "Summary placed on ${textChunks.size} new pages"
-                                        else "Summary placed on new page",
-                                        android.widget.Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        }
-                    }
-                }
-                summarizationRequest = null
-            },
-            onDismiss = { summarizationRequest = null }
-        )
-    }
-
-    // Translation dialog - supports scope selection (Current Page / All Pages) and result actions
-    val currentTranslationRequest = translationRequest
-    if (currentTranslationRequest != null) {
-        TranslationDialog(
-            currentPageStrokes = currentTranslationRequest.currentPageStrokes,
-            currentPageTextAnnotations = currentTranslationRequest.currentPageTextAnnotations,
-            allPagesData = currentTranslationRequest.allPagesData,
-            totalPages = currentTranslationRequest.totalPages,
-            onAction = { action ->
-                when (action) {
-                    is TranslationAction.CopyToClipboard -> {
-                        // Copy translation to clipboard
-                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText("Translation", action.translation)
-                        clipboard.setPrimaryClip(clip)
-                        android.widget.Toast.makeText(context, "Translation copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
-                        toolbarLog.i("Translation copied (${action.detectedLanguages}): ${action.translation.take(50)}...")
-                    }
-                    is TranslationAction.PlaceOnNewPage -> {
-                        // Split text if needed and place on new page(s)
-                        val textChunks = TextSplitUtils.splitForPages(action.translation)
-
-                        scope.launch(Dispatchers.IO) {
-                            var firstNewPageId: String? = null
-
-                            for ((index, chunk) in textChunks.withIndex()) {
-                                // Create new page for this chunk
-                                val newPageId = activeState.createNewDayPage()
-                                if (newPageId != null) {
-                                    if (firstNewPageId == null) firstNewPageId = newPageId
-
-                                    // Convert markdown to plain text + spans
-                                    val (plainText, spans) = RichTextConverter.markdownToSpans(chunk)
-                                    val spansJson = if (spans.isNotEmpty()) {
-                                        RichTextSpanSerializer.encode(spans)
-                                    } else {
-                                        null
-                                    }
-
-                                    // Create text annotation at top of new page
-                                    val annotation = TextAnnotation(
-                                        content = plainText,
-                                        x = 50f,
-                                        y = 50f,
-                                        width = 800f,
-                                        height = 600f,
-                                        fontSize = 48f,
-                                        pageId = newPageId,
-                                        sourceType = "translation",
-                                        sourceStrokeIds = null,
-                                        spans = spansJson
-                                    )
-
-                                    // Add to PageDataManager for immediate display
-                                    PageDataManager.addTextAnnotation(newPageId, annotation)
-
-                                    // Save to database
-                                    textAnnotationRepository.insert(annotation)
-
-                                    toolbarLog.i("Translation chunk ${index + 1}/${textChunks.size} placed on new page: $newPageId")
-                                }
-                            }
-
-                            // Navigate to first new page directly (don't use goToNextDayPage
-                            // which would create yet another blank page since createNewDayPage
-                            // already sets openPageId to the new page)
-                            if (firstNewPageId != null) {
-                                withContext(Dispatchers.Main) {
-                                    activeState.refreshDayPageInfo()
-                                    activeTower.navigateToPage(firstNewPageId)
-                                    DrawCanvas.forceUpdate.emit(null)
-                                    android.widget.Toast.makeText(
-                                        context,
-                                        if (textChunks.size > 1) "Translation placed on ${textChunks.size} new pages"
-                                        else "Translation placed on new page",
-                                        android.widget.Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        }
-                    }
-                }
-                translationRequest = null
-            },
-            onDismiss = { translationRequest = null }
-        )
-    }
     }  // end SplitOutOfSharedToolbar
 
     // Toolbar is always visible (Zen mode / toolbar hiding disabled)
@@ -1449,60 +1235,15 @@ fun SharedToolbar(
                     DrawCanvas.toolbarInteraction.tryEmit(Unit)
                     isVoiceInputDialogOpen = true
                 }
-                // The key check is in AiMenuItems (AiKeyGate.withKey), so the tool goes on after Connect OpenRouter
-                val onSummarize: () -> Unit = {
-                    toolbarLog.i("Opening summarization dialog from AI menu...")
-                    DrawCanvas.toolbarInteraction.tryEmit(Unit)
-                    summarizationRequest = SummarizationRequest(
-                        currentPageStrokes = activeState.pageView.strokes.toList(),
-                        currentPageTextAnnotations = activeState.pageView.textAnnotations.toList(),
-                        allPagesData = activeState.dayPageInfo?.pageIds?.mapIndexed { index, pageId ->
-                            PageDataForSummarization(
-                                pageId = pageId,
-                                pageIndex = index + 1,
-                                strokes = PageDataManager.getStrokes(pageId).toList(),
-                                textAnnotations = PageDataManager.getTextAnnotations(pageId).toList()
-                            )
-                        } ?: emptyList(),
-                        totalPages = activeState.dayPageInfo?.totalPages ?: 1
-                    )
-                }
-                val onTranslate: () -> Unit = {
-                    toolbarLog.i("Opening translation dialog from AI menu...")
-                    DrawCanvas.toolbarInteraction.tryEmit(Unit)
-                    translationRequest = TranslationRequest(
-                        currentPageStrokes = activeState.pageView.strokes.toList(),
-                        currentPageTextAnnotations = activeState.pageView.textAnnotations.toList(),
-                        allPagesData = activeState.dayPageInfo?.pageIds?.mapIndexed { index, pageId ->
-                            PageDataForTranslation(
-                                pageId = pageId,
-                                pageIndex = index + 1,
-                                strokes = PageDataManager.getStrokes(pageId).toList(),
-                                textAnnotations = PageDataManager.getTextAnnotations(pageId).toList()
-                            )
-                        } ?: emptyList(),
-                        totalPages = activeState.dayPageInfo?.totalPages ?: 1
-                    )
-                }
-                val onConvertMemoToTasksAction: () -> Unit = {
-                    toolbarLog.i("Opening memo to tasks dialog from AI menu...")
-                    DrawCanvas.toolbarInteraction.tryEmit(Unit)
-                    onConvertMemoToTasks?.invoke()
-                }
 
                 val aiTool: @Composable () -> Unit = {
                     // 6. AI Tools - dropdown menu with AI features
                     AiToolbarButton(
-                        hasSelectedStrokes = !activeState.selectionState.selectedStrokes.isNullOrEmpty(),
                         hasPageContent = activeState.pageView.strokes.isNotEmpty(),
-                        hasTextAnnotations = activeState.pageView.textAnnotations.isNotEmpty(),
                         pageId = activeState.pageView.currentPageId,
                         enabled = memosAiEnabled,
                         onRecognizePage = onRecognizePage,
                         onVoiceInput = onVoiceInput,
-                        onSummarize = onSummarize,
-                        onTranslate = onTranslate,
-                        onConvertMemoToTasks = onConvertMemoToTasksAction,
                         // Only disable drawing when menu opens, don't re-enable when it closes
                         // Drawing is re-enabled when user explicitly selects a drawing tool
                         onMenuOpenChange = { isOpen -> if (isOpen) activeState.isDrawing = false },
@@ -1551,13 +1292,8 @@ fun SharedToolbar(
                 val taskAiTool: @Composable () -> Unit = {
                         // AI Tools for Tasks
                         TaskAiButton(
-                            onVoiceToTask = { onVoiceToTask?.invoke() },
                             onSortByPriority = { onSortByPriority?.invoke() },
-                            onSmartSuggestions = { onSmartSuggestions?.invoke() },
                             onTaskBreakdown = { onTaskBreakdown?.invoke() },
-                            onDailySummary = { onDailySummary?.invoke() },
-                            onWeeklySummary = { onWeeklySummary?.invoke() },
-                            onPlanMyDay = { onPlanMyDay?.invoke() },
                             // AI is on when the user hasn't turned it off (aiEnabled)
                             enabled = GlobalAppSettings.current.aiEnabled,
                             // Only disable drawing when menu opens, don't re-enable when it closes
@@ -2106,9 +1842,6 @@ fun SharedToolbar(
                                 memosAiEnabled = memosAiEnabled,
                                 onRecognizePage = onRecognizePage,
                                 onVoiceInput = onVoiceInput,
-                                onSummarize = onSummarize,
-                                onTranslate = onTranslate,
-                                onConvertMemoToTasks = onConvertMemoToTasksAction,
                                 onMeetingNotes = onMeetingNotes,
                                 onTaskMoveTasks = onTaskMoveTasks,
                                 onTaskCopyTasks = onTaskCopyTasks,
@@ -2116,12 +1849,8 @@ fun SharedToolbar(
                                 onConvertHandwriting = onConvertHandwriting,
                                 onStartDayReview = onStartDayReview,
                                 onQuickAdd = onQuickAdd,
-                                onPlanMyDay = onPlanMyDay,
                                 onSortByPriority = onSortByPriority,
-                                onSmartSuggestions = onSmartSuggestions,
                                 onTaskBreakdown = onTaskBreakdown,
-                                onDailySummary = onDailySummary,
-                                onWeeklySummary = onWeeklySummary,
                                 hasBooxPermission = hasBooxPermission,
                                 showBooxAlert = showBooxAlert,
                                 closeToolbarMenu = closeToolbarMenu
@@ -2252,9 +1981,6 @@ private fun toolbarMenuTools(
     memosAiEnabled: Boolean,
     onRecognizePage: () -> Unit,
     onVoiceInput: () -> Unit,
-    onSummarize: () -> Unit,
-    onTranslate: () -> Unit,
-    onConvertMemoToTasks: () -> Unit,
     onMeetingNotes: () -> Unit,
     onTaskMoveTasks: (() -> Unit)?,
     onTaskCopyTasks: (() -> Unit)?,
@@ -2262,12 +1988,8 @@ private fun toolbarMenuTools(
     onConvertHandwriting: (() -> Unit)?,
     onStartDayReview: (() -> Unit)?,
     onQuickAdd: () -> Unit,
-    onPlanMyDay: (() -> Unit)?,
     onSortByPriority: (() -> Unit)?,
-    onSmartSuggestions: (() -> Unit)?,
     onTaskBreakdown: (() -> Unit)?,
-    onDailySummary: (() -> Unit)?,
-    onWeeklySummary: (() -> Unit)?,
     hasBooxPermission: Boolean,
     showBooxAlert: Boolean,
     closeToolbarMenu: () -> Unit
@@ -2327,14 +2049,9 @@ private fun toolbarMenuTools(
                 enabled = memosAiEnabled,
                 page = { closeMenu ->
                     AiMenuItems(
-                        hasSelectedStrokes = !state.selectionState.selectedStrokes.isNullOrEmpty(),
                         hasPageContent = state.pageView.strokes.isNotEmpty(),
-                        hasTextAnnotations = state.pageView.textAnnotations.isNotEmpty(),
                         onRecognizePage = onRecognizePage,
                         onVoiceInput = onVoiceInput,
-                        onSummarize = onSummarize,
-                        onTranslate = onTranslate,
-                        onConvertMemoToTasks = onConvertMemoToTasks,
                         pageId = state.pageView.currentPageId,
                         onDone = closeMenu
                     )
@@ -2388,12 +2105,8 @@ private fun toolbarMenuTools(
                 enabled = GlobalAppSettings.current.aiEnabled,
                 page = { closeMenu ->
                     TaskAiMenuItems(
-                        onPlanMyDay = { onPlanMyDay?.invoke() },
                         onSortByPriority = { onSortByPriority?.invoke() },
-                        onSmartSuggestions = { onSmartSuggestions?.invoke() },
                         onTaskBreakdown = { onTaskBreakdown?.invoke() },
-                        onDailySummary = { onDailySummary?.invoke() },
-                        onWeeklySummary = { onWeeklySummary?.invoke() },
                         onDone = closeMenu
                     )
                 }

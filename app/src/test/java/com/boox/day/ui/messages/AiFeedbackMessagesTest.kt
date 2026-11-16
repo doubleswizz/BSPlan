@@ -41,9 +41,9 @@ class AiFeedbackMessagesTest {
 
     @Test
     fun shuffleBagShowsEveryLineBeforeRepeating() {
-        val review = sets.getValue("review")
-        val drawn = List(review.size) { AiFeedbackMessages.getRandomReviewMessage() }
-        assertEquals(review.toSet(), drawn.toSet())
+        val breakdown = sets.getValue("breakdown")
+        val drawn = List(breakdown.size) { AiFeedbackMessages.getRandomBreakdownMessage() }
+        assertEquals(breakdown.toSet(), drawn.toSet())
     }
 
     @Test

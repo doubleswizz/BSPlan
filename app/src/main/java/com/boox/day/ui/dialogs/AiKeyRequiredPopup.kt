@@ -370,7 +370,7 @@ fun OpenRouterKeySteps(context: Context, lastStepTitle: String, lastStepDetail: 
         KeyStep(
             number = 2,
             title = "Add credit",
-            detail = " for paid models (Help → AI Features → Paying for AI). Free models work without credit, up to 50 requests a day."
+            detail = " for paid models. Free models work without credit, up to 50 requests a day."
         ) {
             StepLink(text = "openrouter.ai/settings/credits") { OpenRouterLinks.open(context, OpenRouterLinks.CREDITS) }
         }

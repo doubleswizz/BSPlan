@@ -39,9 +39,6 @@ class PreferencePromptTest {
         val lines = TaskAiContextBuilderV1.preferenceLines(null)
         assertEquals(1, lines.size)
         assertTrue(lines[0].contains("not shared"))
-        val guidance = TaskAiService.buildSuggestionPreferenceGuidance(AiPreferences(), targetCount = 6)
-        assertFalse(guidance.contains("priorit", ignoreCase = true))
-        assertTrue(guidance.contains("Target suggestion count: 6"))
     }
 
     @Test
@@ -57,11 +54,8 @@ class PreferencePromptTest {
     @Test
     fun removedAnswersReachNoPrompt() {
         val userContext = TaskAiContextBuilderV1.preferenceLines(oldAnswers).joinToString("\n")
-        val suggestions = TaskAiService.buildSuggestionPreferenceGuidance(oldAnswers, 6)
-        for (text in listOf(userContext, suggestions)) {
-            for (word in listOf("Work & Career", "Home & Organization", "Personal Growth", "Finance", "children", "caregiver", "morning", "Crunch", "Holiday", "social butterfly")) {
-                assertFalse("$word in: $text", text.contains(word, ignoreCase = true))
-            }
+        for (word in listOf("Work & Career", "Home & Organization", "Personal Growth", "Finance", "children", "caregiver", "morning", "Crunch", "Holiday", "social butterfly")) {
+            assertFalse("$word in: $userContext", userContext.contains(word, ignoreCase = true))
         }
         val plan = PreferenceInterpreter.interpret(oldAnswers)
         assertTrue(plan.priorityRanking.isEmpty())
@@ -85,11 +79,6 @@ class PreferencePromptTest {
         assertFalse(userContext.contains("Vacation mode"))
         assertFalse(userContext.contains("Health and wellness suggestions: off"))
         assertFalse(userContext.contains("Social suggestions: off"))
-
-        val suggestions = TaskAiService.buildSuggestionPreferenceGuidance(options, 6)
-        assertFalse(suggestions.contains("Vacation mode is active"))
-        assertFalse(suggestions.contains("Avoid health suggestions"))
-        assertFalse(suggestions.contains("Avoid social suggestions"))
 
         val plan = PreferenceInterpreter.interpret(options)
         assertNull(plan.activeMode)
@@ -136,12 +125,6 @@ class PreferencePromptTest {
         assertEquals(5 * 60, fromFive.totalMinutes)
         assertEquals(45, fromFive.committedMinutes)
         assertTrue(fromFive.freeSlots.all { it.startTime >= "17:00" })
-    }
-
-    @Test
-    fun vacationAllowsAShortPlan() {
-        assertEquals(1..3, AgenticPlanningService.proposalRange(SpecialMode.VACATION))
-        assertEquals(3..7, AgenticPlanningService.proposalRange(null))
     }
 
     // ── Completion rate and matching ──

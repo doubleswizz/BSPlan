@@ -99,16 +99,6 @@ object TipsRepository {
             message = "Voice to Text (the AI button) turns what you say into a typed note, with punctuation.",
             contexts = setOf(TipContext.MEMOS)
         ),
-        Tip(
-            id = "memos_summarize_translate",
-            message = "Summarize and Translate (the AI button) work on this page or every page of the day.",
-            contexts = setOf(TipContext.MEMOS)
-        ),
-        Tip(
-            id = "ai_memo_to_tasks",
-            message = "Convert Memo to Tasks finds tasks in your notes. Tick the ones to add.",
-            contexts = setOf(TipContext.MEMOS)
-        ),
     )
 
     // ═══════════════════════════════════════════════════════════════
@@ -191,16 +181,6 @@ object TipsRepository {
             contexts = setOf(TipContext.TASKS)
         ),
         Tip(
-            id = "tasks_smart_suggestions",
-            message = "Smart Suggestions offers task ideas from your calendar, memos and recent tasks, not ones already on your list.",
-            contexts = setOf(TipContext.TASKS)
-        ),
-        Tip(
-            id = "tasks_plan_my_day",
-            message = "Optimize My Day proposes changes to your day. Nothing changes until you tap a proposal.",
-            contexts = setOf(TipContext.TASKS)
-        ),
-        Tip(
             id = "tasks_sort_by_priority",
             message = "Sort by Priority orders this page or the whole day. Check the order, then tap Apply Order.",
             contexts = setOf(TipContext.TASKS)
@@ -208,16 +188,6 @@ object TipsRepository {
         Tip(
             id = "tasks_breakdown",
             message = "Big task? Break Down Task splits it into smaller ones.",
-            contexts = setOf(TipContext.TASKS)
-        ),
-        Tip(
-            id = "tasks_daily_summary",
-            message = "End your day with Daily Summary: see what you finished and move the rest to tomorrow.",
-            contexts = setOf(TipContext.TASKS)
-        ),
-        Tip(
-            id = "tasks_weekly_summary",
-            message = "Weekly Summary shows the week's totals, your best day and tasks left undone again and again.",
             contexts = setOf(TipContext.TASKS)
         ),
     )
@@ -385,23 +355,8 @@ object TipsRepository {
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(
-            id = "general_help",
-            message = "Settings → Help explains every feature. Key Legends shows what the marks mean.",
-            contexts = setOf(TipContext.GENERAL)
-        ),
-        Tip(
             id = "general_screen_refresh",
             message = "Traces of earlier screens? ≡ → Screen Refresh cleans up the display.",
-            contexts = setOf(TipContext.GENERAL)
-        ),
-        Tip(
-            id = "general_sleep_screen",
-            message = "Turn on Today on sleep screen in Settings → Preferences, and choose what it shows: month, events, tasks or memo.",
-            contexts = setOf(TipContext.GENERAL)
-        ),
-        Tip(
-            id = "general_daily_notes",
-            message = "Use Obsidian? Daily notes (Markdown) in Settings → Preferences writes each day to a Markdown file.",
             contexts = setOf(TipContext.GENERAL)
         ),
         Tip(
@@ -484,32 +439,8 @@ object TipsRepository {
             isDiscovery = true
         ),
         Tip(
-            id = "discover_smart_suggestions",
-            message = "Need ideas? Smart Suggestions in the Tasks tab reads your calendar and memos.",
-            contexts = setOf(TipContext.MEMOS),
-            isDiscovery = true
-        ),
-        Tip(
-            id = "discover_plan_my_day",
-            message = "Busy day? Optimize My Day in the Tasks tab looks at your events and tasks and proposes a plan.",
-            contexts = setOf(TipContext.MEMOS),
-            isDiscovery = true
-        ),
-        Tip(
-            id = "discover_daily_summary",
-            message = "Daily Summary in the Tasks tab shows what you finished today.",
-            contexts = setOf(TipContext.MEMOS),
-            isDiscovery = true
-        ),
-        Tip(
             id = "discover_ai_ocr",
             message = "Recognize Handwriting in the Memos tab turns your notes into typed text.",
-            contexts = setOf(TipContext.TASKS),
-            isDiscovery = true
-        ),
-        Tip(
-            id = "discover_memo_to_tasks",
-            message = "Wrote a to-do in your memos? Convert Memo to Tasks in the Memos tab adds it to your list.",
             contexts = setOf(TipContext.TASKS),
             isDiscovery = true
         ),

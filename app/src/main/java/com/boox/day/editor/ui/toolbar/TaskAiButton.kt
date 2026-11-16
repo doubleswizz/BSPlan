@@ -16,14 +16,8 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.CallSplit
-import androidx.compose.material.icons.filled.Summarize
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,22 +44,13 @@ import com.boox.day.ui.theme.EInkTheme
  * AI tools button for Tasks mode.
  * Provides task-specific AI features:
  *
- * - Voice to Task: Voice input to create tasks (with date extraction)
  * - Sort by Priority: AI-powered task reordering
- * - Smart Suggestions: Context-aware task suggestions
- * - Task Breakdown: Expand complex tasks into subtasks
- * - Daily Summary: End-of-day task review
- * - Weekly Summary: 7-day task review with trends and patterns
+ * - Break Down Task: Expand complex tasks into subtasks
  */
 @Composable
 fun TaskAiButton(
-    onVoiceToTask: () -> Unit,
     onSortByPriority: () -> Unit = {},
-    onSmartSuggestions: () -> Unit = {},
     onTaskBreakdown: () -> Unit = {},
-    onDailySummary: () -> Unit = {},
-    onWeeklySummary: () -> Unit = {},
-    onPlanMyDay: () -> Unit = {},
     onMenuOpenChange: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
@@ -125,12 +110,8 @@ fun TaskAiButton(
                         .border(EInkTheme.PopupMenu.borderWidth, EInkTheme.PopupMenu.borderColor)
                 ) {
                     TaskAiMenuItems(
-                        onPlanMyDay = onPlanMyDay,
                         onSortByPriority = onSortByPriority,
-                        onSmartSuggestions = onSmartSuggestions,
                         onTaskBreakdown = onTaskBreakdown,
-                        onDailySummary = onDailySummary,
-                        onWeeklySummary = onWeeklySummary,
                         onDone = { setShowMenu(false) }
                     )
                 }
@@ -145,55 +126,10 @@ fun TaskAiButton(
  */
 @Composable
 fun TaskAiMenuItems(
-    onPlanMyDay: () -> Unit,
     onSortByPriority: () -> Unit,
-    onSmartSuggestions: () -> Unit,
     onTaskBreakdown: () -> Unit,
-    onDailySummary: () -> Unit,
-    onWeeklySummary: () -> Unit,
     onDone: () -> Unit
 ) {
-    // ═══════════════════════════════════════════════════════
-    // AGENTIC PLANNING (Flagship Feature)
-    // ═══════════════════════════════════════════════════════
-
-    // Optimize My Day - AI-powered day optimization
-    TaskAiMenuItem(
-        icon = Icons.Default.AutoAwesome,
-        label = "Optimize My Day",
-        onClick = {
-            onDone()
-            onPlanMyDay()
-        }
-    )
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // ═══════════════════════════════════════════════════════
-    // PRIMARY FEATURES (Implemented)
-    // ═══════════════════════════════════════════════════════
-
-    // ═══════════════════════════════════════════════════════
-    // DISABLED FOR MVP LAUNCH - Voice to Task
-    // This feature needs investigation before release.
-    // Issues to investigate:
-    // - Audio recording reliability on various Boox devices
-    // - Gemini API quota handling edge cases
-    // - Task parsing accuracy with complex voice input
-    // Re-enable after post-MVP investigation is complete.
-    // ═══════════════════════════════════════════════════════
-    // Voice to Task - Voice input to create tasks
-    // TaskAiMenuItem(
-    //     icon = Icons.Default.Mic,
-    //     label = "Voice to Task",
-    //     onClick = {
-    //         onDone()
-    //         onVoiceToTask()
-    //     }
-    // )
-    //
-    // Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
     // Sort by Priority - AI reorders all tasks for the day
     TaskAiMenuItem(
         icon = Icons.Default.Sort,
@@ -201,22 +137,6 @@ fun TaskAiMenuItems(
         onClick = {
             onDone()
             onSortByPriority()
-        }
-    )
-
-    // ═══════════════════════════════════════════════════════
-    // COMING SOON (Stubs - gated by feature access)
-    // ═══════════════════════════════════════════════════════
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Smart Suggestions - Context-aware recommendations
-    TaskAiMenuItem(
-        icon = Icons.Default.Lightbulb,
-        label = "Smart Suggestions",
-        onClick = {
-            onDone()
-            onSmartSuggestions()
         }
     )
 
@@ -229,34 +149,6 @@ fun TaskAiMenuItems(
         onClick = {
             onDone()
             onTaskBreakdown()
-        }
-    )
-
-    // ═══════════════════════════════════════════════════════
-    // INSIGHTS & SUMMARIES
-    // ═══════════════════════════════════════════════════════
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Daily Summary - End-of-day task review and migration
-    TaskAiMenuItem(
-        icon = Icons.Default.Summarize,
-        label = "Daily Summary",
-        onClick = {
-            onDone()
-            onDailySummary()
-        }
-    )
-
-    Divider(color = EInkTheme.Divider.subtleColor, thickness = EInkTheme.Divider.subtleThickness)
-
-    // Weekly Summary - 7-day trends and patterns review
-    TaskAiMenuItem(
-        icon = Icons.Default.DateRange,
-        label = "Weekly Summary",
-        onClick = {
-            onDone()
-            onWeeklySummary()
         }
     )
 }

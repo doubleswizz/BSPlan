@@ -55,7 +55,6 @@ val strokeStyle = Stroke(
 fun SelectedBitmap(
     context: Context,
     controlTower: EditorControlTower,
-    onConvertSelectionToTasks: ((List<DbStroke>) -> Unit)? = null,
     onScheduleSelection: ((List<DbStroke>) -> Unit)? = null
 ) {
     val density = LocalDensity.current
@@ -178,8 +177,8 @@ fun SelectedBitmap(
         val miniButtonSize = 35  // Increased from 30 (15% larger)
         val miniIconSize = 28.dp  // Increased from 24dp (15% larger)
         // Base buttons: Delete, Recognize, Cut, Copy, Duplicate (resize via corner handles)
-        // +1 if Convert to Tasks callback is provided
-        val buttonCount = 5 + (if (onConvertSelectionToTasks != null) 1 else 0) + (if (onScheduleSelection != null) 1 else 0)
+        // +1 if Schedule callback is provided
+        val buttonCount = 5 + (if (onScheduleSelection != null) 1 else 0)
         val toolbarPadding = 3
 
         // If we can calculate offset of buttons show selection handling tools
@@ -269,34 +268,6 @@ fun SelectedBitmap(
                         modifier = Modifier.size(miniButtonSize.dp),
                         iconSize = miniIconSize
                     )
-                    // Convert Selection to Tasks button
-                    if (onConvertSelectionToTasks != null) {
-                        ToolbarButton(
-                            iconId = R.drawable.ai_memo_to_task_lasso,
-                            contentDescription = "Convert to Tasks",
-                            isSelected = false,
-                            onSelect = {
-                                // Pass selected strokes for Digital Ink recognition
-                                selectionState.selectedStrokes?.let { strokes ->
-                                    if (strokes.isNotEmpty()) {
-                                        // Clear selection BEFORE calling callback
-                                        // Dialog will open - no need to keep lasso active behind it
-                                        // 1. Apply displacement to put strokes back on canvas
-                                        // 2. Reset selection state to clear UI
-                                        // 3. Enable drawing mode
-                                        // The 'strokes' reference is already captured, safe to reset
-                                        controlTower.applySelectionDisplace()
-                                        selectionState.reset()
-                                        controlTower.setIsDrawing(true)
-
-                                        onConvertSelectionToTasks(strokes)
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(miniButtonSize.dp),
-                            iconSize = miniIconSize
-                        )
-                    }
                     // Write It, Schedule It: reset as Convert to Tasks does, the strokes are already captured
                     if (onScheduleSelection != null) {
                         ToolbarButton(

@@ -35,18 +35,18 @@ val AiJob.label: String
     get() = when (this) {
         AiJob.HANDWRITING -> "Reading handwriting"
         AiJob.VOICE -> "Voice"
-        AiJob.WRITING -> "Writing and summaries"
-        AiJob.PLANNING -> "Planning and suggestions"
+        AiJob.WRITING -> "Text and recaps"
+        AiJob.PLANNING -> "Task and schedule AI"
         AiJob.SEARCH_INDEXING -> "Search indexing"
     }
 
 /** What the job covers, at the top of its model list. */
 val AiJob.description: String
     get() = when (this) {
-        AiJob.HANDWRITING -> "Reads your ink for Recognize Handwriting, Summarize, Translate and Convert Memo to Tasks."
+        AiJob.HANDWRITING -> "Reads your ink for Recognize Handwriting and scheduling."
         AiJob.VOICE -> "Turns your speech into text for voice notes, events, tasks and preferences."
-        AiJob.WRITING -> "Formats, summarizes and translates text, and turns memos into tasks."
-        AiJob.PLANNING -> "Task suggestions and breakdowns, planning, voice events, and linking notes to events."
+        AiJob.WRITING -> "Formats recognized handwriting and writes meeting recaps."
+        AiJob.PLANNING -> "Sorts tasks, breaks down tasks, parses voice events, schedules items, and links notes to events."
         AiJob.SEARCH_INDEXING -> "Reads pages in the background so search can find them. Only providers that keep no copy of your pages."
     }
 

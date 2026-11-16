@@ -66,10 +66,7 @@ class AboutHeaderRenderTest {
                                 .background(Color.White)
                                 .onGloballyPositioned { bounds["header"] = it.boundsInRoot() }
                         ) {
-                            AboutHeader(versionLabel = "Version 1.0.48", onDismiss = {}, appName = "BSPlan", onSupport = {})
-                        }
-                        Box(Modifier.padding(16.dp).onGloballyPositioned { bounds["support"] = it.boundsInRoot() }) {
-                            SupportButton(onClick = {})
+                            AboutHeader(versionLabel = "Version 1.0.48", onDismiss = {}, appName = "BSPlan")
                         }
                         for (checking in listOf(false, true)) {
                             Box(Modifier.padding(16.dp).onGloballyPositioned { bounds["button-$checking"] = it.boundsInRoot() }) {
@@ -96,7 +93,6 @@ class AboutHeaderRenderTest {
                 val height = bounds.getValue("button-$checking").height
                 assertEquals("${device.name} button height (checking=$checking)", 44 * device.density, height, 1.5f)
             }
-            assertEquals("${device.name} support button height", 44 * device.density, bounds.getValue("support").height, 1.5f)
             // Two lines (name, version) beside the buttons: about 81 dp; a wrapped name would add ~27 dp
             val headerDp = bounds.getValue("header").height / device.density
             assertTrue("${device.name} header is $headerDp dp tall", headerDp < 95f)

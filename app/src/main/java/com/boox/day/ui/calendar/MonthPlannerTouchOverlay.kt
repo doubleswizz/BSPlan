@@ -85,7 +85,6 @@ fun MonthPlannerHeaderBar(
     onVoiceSettings: () -> Unit = {},
     onDataBackup: () -> Unit = {},
     onBooxNotesSettings: () -> Unit = {},
-    onHelp: () -> Unit = {},
     onAbout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -274,10 +273,6 @@ fun MonthPlannerHeaderBar(
                 onBooxNotesSettings = {
                     showSettingsMenu = false
                     onBooxNotesSettings()
-                },
-                onHelp = {
-                    showSettingsMenu = false
-                    onHelp()
                 },
                 onAbout = {
                     showSettingsMenu = false

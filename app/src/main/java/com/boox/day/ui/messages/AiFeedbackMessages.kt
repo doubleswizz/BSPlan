@@ -18,16 +18,10 @@ object AiFeedbackMessages {
     private val ocrMessageQueue = mutableListOf<String>()
     private val breakdownMessageQueue = mutableListOf<String>()
     private val prioritizationMessageQueue = mutableListOf<String>()
-    private val memoToTasksMessageQueue = mutableListOf<String>()
-    private val suggestionsMessageQueue = mutableListOf<String>()
-    private val planningMessageQueue = mutableListOf<String>()
-    private val reviewMessageQueue = mutableListOf<String>()
     private val generalMessageQueue = mutableListOf<String>()
     private val syncingMessageQueue = mutableListOf<String>()
     private val syncCompleteMessageQueue = mutableListOf<String>()
     private val notesMatchingMessageQueue = mutableListOf<String>()
-    private val summarizationMessageQueue = mutableListOf<String>()
-    private val translationMessageQueue = mutableListOf<String>()
 
     // Voice: events, Voice to Text, voice tasks
     private val audioMessages = listOf(
@@ -104,77 +98,6 @@ object AiFeedbackMessages {
         "Lining up your tasks. Most important first..."
     )
 
-    // Convert Memo to Tasks
-    private val memoToTasksMessages = listOf(
-        "Panning your notes for to-do gold...",
-        "Separating the musings from the must-dos...",
-        "Giving your good intentions a checkbox...",
-        "Fishing to-dos out of your notes...",
-        "Looking for tasks hiding in your memo...",
-        "Every 'remember to' is getting a checkbox...",
-        "From 'I should really...' to a checkbox...",
-        "Spotting the verbs. They're usually tasks...",
-        "Running your notes through a to-do detector...",
-        "Turning thoughts into things to do...",
-        "Accio tasks!",
-        "There is no memo... only tasks...",
-        "Houston, we have tasks..."
-    )
-
-    // Smart Suggestions
-    private val suggestionsMessages = listOf(
-        "Brainstorming with your calendar...",
-        "Cooking up ideas. Chef's choice...",
-        "Reading your week for clues...",
-        "Ideas incoming. Some may even be brilliant...",
-        "What if I told you... I have ideas?",
-        "Finding things you forgot you wanted to do...",
-        "Looking for gaps worth filling...",
-        "Checking it's not already on your list...",
-        "Fresh ideas only. No reruns...",
-        "Rummaging through your week for inspiration...",
-        "Asking your calendar what it would do...",
-        "Thinking of things you'll thank me for later...",
-        "Use the ideas, Luke..."
-    )
-
-    // Optimize My Day (nothing changes until the user taps a proposal)
-    private val planningMessages = listOf(
-        "Playing Tetris with your schedule...",
-        "Looking for the 25th hour. Still looking...",
-        "Making your day fit in your day...",
-        "Moving tasks around like chess pieces...",
-        "Come with me if you want to be productive...",
-        "Plan A loading. Plan B on standby...",
-        "Squeezing in a lunch break somewhere...",
-        "Untangling your day...",
-        "Clearing a runway for your big task...",
-        "Looking for focus time between meetings...",
-        "Drawing the map. You pick the route...",
-        "Just ideas for now. Nothing moves until you say so...",
-        "Air traffic control for your to-dos...",
-        "I love it when a plan comes together...",
-        "You shall not overbook!",
-        "Great Scott! Your day might actually work..."
-    )
-
-    // Daily Summary and Weekly Summary
-    private val reviewMessages = listOf(
-        "Counting checkmarks...",
-        "Rewinding the tape...",
-        "Looking back so you can look ahead...",
-        "Writing your highlight reel...",
-        "Giving credit where it's due. To you...",
-        "Gathering the receipts on your productivity...",
-        "Seeing which tasks made it and which ran off...",
-        "Previously, on your life...",
-        "Adding up the small wins. They add up...",
-        "Polishing your gold stars...",
-        "Spotting your patterns. Some are pretty good...",
-        "Reviewing the tape. No referees involved...",
-        "Finding a good home for unfinished tasks..."
-    )
-
     // Calendar sync messages - hamster + calendar/time themed
     private val syncingMessages = listOf(
         // Hamster + calendar context
@@ -223,39 +146,6 @@ object AiFeedbackMessages {
         "Elementary, my dear... this note goes with that event..."
     )
 
-    // Summarize (memo pages)
-    private val summarizationMessages = listOf(
-        "Finding the point. Every page has one...",
-        "Boiling it down. Keeping the flavor...",
-        "TL;DR incoming...",
-        "Turning pages into a paragraph...",
-        "Keeping the gist, losing the fluff...",
-        "CliffsNotes, but for your notes...",
-        "Reading everything so you don't have to...",
-        "Fewer words, same wisdom...",
-        "Squeezing the juice out of your notes...",
-        "Highlighting the highlights...",
-        "Shrinking it to fit in your head...",
-        "One summary to rule them all...",
-        "Hasta la vista, verbosity..."
-    )
-
-    // Translate (memo pages)
-    private val translationMessages = listOf(
-        "Finding the right words. In another language...",
-        "Packing your words for a trip abroad...",
-        "Babel fish deployed...",
-        "Crossing the language border. Passport ready...",
-        "Keeping the meaning, changing the words...",
-        "Lost in translation? Not today...",
-        "Hasta la vista... wait, that IS Spanish!",
-        "Your notes are getting a new accent...",
-        "Un momento, por favor...",
-        "Translating idioms without breaking a leg...",
-        "Saying it again, in other words. Literally...",
-        "Toto, I don't think we're in English anymore..."
-    )
-
     // Any other AI wait (AiProcessingDialog)
     private val generalMessages = listOf(
         "Asking a very smart model very nicely...",
@@ -280,11 +170,9 @@ object AiFeedbackMessages {
     /** Every list, by name (AiFeedbackMessagesTest). */
     internal fun allMessageSets(): Map<String, List<String>> = mapOf(
         "audio" to audioMessages, "ocr" to ocrMessages, "breakdown" to breakdownMessages,
-        "prioritization" to prioritizationMessages, "memoToTasks" to memoToTasksMessages,
-        "suggestions" to suggestionsMessages, "planning" to planningMessages, "review" to reviewMessages,
+        "prioritization" to prioritizationMessages,
         "syncing" to syncingMessages, "syncComplete" to syncCompleteMessages,
-        "notesMatching" to notesMatchingMessages, "summarization" to summarizationMessages,
-        "translation" to translationMessages, "general" to generalMessages
+        "notesMatching" to notesMatchingMessages, "general" to generalMessages
     )
 
     // ========================================================================
@@ -326,34 +214,6 @@ object AiFeedbackMessages {
         return prioritizationMessageQueue.removeAt(0)
     }
 
-    fun getRandomSuggestionsMessage(): String {
-        if (suggestionsMessageQueue.isEmpty()) {
-            suggestionsMessageQueue.addAll(suggestionsMessages.shuffled())
-        }
-        return suggestionsMessageQueue.removeAt(0)
-    }
-
-    fun getRandomMemoToTasksMessage(): String {
-        if (memoToTasksMessageQueue.isEmpty()) {
-            memoToTasksMessageQueue.addAll(memoToTasksMessages.shuffled())
-        }
-        return memoToTasksMessageQueue.removeAt(0)
-    }
-
-    fun getRandomPlanningMessage(): String {
-        if (planningMessageQueue.isEmpty()) {
-            planningMessageQueue.addAll(planningMessages.shuffled())
-        }
-        return planningMessageQueue.removeAt(0)
-    }
-
-    fun getRandomReviewMessage(): String {
-        if (reviewMessageQueue.isEmpty()) {
-            reviewMessageQueue.addAll(reviewMessages.shuffled())
-        }
-        return reviewMessageQueue.removeAt(0)
-    }
-
     fun getRandomSyncingMessage(): String {
         if (syncingMessageQueue.isEmpty()) {
             syncingMessageQueue.addAll(syncingMessages.shuffled())
@@ -373,19 +233,5 @@ object AiFeedbackMessages {
             notesMatchingMessageQueue.addAll(notesMatchingMessages.shuffled())
         }
         return notesMatchingMessageQueue.removeAt(0)
-    }
-
-    fun getRandomSummarizationMessage(): String {
-        if (summarizationMessageQueue.isEmpty()) {
-            summarizationMessageQueue.addAll(summarizationMessages.shuffled())
-        }
-        return summarizationMessageQueue.removeAt(0)
-    }
-
-    fun getRandomTranslationMessage(): String {
-        if (translationMessageQueue.isEmpty()) {
-            translationMessageQueue.addAll(translationMessages.shuffled())
-        }
-        return translationMessageQueue.removeAt(0)
     }
 }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AccountCircle
@@ -48,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.boox.day.ui.dialogs.SupportPopup
 import com.boox.day.R
 import com.boox.day.ui.attention.SettingsAttention
 import com.boox.day.ui.attention.SettingsJump
@@ -65,7 +63,7 @@ import com.boox.day.ui.theme.EInkTheme
  * - Calendar: Calendar & Sync, Calendar Accounts
  * - AI & Voice: AI Settings, Voice-to-Text
  * - Data: Data & Backup, Boox Notes
- * - Info: Task streak (narrow screens), Help, About
+ * - Info: Task streak (narrow screens), About
  *
  * @param attention What needs the user's action (ui/attention): a dot and the reason on its entry
  * @param isStandaloneMode When true, "Calendar Accounts" is grayed out and shows tooltip on tap
@@ -79,7 +77,6 @@ fun SettingsMenu(
     onVoiceSettings: () -> Unit,
     onDataBackup: () -> Unit,
     onBooxNotesSettings: () -> Unit,
-    onHelp: () -> Unit,
     onAbout: () -> Unit,
     onClose: () -> Unit,
     attention: SettingsAttention = SettingsAttention(),
@@ -188,7 +185,6 @@ fun SettingsMenu(
                     onClick = onTaskStreak
                 )
             }
-            SettingsMenuItemWithIcon("Help", Icons.AutoMirrored.Filled.Help) { onHelp() }
             SettingsMenuItemWithIcon("About", Icons.Default.Info) { onAbout() }
         }
     }

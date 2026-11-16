@@ -357,7 +357,7 @@ private fun AiFeaturesHighlight(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(12.dp))
 
         // Feature bullets (condensed to 2)
-        HighlightBullet("Smart Suggestions and Optimize My Day, from your calendar and notes")
+        HighlightBullet("Recognize Handwriting, Sort by Priority, Break Down Task, and Voice input")
         Spacer(modifier = Modifier.height(6.dp))
         HighlightBullet("Run on your own OpenRouter account, added in AI Settings")
     }
@@ -495,17 +495,6 @@ private fun AlsoInBSPlanCard() {
             icon = Icons.Outlined.Sync,
             label = "Updates",
             description = "install from inside the app"
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Footer
-        Text(
-            text = "Settings \u2192 Help explains every feature.",
-            fontSize = EInkTheme.Typography.labelSmall,
-            color = EInkTheme.Colors.gray,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
         )
     }
 }

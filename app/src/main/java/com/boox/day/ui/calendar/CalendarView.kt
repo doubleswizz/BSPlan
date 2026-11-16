@@ -108,7 +108,6 @@ fun CalendarView(
     onVoiceSettings: () -> Unit = {},
     onDataBackup: () -> Unit = {},
     onBooxNotesSettings: () -> Unit = {},
-    onHelp: () -> Unit = {},
     onAbout: () -> Unit = {},
     onDayLongPress: ((String) -> Unit)? = null,
     firstDayOfWeekSetting: AppSettings.FirstDayOfWeek = AppSettings.FirstDayOfWeek.Sunday,
@@ -162,7 +161,6 @@ fun CalendarView(
             onVoiceSettings = onVoiceSettings,
             onDataBackup = onDataBackup,
             onBooxNotesSettings = onBooxNotesSettings,
-            onHelp = onHelp,
             onAbout = onAbout,
             isSyncing = isSyncing,
             lastSyncTime = lastSyncTime,
@@ -218,7 +216,6 @@ fun MonthHeaderWithToolbar(
     onVoiceSettings: () -> Unit = {},
     onDataBackup: () -> Unit = {},
     onBooxNotesSettings: () -> Unit = {},
-    onHelp: () -> Unit = {},
     onAbout: () -> Unit = {},
     onMonthYearSelected: (newYear: Int, newMonth: Int) -> Unit = { _, _ -> },
     isSyncing: Boolean = false,
@@ -564,10 +561,6 @@ fun MonthHeaderWithToolbar(
                     },
                     onBooxNotesSettings = {
                         onBooxNotesSettings()
-                        isSettingsMenuOpen = false
-                    },
-                    onHelp = {
-                        onHelp()
                         isSettingsMenuOpen = false
                     },
                     onAbout = {

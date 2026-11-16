@@ -3,7 +3,6 @@ package com.boox.day.ui.dialogs
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -27,13 +26,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,11 +59,6 @@ fun AboutDialog(
     val context = LocalContext.current
     val dialogShape = RoundedCornerShape(EInkTheme.ModernDialog.cornerRadius)
     val versionLabel = "Version ${BuildConfig.VERSION_NAME}"
-    val highlightItems = listOf(
-        stringResource(R.string.about_feature_1),
-        stringResource(R.string.about_feature_3),
-        stringResource(R.string.about_feature_5)
-    )
     val featureItems = listOf(
         stringResource(R.string.about_feature_1),
         stringResource(R.string.about_feature_2),
@@ -120,55 +112,6 @@ fun AboutDialog(
                             .padding(horizontal = 24.dp, vertical = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        AboutHeroCard(
-                            highlights = highlightItems
-                        )
-
-                        // Buy Me a Coffee (Oct 2026): the link, and a QR code because paying is easier on a phone. Right
-                        // under the hero card (owner, 30 Oct 2026: at the end, nobody would scroll to it)
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            SectionTitle(stringResource(R.string.about_support_title))
-                            // One card, the QR code beside the text, so it shows without scrolling
-                            SectionCard(
-                                contentPadding = 0.dp,
-                                verticalSpacing = 0.dp
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        SectionBodyText(stringResource(R.string.about_support_content))
-                                        Text(
-                                            text = stringResource(R.string.about_support_qr),
-                                            fontSize = EInkTheme.Typography.bodySmall,
-                                            color = EInkTheme.Colors.gray
-                                        )
-                                    }
-                                    Image(
-                                        painter = painterResource(id = R.drawable.support_qr),
-                                        contentDescription = "QR code for ${ProjectInfo.SUPPORT_URL}",
-                                        modifier = Modifier.size(120.dp)
-                                    )
-                                }
-                                ExternalLinkAction(
-                                    label = stringResource(R.string.about_support_link),
-                                    supportingText = ProjectInfo.SUPPORT_URL.removePrefix("https://"),
-                                    emphasized = true,
-                                    showTopDivider = true,
-                                    onClick = { openUrl(context, ProjectInfo.SUPPORT_URL) }
-                                )
-                            }
-                        }
-
                         Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -300,8 +243,7 @@ fun AboutDialog(
 internal fun AboutHeader(
     versionLabel: String,
     onDismiss: () -> Unit,
-    appName: String = stringResource(R.string.app_name),  // AboutHeaderRenderTest has no app resources
-    onSupport: () -> Unit = { SupportPopup.open() }
+    appName: String = stringResource(R.string.app_name)  // AboutHeaderRenderTest has no app resources
 ) {
     val context = LocalContext.current
     Row(
@@ -328,8 +270,6 @@ internal fun AboutHeader(
             )
         }
 
-        SupportButton(onClick = onSupport)
-
         CheckForUpdatesButton(
             checking = AppUpdateGate.state is AppUpdateGate.State.Checking,
             onClick = { AppUpdateGate.checkNow(context) }
@@ -347,46 +287,6 @@ internal fun AboutHeader(
                 tint = EInkTheme.Colors.darkGray,
                 modifier = Modifier.size(EInkTheme.Global.iconSize)
             )
-        }
-    }
-}
-
-@Composable
-private fun AboutHeroCard(
-    highlights: List<String>
-) {
-    val shape = RoundedCornerShape(EInkTheme.Global.cornerRadius)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(EInkTheme.Colors.offWhite, shape)
-            .border(EInkTheme.Global.borderWidth, EInkTheme.Colors.borderStrong, shape)
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.splash_icon),
-            contentDescription = "App icon",
-            modifier = Modifier.size(96.dp)
-        )
-
-        Text(
-            text = stringResource(R.string.about_tagline),
-            fontSize = EInkTheme.Typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = EInkTheme.Colors.primary,
-            textAlign = TextAlign.Center
-        )
-
-        Divider(
-            color = EInkTheme.Divider.subtleColor,
-            thickness = EInkTheme.Divider.subtleThickness
-        )
-
-        highlights.forEach { highlight ->
-            FeatureRow(text = highlight)
         }
     }
 }
@@ -554,40 +454,6 @@ internal fun CheckForUpdatesButton(checking: Boolean, onClick: () -> Unit) {
             fontSize = EInkTheme.Button.fontSize,
             fontWeight = FontWeight.Bold,
             color = contentColor,
-            maxLines = 1,
-            softWrap = false
-        )
-    }
-}
-
-/**
- * About → Support (Oct 2026), beside Check for Updates: an outlined button with a coffee cup that opens
- * the Support BooxDay popup ([SupportPopup]). Outlined so Check for Updates stays the main button.
- */
-@Composable
-internal fun SupportButton(onClick: () -> Unit) {
-    val shape = RoundedCornerShape(EInkTheme.ModernDialog.PrimaryButton.cornerRadius)
-    Row(
-        modifier = Modifier
-            .height(EInkTheme.Button.height)
-            .background(EInkTheme.ModernDialog.background, shape)
-            .border(EInkTheme.ModernDialog.borderWidth, EInkTheme.Colors.borderStrong, shape)
-            .noRippleClickable { onClick() }
-            .padding(horizontal = EInkTheme.Button.horizontalPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)
-    ) {
-        Icon(
-            imageVector = Icons.Default.LocalCafe,
-            contentDescription = null,
-            tint = EInkTheme.Colors.primary,
-            modifier = Modifier.size(EInkTheme.Global.iconSizeSmall)
-        )
-        Text(
-            text = "Support",
-            fontSize = EInkTheme.Button.fontSize,
-            fontWeight = FontWeight.Bold,
-            color = EInkTheme.Colors.primary,
             maxLines = 1,
             softWrap = false
         )

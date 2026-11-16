@@ -561,6 +561,44 @@ class DrawCanvas(
         // nothing may resume it or toggle raw drawing until the move's finish (endViewportMove).
         @Volatile var viewportMoving = false
 
+        @Volatile var externalRawSurfaceActive = false
+            private set
+
+        /**
+         * Closes the main canvas's Onyx TouchHelper raw-drawing session so a modal overlay's own
+         * hardware [android.view.SurfaceView] (e.g. Quick-Write popup) can take exclusive ownership
+         * of the Boox EPD pen driver cleanly.
+         */
+        fun acquireExternalRawSurface() {
+            externalRawSurfaceActive = true
+            val active = sharedCanvas.get()
+            val helper = sharedTouchHelper
+            try {
+                helper?.setRawDrawingEnabled(false)
+                if (active?.rawDrawingOpened == true) {
+                    helper?.closeRawDrawing()
+                }
+            } catch (t: Throwable) {
+                Log.w("DrawCanvas", "acquireExternalRawSurface close failed: ${t.message}")
+            }
+            active?.cancelAndroidPen()
+            active?.rawDrawingOpened = false
+            sharedTouchHelper = null
+            sharedCanvasHash = null
+        }
+
+        /**
+         * Releases exclusive ownership of the Boox EPD pen driver back to the main canvas when
+         * the modal [android.view.SurfaceView] closes.
+         */
+        fun releaseExternalRawSurface() {
+            externalRawSurfaceActive = false
+            val active = sharedCanvas.get() ?: return
+            if (active.state.isDrawing && !isCanvasInputBlockedByOverlay() && !active.rawDrawingOpened) {
+                active.updateActiveSurface(force = true)
+            }
+        }
+
         /** The canvas that holds the pen (TouchHelper), i.e. the shown one. */
         fun active(): DrawCanvas? = sharedCanvas.get()
 
@@ -573,7 +611,8 @@ class DrawCanvas(
                 toolbarModalVisible.value ||
                 mainScreenModalVisible.value ||
                 canvasHostModalVisible.value ||
-                pageMapOpen.value
+                pageMapOpen.value ||
+                externalRawSurfaceActive
         }
 
         // For QuickNav scrolling with previews
@@ -1863,10 +1902,12 @@ class DrawCanvas(
                 log.i("Observer received overlayInputBlocked=$isInputBlocked, state.isDrawing=${state.isDrawing}, rawDrawingOpened=$rawDrawingOpened")
                 if (isInputBlocked) {
                     log.i("Blocking overlay open - disabling raw drawing")
-                    touchHelper.setRawDrawingEnabled(false)
-                } else if (pageMapOpen.value || viewportMoving) {
-                    // The page map's or a view move's own finish turns the pen back on, in its order
-                    log.i("Blocking overlay dismissed - page map open or view moving, the pen stays as it is")
+                    if (rawDrawingOpened) {
+                        touchHelper.setRawDrawingEnabled(false)
+                    }
+                } else if (pageMapOpen.value || viewportMoving || externalRawSurfaceActive) {
+                    // The page map's, external surface's, or view move's own finish turns the pen back on
+                    log.i("Blocking overlay dismissed - page map/external surface/view moving, the pen stays as it is")
                 } else if (state.isDrawing) {
                     if (!rawDrawingOpened) {
                         log.i("Blocking overlay dismissed - raw drawing not opened yet, calling updateActiveSurface")
@@ -2400,10 +2441,15 @@ class DrawCanvas(
                 val isMemosModeActive = memoModeChanged.value
                 val isThisCanvasActive = (isMemosModeActive == isMemosCanvas)
                 if (isThisCanvasActive) {
-                    log.i("updateIsDrawing - ENABLING raw drawing (active canvas)")
-                    touchHelper.setRawDrawingEnabled(true)
-                    // Reassert stroke style after enabling
-                    updatePenAndStroke()
+                    if (!rawDrawingOpened) {
+                        log.i("updateIsDrawing - raw drawing not opened yet, calling updateActiveSurface")
+                        updateActiveSurface(force = true)
+                    } else {
+                        log.i("updateIsDrawing - ENABLING raw drawing (active canvas)")
+                        touchHelper.setRawDrawingEnabled(true)
+                        // Reassert stroke style after enabling
+                        updatePenAndStroke()
+                    }
                 } else {
                     log.i("TAB_FIX: updateIsDrawing - Skipping enable - inactive canvas (isMemosModeActive=$isMemosModeActive, isMemosCanvas=$isMemosCanvas)")
                 }

@@ -1,7 +1,5 @@
 package com.boox.day.ui.dialogs
 
-import android.view.MotionEvent
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,30 +20,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,7 +71,6 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.hypot
 
 enum class QuickWriteType {
     Event,
@@ -127,8 +119,6 @@ fun QuickWriteHost() {
     }
 }
 
-private data class InkPoint(val x: Float, val y: Float, val t: Long)
-
 private data class ParsedQuickWriteEvent(
     val cleanTitle: String,
     val isAllDay: Boolean,
@@ -138,13 +128,13 @@ private data class ParsedQuickWriteEvent(
     val endMinute: Int
 )
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun QuickWritePlannerPopup(
     request: QuickWriteRequest,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val eventsViewModel: EventsViewModel = viewModel()
     val taskRepository = remember { TaskRepository(context.applicationContext) }
@@ -163,10 +153,22 @@ private fun QuickWritePlannerPopup(
     // Task-specific state
     var taskPriority by remember(request) { mutableStateOf("") }
 
-    // Handwriting pad stroke state
-    val completedStrokes = remember(request) { mutableStateListOf<List<InkPoint>>() }
-    val currentStroke = remember(request) { mutableStateListOf<InkPoint>() }
+    // Hardware Boox handwriting pad state
+    var completedStrokes by remember(request) { mutableStateOf<List<List<InkPoint>>>(emptyList()) }
     var strokeRevision by remember(request) { mutableIntStateOf(0) }
+    var writingActive by remember(request) { mutableStateOf(false) }
+    var surfaceViewRef by remember(request) { mutableStateOf<QuickWriteInkSurfaceView?>(null) }
+
+    val closeSafely = {
+        surfaceViewRef?.shutdownSynchronously()
+        onDismiss()
+    }
+
+    DisposableEffect(request) {
+        onDispose {
+            surfaceViewRef?.shutdownSynchronously()
+        }
+    }
 
     // Ensure ML Kit model is pre-downloaded/synced
     LaunchedEffect(Unit) {
@@ -174,7 +176,8 @@ private fun QuickWritePlannerPopup(
     }
 
     suspend fun runHandwritingRecognition() {
-        if (completedStrokes.isEmpty()) return
+        val snapshot = completedStrokes
+        if (snapshot.isEmpty()) return
         isRecognizing = true
         try {
             val recognizer = DigitalInkModelManager.getActiveRecognizer()
@@ -183,7 +186,7 @@ private fun QuickWritePlannerPopup(
                 return
             }
             val inkBuilder = Ink.builder()
-            for (stroke in completedStrokes) {
+            for (stroke in snapshot) {
                 if (stroke.isEmpty()) continue
                 val sb = Ink.Stroke.builder()
                 for (pt in stroke) {
@@ -219,11 +222,20 @@ private fun QuickWritePlannerPopup(
         }
     }
 
-    // Debounced auto-recognition 450ms after pen-up
-    LaunchedEffect(strokeRevision) {
-        if (strokeRevision <= 0 || completedStrokes.isEmpty()) return@LaunchedEffect
+    // Debounced auto-recognition 450ms after pen-up (cancelled if the user puts the pen back down)
+    LaunchedEffect(strokeRevision, writingActive) {
+        if (writingActive || strokeRevision <= 0 || completedStrokes.isEmpty()) return@LaunchedEffect
         delay(450L)
-        runHandwritingRecognition()
+        if (!writingActive && surfaceViewRef?.isStylusDown != true) {
+            runHandwritingRecognition()
+        }
+    }
+
+    // Unfreeze Boox EPD briefly whenever Compose UI outside the pad changes while pen is resting
+    LaunchedEffect(recognizedTitle, isRecognizing, targetDate, isAllDay, startHour, startMinute, taskPriority, completedStrokes.size) {
+        if (!writingActive && surfaceViewRef?.isStylusDown != true) {
+            surfaceViewRef?.flushHostUi()
+        }
     }
 
     val formattedDateLabel = remember(targetDate) {
@@ -233,7 +245,7 @@ private fun QuickWritePlannerPopup(
 
     Popup(
         popupPositionProvider = ScreenCentre,
-        onDismissRequest = onDismiss,
+        onDismissRequest = closeSafely,
         properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         Column(
@@ -267,8 +279,7 @@ private fun QuickWritePlannerPopup(
                             .height(36.dp)
                             .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                             .noRippleClickable {
-                                completedStrokes.clear()
-                                currentStroke.clear()
+                                surfaceViewRef?.clearInk()
                                 strokeRevision = 0
                                 recognizedTitle = ""
                             }
@@ -280,119 +291,36 @@ private fun QuickWritePlannerPopup(
                 }
             }
 
-            // 2. Stylus Handwriting Pad
-            Box(
+            // 2. Hardware Boox Stylus Handwriting Pad
+            val padPlaceholder = if (request.type == QuickWriteType.Event) {
+                "Write with stylus here (e.g. \"Team Sync 2:00p\" or \"Project Lunch 12pm\")"
+            } else {
+                "Write task with stylus here (e.g. \"Review Q1 Budget\")"
+            }
+            AndroidView(
+                factory = { ctx ->
+                    QuickWriteInkSurfaceView(ctx).apply {
+                        placeholderText = padPlaceholder
+                        onStrokesUpdated = { updated ->
+                            completedStrokes = updated
+                            strokeRevision++
+                        }
+                        onWritingStateChanged = { active ->
+                            writingActive = active
+                        }
+                        onRequestClearFocusForWriting = {
+                            focusManager.clearFocus()
+                        }
+                        surfaceViewRef = this
+                    }
+                },
+                update = { view ->
+                    view.placeholderText = padPlaceholder
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(210.dp)
-                    .border(2.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
-                    .background(Color.White, RoundedCornerShape(4.dp))
-                    .pointerInteropFilter { motionEvent ->
-                        val toolType = motionEvent.getToolType(0)
-                        val isEraser = toolType == MotionEvent.TOOL_TYPE_ERASER ||
-                            (motionEvent.buttonState and MotionEvent.BUTTON_STYLUS_SECONDARY) != 0
-
-                        when (motionEvent.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> {
-                                if (isEraser) {
-                                    eraseStrokesNear(completedStrokes, motionEvent.x, motionEvent.y)
-                                    strokeRevision++
-                                } else {
-                                    currentStroke.clear()
-                                    currentStroke.add(InkPoint(motionEvent.x, motionEvent.y, motionEvent.eventTime))
-                                }
-                                true
-                            }
-                            MotionEvent.ACTION_MOVE -> {
-                                if (isEraser) {
-                                    for (h in 0 until motionEvent.historySize) {
-                                        eraseStrokesNear(
-                                            completedStrokes,
-                                            motionEvent.getHistoricalX(0, h),
-                                            motionEvent.getHistoricalY(0, h)
-                                        )
-                                    }
-                                    eraseStrokesNear(completedStrokes, motionEvent.x, motionEvent.y)
-                                } else {
-                                    for (h in 0 until motionEvent.historySize) {
-                                        currentStroke.add(
-                                            InkPoint(
-                                                motionEvent.getHistoricalX(0, h),
-                                                motionEvent.getHistoricalY(0, h),
-                                                motionEvent.getHistoricalEventTime(h)
-                                            )
-                                        )
-                                    }
-                                    currentStroke.add(InkPoint(motionEvent.x, motionEvent.y, motionEvent.eventTime))
-                                }
-                                true
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                if (!isEraser && currentStroke.isNotEmpty()) {
-                                    currentStroke.add(InkPoint(motionEvent.x, motionEvent.y, motionEvent.eventTime))
-                                    completedStrokes.add(currentStroke.toList())
-                                    currentStroke.clear()
-                                    strokeRevision++
-                                } else if (isEraser) {
-                                    strokeRevision++
-                                }
-                                true
-                            }
-                            else -> false
-                        }
-                    }
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    // Draw subtle ruled guide lines inside the writing pad
-                    val guideColor = Color(0xFFDDDDDD)
-                    val third = size.height / 3f
-                    drawLine(guideColor, Offset(16f, third), Offset(size.width - 16f, third), strokeWidth = 1f)
-                    drawLine(guideColor, Offset(16f, third * 2f), Offset(size.width - 16f, third * 2f), strokeWidth = 1f)
-
-                    val strokeStyle = Stroke(width = 4.2f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-
-                    for (stroke in completedStrokes) {
-                        if (stroke.size == 1) {
-                            drawCircle(Color.Black, radius = 2.5f, center = Offset(stroke[0].x, stroke[0].y))
-                        } else if (stroke.size > 1) {
-                            val path = Path().apply {
-                                moveTo(stroke[0].x, stroke[0].y)
-                                for (i in 1 until stroke.size) {
-                                    lineTo(stroke[i].x, stroke[i].y)
-                                }
-                            }
-                            drawPath(path, Color.Black, style = strokeStyle)
-                        }
-                    }
-
-                    if (currentStroke.size == 1) {
-                        drawCircle(Color.Black, radius = 2.5f, center = Offset(currentStroke[0].x, currentStroke[0].y))
-                    } else if (currentStroke.size > 1) {
-                        val path = Path().apply {
-                            moveTo(currentStroke[0].x, currentStroke[0].y)
-                            for (i in 1 until currentStroke.size) {
-                                lineTo(currentStroke[i].x, currentStroke[i].y)
-                            }
-                        }
-                        drawPath(path, Color.Black, style = strokeStyle)
-                    }
-                }
-
-                if (completedStrokes.isEmpty() && currentStroke.isEmpty()) {
-                    Text(
-                        text = if (request.type == QuickWriteType.Event) {
-                            "Write with stylus here (e.g. \"Team Sync 2:00p\" or \"Project Lunch 12pm\")"
-                        } else {
-                            "Write task with stylus here (e.g. \"Review Q1 Budget\")"
-                        },
-                        fontSize = 15.sp,
-                        color = Color(0xFF777777),
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(14.dp)
-                    )
-                }
-            }
+            )
 
             // 3. Recognized / Editable Text Field
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -429,6 +357,7 @@ private fun QuickWritePlannerPopup(
                         .fillMaxWidth()
                         .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                         .background(Color.White, RoundedCornerShape(4.dp))
+                        .onFocusChanged { surfaceViewRef?.setPausedForTextEdit(it.isFocused) }
                         .padding(12.dp)
                 )
             }
@@ -598,7 +527,7 @@ private fun QuickWritePlannerPopup(
                                     isAllDay = isAllDay,
                                     confidence = 1.0f
                                 )
-                                onDismiss()
+                                closeSafely()
                                 MainScreenRequests.request(MainScreenRequest.NewEventFrom(draft))
                             }
                             .padding(horizontal = 14.dp),
@@ -615,7 +544,7 @@ private fun QuickWritePlannerPopup(
                         modifier = Modifier
                             .height(44.dp)
                             .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
-                            .noRippleClickable { onDismiss() }
+                            .noRippleClickable { closeSafely() }
                             .padding(horizontal = 18.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -664,7 +593,7 @@ private fun QuickWritePlannerPopup(
                                             draft = draft,
                                             successText = "Event saved: $finalTitle"
                                         ) {
-                                            onDismiss()
+                                            closeSafely()
                                         }
                                     } else {
                                         val canvasH = GlobalAppSettings.tasksCanvasHeight.takeIf { it > 0f } ?: 1200f
@@ -687,7 +616,7 @@ private fun QuickWritePlannerPopup(
                                             SnackState.globalSnackFlow.tryEmit(
                                                 SnackConf(text = "Task saved: $finalTitle", duration = SnackConf.DURATION_QUICK)
                                             )
-                                            onDismiss()
+                                            closeSafely()
                                         } else {
                                             SnackState.globalSnackFlow.tryEmit(
                                                 SnackConf(text = "No available task slots on $targetDate", duration = SnackConf.DURATION_ERROR)
@@ -709,17 +638,6 @@ private fun QuickWritePlannerPopup(
                 }
             }
         }
-    }
-}
-
-private fun eraseStrokesNear(
-    strokes: MutableList<List<InkPoint>>,
-    x: Float,
-    y: Float,
-    radiusPx: Float = 28f
-) {
-    strokes.removeAll { stroke ->
-        stroke.any { pt -> hypot((pt.x - x).toDouble(), (pt.y - y).toDouble()) <= radiusPx }
     }
 }
 

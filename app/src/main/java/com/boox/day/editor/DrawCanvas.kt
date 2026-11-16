@@ -1689,6 +1689,12 @@ class DrawCanvas(
                                     delay(100)  // Allow Compose to finish + EPD sync - DO NOT REDUCE
                                 }
 
+                                // Do not reopen main TouchHelper while a modal hardware surface (e.g. Quick-Write)
+                                // or another tab owns the Boox EPD driver.
+                                if (externalRawSurfaceActive || !surfaceReady || memoModeChanged.value != isMemosCanvas) {
+                                    return@withRawDrawingOwner
+                                }
+
                                 // Part 2.5: Set limit rect BEFORE reopening (LIMIT_RECT_FIX Jan 2026)
                                 // ═══════════════════════════════════════════════════════════════════════
                                 // BUG FIX: The Onyx SDK only applies limit rect at openRawDrawing() time.
@@ -2636,6 +2642,11 @@ class DrawCanvas(
                         drawCanvasToView(null)  // Blit to SurfaceView
                         delay(100)  // Allow Compose to complete render pass and EPD to sync - DO NOT REDUCE
                         if (PERF_LOGS) log.i("TOUCH_TRACE[$canvasName]: SPARKLE_FIX - Bitmap regenerated, proceeding with openRawDrawing")
+                    }
+
+                    if (externalRawSurfaceActive || !surfaceReady || memoModeChanged.value != isMemosCanvas) {
+                        log.i("OVERLAY_FIX[$canvasName]: reactivateRawDrawing skipping openRawDrawing - externalRawSurfaceActive=$externalRawSurfaceActive")
+                        return@withRawDrawingOwner
                     }
 
                     // Step 3: Set new limit/exclude rects (will be applied on next open)

@@ -53,7 +53,14 @@ data class ParsedEventData(
     val uncertainFields: List<String> = emptyList(),
 
     /** Brief human-readable summary of what AI understood */
-    val originalIntent: String = ""
+    val originalIntent: String = "",
+
+    /** Pre-selected target calendar when handing off from Quick-Write ("Full Options..."). */
+    val targetSyncEnabled: Boolean? = null,
+    val targetCalendarId: String? = null,
+    val targetProviderId: String? = null,
+    val targetAccountId: String? = null,
+    val targetLocalCalendarId: String? = null
 ) {
     /**
      * Whether the parsing result is reliable enough to auto-fill.

@@ -103,7 +103,7 @@ fun AddEditEventDialog(
     initialDate: String,  // "yyyy-MM-dd"
     existingEvent: CalendarEvent? = null,  // Null for create mode
     isLoading: Boolean = false,
-    // Pre-fill data from voice input
+    // Pre-fill data from voice input or Quick-Write
     prefillTitle: String? = null,
     prefillDate: String? = null,
     prefillStartHour: Int? = null,
@@ -116,6 +116,11 @@ fun AddEditEventDialog(
     prefillAttendees: List<String>? = null,  // Attendee names from voice input
     prefillConfidenceLow: Boolean = false,  // Show warning if AI confidence was low
     prefillFromHandwriting: Boolean = false,  // Write It, Schedule It: the same warning, in its own words
+    prefillSyncEnabled: Boolean? = null,
+    prefillCalendarId: String? = null,
+    prefillProviderId: ProviderId? = null,
+    prefillAccountId: String? = null,
+    prefillLocalCalendarId: String? = null,
     // Sync mode settings (Standalone/Hybrid)
     syncMode: AppSettings.SyncMode = AppSettings.SyncMode.STANDALONE,  // Current sync mode
     isSignedIn: Boolean = false,                // Is user signed into any cloud account
@@ -134,9 +139,9 @@ fun AddEditEventDialog(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
-    // Form state - Uses prefill values from voice input, then existing event, then defaults
+    // Form state - Uses prefill values from voice input / Quick-Write, then existing event, then defaults
     var selectedCalendarId by remember {
-        mutableStateOf(existingEvent?.calendarId ?: "")
+        mutableStateOf(existingEvent?.calendarId ?: prefillCalendarId ?: "")
     }
     var title by remember { mutableStateOf(prefillTitle ?: existingEvent?.title ?: "") }
     var date by remember { mutableStateOf(prefillDate ?: existingEvent?.dayId ?: initialDate) }
@@ -230,6 +235,7 @@ fun AddEditEventDialog(
             when {
                 isEditingSyncedEvent -> true  // Synced events stay synced
                 existingSyncEnabled != null -> existingSyncEnabled
+                prefillSyncEnabled != null -> prefillSyncEnabled
                 isHybridMode && hasAnyCloudAccount -> true  // Hybrid mode defaults to sync ON
                 else -> false
             }
@@ -239,7 +245,11 @@ fun AddEditEventDialog(
     // Selected account line for sync (when syncEnabled = true): Google if available, else Outlook,
     // else the first CalDAV account. For existing synced events: theirs (read-only)
     var selectedTargetKey by remember {
-        mutableStateOf(existingProviderId?.let { eventSaveTargetKey(it, existingEvent?.accountId) } ?: saveTargets.firstOrNull()?.key)
+        mutableStateOf(
+            existingProviderId?.let { eventSaveTargetKey(it, existingEvent?.accountId) }
+                ?: prefillProviderId?.let { eventSaveTargetKey(it, prefillAccountId) }
+                ?: saveTargets.firstOrNull()?.key
+        )
     }
     // CalDAV accounts appear once their calendars have loaded
     LaunchedEffect(saveTargets) {
@@ -282,7 +292,7 @@ fun AddEditEventDialog(
     // Always auto-select default calendar
     var selectedLocalCalendarId by remember {
         mutableStateOf(
-            existingLocalCalendarId ?: com.boox.day.events.DefaultEventTarget.localCalendar(localCalendars)
+            existingLocalCalendarId ?: prefillLocalCalendarId ?: com.boox.day.events.DefaultEventTarget.localCalendar(localCalendars)
         )
     }
 

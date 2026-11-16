@@ -1598,16 +1598,30 @@ fun MainScreen(
     // Week view and later overlays (Nov 2026): new ones go in AppOverlays, not here
     com.boox.day.ui.AppOverlaysHost()
     LaunchedEffect(showAddEventDialog) { if (!showAddEventDialog) compactAddEventDate = null }
-    com.boox.day.events.EventTargets.publish {
-        com.boox.day.events.DefaultEventTarget.of(
-            com.boox.day.events.DefaultEventTarget.offered(
+    com.boox.day.events.EventTargets.publish(
+        defaultTarget = {
+            val offered = com.boox.day.events.DefaultEventTarget.offered(
                 writableCalendars,
                 multiAccountUiState.googleAccounts.firstOrNull()?.account?.id,
                 multiAccountUiState.outlookAccounts.firstOrNull()?.account?.id
-            ),
-            hasGoogleAccount, hasOutlookAccount, hasCalDavAccount, syncModeSetting, localCalendars
-        )
-    }
+            )
+            com.boox.day.events.DefaultEventTarget.of(
+                offered,
+                hasGoogleAccount, hasOutlookAccount, hasCalDavAccount, syncModeSetting, localCalendars
+            )
+        },
+        options = {
+            val offered = com.boox.day.events.DefaultEventTarget.offered(
+                writableCalendars,
+                multiAccountUiState.googleAccounts.firstOrNull()?.account?.id,
+                multiAccountUiState.outlookAccounts.firstOrNull()?.account?.id
+            )
+            com.boox.day.events.DefaultEventTarget.allOptions(
+                offered,
+                hasGoogleAccount, hasOutlookAccount, hasCalDavAccount, syncModeSetting, localCalendars
+            )
+        }
+    )
     com.boox.day.ui.MainScreenRequestsCollector { request ->
         when (request) {
             is com.boox.day.ui.MainScreenRequest.ShowDay -> {
@@ -4230,6 +4244,11 @@ fun MainScreen(
                 prefillAttendees = parsedEventData?.attendees?.takeIf { it.isNotEmpty() },
                 prefillConfidenceLow = parsedEventData?.let { !it.isHighConfidence } ?: false,
                 prefillFromHandwriting = parsedEventData?.originalIntent == com.boox.day.proposals.FROM_HANDWRITING,
+                prefillSyncEnabled = parsedEventData?.targetSyncEnabled,
+                prefillCalendarId = parsedEventData?.targetCalendarId,
+                prefillProviderId = parsedEventData?.targetProviderId?.let { ProviderId.fromKey(it) },
+                prefillAccountId = parsedEventData?.targetAccountId,
+                prefillLocalCalendarId = parsedEventData?.targetLocalCalendarId,
                 // Sync mode settings
                 syncMode = syncModeSetting,
                 isSignedIn = hasAnyExternalAccount,  // Updated: use connected account check

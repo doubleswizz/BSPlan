@@ -80,4 +80,25 @@ class DefaultEventTargetTest {
         assertFalse(result.syncEnabled)
         assertTrue(result.localCalendarId == "l2")
     }
+
+    @Test
+    fun allOptionsListsOfferedCloudCalendarsAndLocalCalendars() {
+        val calendars = listOf(
+            calendar("g1", ProviderId.GOOGLE, "g1", primary = true),
+            calendar("g2", ProviderId.GOOGLE, "g1"),
+            calendar("c1", ProviderId.CALDAV, "c1")
+        )
+        val options = DefaultEventTarget.allOptions(calendars, hasGoogle = true, hasOutlook = false, hasCalDav = true, hybrid, local)
+        assertEquals(listOf("g1 (Google)", "g2 (Google)", "c1 (CalDAV)", "This device only (One)", "This device only (Two)"), options.map { it.label })
+
+        EventTargets.publish(
+            defaultTarget = { options.first() },
+            options = { options }
+        )
+        assertEquals("g1 (Google)", EventTargets.current().label)
+        EventTargets.select(options[1])
+        assertEquals("g2 (Google)", EventTargets.current().label)
+        EventTargets.select(options[3])
+        assertEquals("This device only (One)", EventTargets.current().label)
+    }
 }

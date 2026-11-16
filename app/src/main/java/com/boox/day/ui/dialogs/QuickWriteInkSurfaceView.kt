@@ -78,6 +78,7 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
     private var rawDrawingOpened = false
     private var rawDrawingEnabled = false
     private var pausedForTextEdit = false
+    private var ownsExternalRawSurface = false
     @Volatile private var lastPenUpMs: Long = 0L
 
     private val lastScreenLoc = IntArray(2) { -1 }
@@ -232,7 +233,7 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
     private val surfaceCallback = object : SurfaceHolder.Callback {
         override fun surfaceCreated(holder: SurfaceHolder) {
             surfaceReady = true
-            DrawCanvas.acquireExternalRawSurface()
+            acquireExternalOwnership()
             renderSurface()
             if (!pausedForTextEdit) {
                 openRawSession()
@@ -337,6 +338,14 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
             uiFlushRunnable = null
             if (!surfaceReady || pausedForTextEdit || isStylusDown || !rawDrawingOpened || !rawDrawingEnabled) return@Runnable
             runCatching { helper.isRawDrawingRenderEnabled = false }
+            rootView?.let { host ->
+                host.postInvalidate()
+                if (host.width > 0 && host.height > 0) {
+                    runCatching {
+                        EpdController.refreshScreenRegion(host, 0, 0, host.width, host.height, UpdateMode.DU)
+                    }
+                }
+            }
             val resumeRunnable = Runnable {
                 uiFlushRunnable = null
                 if (!surfaceReady || pausedForTextEdit || !rawDrawingOpened) return@Runnable
@@ -356,18 +365,28 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
         }
     }
 
+    private fun acquireExternalOwnership() {
+        if (!ownsExternalRawSurface) {
+            ownsExternalRawSurface = true
+            DrawCanvas.acquireExternalRawSurface()
+        }
+    }
+
     fun shutdownSynchronously() {
         cancelScheduledCallbacks()
         androidStylusInput.cancel()
         isStylusDown = false
         closeRawSessionOnly()
         touchHelper = null
-        DrawCanvas.releaseExternalRawSurface()
+        if (ownsExternalRawSurface) {
+            ownsExternalRawSurface = false
+            DrawCanvas.releaseExternalRawSurface()
+        }
     }
 
     private fun openRawSession() {
         if (!surfaceReady || width <= 0 || height <= 0 || pausedForTextEdit) return
-        DrawCanvas.acquireExternalRawSurface()
+        acquireExternalOwnership()
         val helper = touchHelper ?: OnyxCompat.createTouchHelper(
             this,
             if (androidPenBackend) AndroidStylusInput.previewCallback else rawInputCallback,

@@ -295,6 +295,17 @@ object DigitalInkModelManager {
     }
 
     /**
+     * Returns the active language recognizer, initializing or downloading the model first if needed.
+     */
+    suspend fun ensureActiveRecognizer(): DigitalInkRecognizer? {
+        recognizers[_activeLanguage.value]?.let { return it }
+        syncDownloadStatesWithDevice()
+        recognizers[_activeLanguage.value]?.let { return it }
+        downloadLanguage(_activeLanguage.value)
+        return recognizers[_activeLanguage.value]
+    }
+
+    /**
      * Get recognizer for a specific language.
      * Returns null if model not ready.
      */

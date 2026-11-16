@@ -1,5 +1,6 @@
 package com.boox.day.ui.dialogs
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -14,15 +15,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -79,7 +86,8 @@ enum class QuickWriteType {
 
 data class QuickWriteRequest(
     val type: QuickWriteType,
-    val initialDate: String
+    val initialDate: String,
+    val id: Long = System.nanoTime()
 )
 
 /**
@@ -112,10 +120,12 @@ object QuickWriteUi {
 fun QuickWriteHost() {
     val req = QuickWriteUi.activeRequest ?: return
     InkaTheme {
-        QuickWritePlannerPopup(
-            request = req,
-            onDismiss = QuickWriteUi::close
-        )
+        key(req.id) {
+            QuickWritePlannerPopup(
+                request = req,
+                onDismiss = QuickWriteUi::close
+            )
+        }
     }
 }
 
@@ -149,6 +159,9 @@ private fun QuickWritePlannerPopup(
     var startMinute by remember(request) { mutableIntStateOf(0) }
     var endHour by remember(request) { mutableIntStateOf(10) }
     var endMinute by remember(request) { mutableIntStateOf(0) }
+    val calendarOptions = remember(request) { EventTargets.options() }
+    var selectedTarget by remember(request) { mutableStateOf(EventTargets.current()) }
+    var showCalendarDropdown by remember(request) { mutableStateOf(false) }
 
     // Task-specific state
     var taskPriority by remember(request) { mutableStateOf("") }
@@ -156,8 +169,14 @@ private fun QuickWritePlannerPopup(
     // Hardware Boox handwriting pad state
     var completedStrokes by remember(request) { mutableStateOf<List<List<InkPoint>>>(emptyList()) }
     var strokeRevision by remember(request) { mutableIntStateOf(0) }
+    var lastRecognizedRevision by remember(request) { mutableIntStateOf(0) }
     var writingActive by remember(request) { mutableStateOf(false) }
+    var textFieldFocused by remember(request) { mutableStateOf(false) }
     var surfaceViewRef by remember(request) { mutableStateOf<QuickWriteInkSurfaceView?>(null) }
+
+    LaunchedEffect(textFieldFocused, showCalendarDropdown, surfaceViewRef) {
+        surfaceViewRef?.setPausedForTextEdit(textFieldFocused || showCalendarDropdown)
+    }
 
     val closeSafely = {
         surfaceViewRef?.shutdownSynchronously()
@@ -177,20 +196,24 @@ private fun QuickWritePlannerPopup(
 
     suspend fun runHandwritingRecognition() {
         val snapshot = completedStrokes
+        val revisionAtStart = strokeRevision
         if (snapshot.isEmpty()) return
         isRecognizing = true
         try {
-            val recognizer = DigitalInkModelManager.getActiveRecognizer()
+            val recognizer = DigitalInkModelManager.ensureActiveRecognizer()
             if (recognizer == null) {
-                isRecognizing = false
+                Log.w("QuickWritePopup", "Handwriting recognizer unavailable for ${DigitalInkModelManager.activeLanguage.value}")
                 return
             }
             val inkBuilder = Ink.builder()
+            var lastTimestamp = 0L
             for (stroke in snapshot) {
                 if (stroke.isEmpty()) continue
                 val sb = Ink.Stroke.builder()
                 for (pt in stroke) {
-                    sb.addPoint(Ink.Point.create(pt.x, pt.y, pt.t))
+                    val t = if (pt.t > 0L) pt.t.coerceAtLeast(lastTimestamp) else lastTimestamp + 5L
+                    lastTimestamp = t
+                    sb.addPoint(Ink.Point.create(pt.x, pt.y, t))
                 }
                 inkBuilder.addStroke(sb.build())
             }
@@ -202,7 +225,7 @@ private fun QuickWritePlannerPopup(
                 text = rawBest,
                 languageTag = DigitalInkModelManager.activeLanguage.value,
                 english = null
-            )
+            ).ifBlank { rawBest.trim() }
             if (tidied.isNotBlank()) {
                 if (request.type == QuickWriteType.Event) {
                     val parsed = parseNaturalEventString(tidied, startHour, startMinute, endHour, endMinute, isAllDay)
@@ -216,7 +239,9 @@ private fun QuickWritePlannerPopup(
                     recognizedTitle = tidied
                 }
             }
-        } catch (_: Exception) {
+            lastRecognizedRevision = revisionAtStart
+        } catch (t: Throwable) {
+            Log.w("QuickWritePopup", "Handwriting recognition failed: ${t.message}", t)
         } finally {
             isRecognizing = false
         }
@@ -232,7 +257,7 @@ private fun QuickWritePlannerPopup(
     }
 
     // Unfreeze Boox EPD briefly whenever Compose UI outside the pad changes while pen is resting
-    LaunchedEffect(recognizedTitle, isRecognizing, targetDate, isAllDay, startHour, startMinute, taskPriority, completedStrokes.size) {
+    LaunchedEffect(recognizedTitle, isRecognizing, targetDate, isAllDay, startHour, startMinute, taskPriority, selectedTarget, showCalendarDropdown, completedStrokes.size) {
         if (!writingActive && surfaceViewRef?.isStylusDown != true) {
             surfaceViewRef?.flushHostUi()
         }
@@ -264,9 +289,9 @@ private fun QuickWritePlannerPopup(
             ) {
                 Text(
                     text = if (request.type == QuickWriteType.Event) {
-                        "QUICK-WRITE EVENT (GOOGLE CALENDAR)"
+                        "QUICK-WRITE EVENT"
                     } else {
-                        "QUICK-WRITE TASK (GOOGLE TASKS)"
+                        "QUICK-WRITE TASK"
                     },
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -281,6 +306,7 @@ private fun QuickWritePlannerPopup(
                             .noRippleClickable {
                                 surfaceViewRef?.clearInk()
                                 strokeRevision = 0
+                                lastRecognizedRevision = 0
                                 recognizedTitle = ""
                             }
                             .padding(horizontal = 12.dp),
@@ -357,7 +383,7 @@ private fun QuickWritePlannerPopup(
                         .fillMaxWidth()
                         .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                         .background(Color.White, RoundedCornerShape(4.dp))
-                        .onFocusChanged { surfaceViewRef?.setPausedForTextEdit(it.isFocused) }
+                        .onFocusChanged { textFieldFocused = it.isFocused }
                         .padding(12.dp)
                 )
             }
@@ -505,6 +531,90 @@ private fun QuickWritePlannerPopup(
                 }
             }
 
+            // 4.5. Calendar Selection on Initial Screen (Events only)
+            if (request.type == QuickWriteType.Event) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Calendar:",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = EInkTheme.Colors.primary
+                    )
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
+                                .background(Color.White, RoundedCornerShape(4.dp))
+                                .noRippleClickable { showCalendarDropdown = true }
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = selectedTarget.label,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = EInkTheme.Colors.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Choose calendar",
+                                tint = EInkTheme.Colors.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showCalendarDropdown,
+                            onDismissRequest = { showCalendarDropdown = false }
+                        ) {
+                            calendarOptions.forEach { option ->
+                                val isSelected = option.key == selectedTarget.key
+                                DropdownMenuItem(
+                                    onClick = {
+                                        selectedTarget = option
+                                        EventTargets.select(option)
+                                        showCalendarDropdown = false
+                                    }
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = option.label,
+                                            fontSize = 15.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = EInkTheme.Colors.primary
+                                        )
+                                        if (isSelected) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Selected",
+                                                tint = EInkTheme.Colors.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // 5. Action Buttons Footer
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -517,18 +627,28 @@ private fun QuickWritePlannerPopup(
                             .height(44.dp)
                             .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                             .noRippleClickable {
-                                val draft = ParsedEventData(
-                                    title = recognizedTitle.trim(),
-                                    date = targetDate,
-                                    startHour = if (isAllDay) null else startHour,
-                                    startMinute = if (isAllDay) null else startMinute,
-                                    endHour = if (isAllDay) null else endHour,
-                                    endMinute = if (isAllDay) null else endMinute,
-                                    isAllDay = isAllDay,
-                                    confidence = 1.0f
-                                )
-                                closeSafely()
-                                MainScreenRequests.request(MainScreenRequest.NewEventFrom(draft))
+                                scope.launch {
+                                    if (completedStrokes.isNotEmpty() && strokeRevision != lastRecognizedRevision) {
+                                        runHandwritingRecognition()
+                                    }
+                                    val draft = ParsedEventData(
+                                        title = recognizedTitle.trim(),
+                                        date = targetDate,
+                                        startHour = if (isAllDay) null else startHour,
+                                        startMinute = if (isAllDay) null else startMinute,
+                                        endHour = if (isAllDay) null else endHour,
+                                        endMinute = if (isAllDay) null else endMinute,
+                                        isAllDay = isAllDay,
+                                        confidence = 1.0f,
+                                        targetSyncEnabled = selectedTarget.syncEnabled,
+                                        targetCalendarId = selectedTarget.calendar?.id,
+                                        targetProviderId = selectedTarget.calendar?.providerId?.key,
+                                        targetAccountId = selectedTarget.calendar?.accountId,
+                                        targetLocalCalendarId = selectedTarget.localCalendarId
+                                    )
+                                    closeSafely()
+                                    MainScreenRequests.request(MainScreenRequest.NewEventFrom(draft))
+                                }
                             }
                             .padding(horizontal = 14.dp),
                         contentAlignment = Alignment.Center
@@ -562,7 +682,7 @@ private fun QuickWritePlannerPopup(
                             .noRippleClickable {
                                 if (!canSave) return@noRippleClickable
                                 scope.launch {
-                                    if (recognizedTitle.isBlank() && completedStrokes.isNotEmpty()) {
+                                    if (completedStrokes.isNotEmpty() && strokeRevision != lastRecognizedRevision) {
                                         runHandwritingRecognition()
                                     }
                                     val finalTitle = recognizedTitle.trim().ifBlank {
@@ -570,9 +690,9 @@ private fun QuickWritePlannerPopup(
                                     }
 
                                     if (request.type == QuickWriteType.Event) {
-                                        val target = EventTargets.current()
+                                        EventTargets.select(selectedTarget)
                                         val draft = EventDraft(
-                                            calendarId = target.calendar?.id ?: "primary",
+                                            calendarId = selectedTarget.calendar?.id ?: "primary",
                                             title = finalTitle,
                                             date = targetDate,
                                             startHour = startHour,
@@ -583,10 +703,10 @@ private fun QuickWritePlannerPopup(
                                             location = null,
                                             description = null,
                                             attendees = null,
-                                            syncEnabled = target.syncEnabled,
-                                            syncProviderId = target.calendar?.providerId,
-                                            syncAccountId = target.calendar?.accountId,
-                                            localCalendarId = target.localCalendarId
+                                            syncEnabled = selectedTarget.syncEnabled,
+                                            syncProviderId = selectedTarget.calendar?.providerId,
+                                            syncAccountId = selectedTarget.calendar?.accountId,
+                                            localCalendarId = selectedTarget.localCalendarId
                                         )
                                         EventDraftSaver.create(
                                             viewModel = eventsViewModel,

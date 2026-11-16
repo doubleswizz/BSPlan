@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_quick_pages">Szybkie notatki</string>
-    <string name="home_notebooks">Zeszyty</string>
-    <string name="home_add_new_folder">Dodaj nowy folder</string>
-    <string name="home_new_folder">Nowy folder</string>
     <string name="home_view_name">Biblioteka</string>
     <string name="settings_title">Ustawienia</string>
     <string name="settings_tab_general_name">Główne</string>
@@ -24,10 +20,7 @@
     <string name="paginate_pdf">Podziel strony przy eksporcie</string>
     <string name="preview_pdf_pagination">Podgląd podziału stron</string>
 
-    <string name="app_new_version">Wygląda na to, że nowa wersja BSPlan jest dostępna na GitHubie!</string>
-    <string name="app_see_release">Zobacz wersję w przeglądarce</string>
     <string name="app_latest_version">Aplikacja jest aktualna.</string>
-    <string name="app_check_updates">Sprawdź dostępność aktualizacji</string>
 
     <string name="gestures_double_tap_action">Podwójne stuknięcie</string>
     <string name="gestures_two_finger_tap_action">Stuknięcie dwoma palcami</string>
@@ -46,7 +39,6 @@
     <string name="work_in_progress">(w trakcie implementacji)</string>
     <string name="toolbar_position_top">Góra</string>
     <string name="toolbar_position_bottom">Dół</string>
-    <string name="sponsor_button_text">Wesprzyj</string>
 
     <!-- Notebook details -->
     <string name="details_notebook_title">Tytuł:</string>
@@ -65,45 +57,12 @@
     <!-- Welcome / guide strings -->
     <string name="welcome_view_title">Witaj w BSPlan!</string>
     <string name="welcome_view_subtitle">Aby uzyskać najlepsze wrażenia, wykonaj kroki konfiguracji:</string>
-    <string name="welcome_view_file_access">Dostęp do plików</string>
-    <string name="welcome_view_file_access_explanation">Wymagane do zapisywania i ładowania notatek</string>
-    <string name="welcome_view_refresh_mode">Ustaw zalecany tryb odświeżania</string>
-    <string name="welcome_view_refresh_mode_details">Zalecane jest używanie trybu HD lub Regal</string>
-    <string name="welcome_view_refresh_mode_applied">Zastosowano (%1$s)</string>
-    <string name="welcome_view_refresh_mode_set_hd_mode">Ustaw tryb HD (obecnie: %1$s)</string>
-    <string name="welcome_view_permissions_granted">Przyznano ✓</string>
-    <string name="welcome_view_permissions_button">Przyznaj uprawnienia</string>
     <string name="welcome_view_continue">Kontynuuj</string>
-    <string name="welcome_view_complete_setup_first">Najpierw zakończ konfigurację</string>
-
-    <string name="welcome_view_prevent_frozen">⚠️ Zapobiegaj zamrażaniu BSPlan (urządzenia Onyx)</string>
-    <string name="welcome_view_prevent_frozen_details">Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BSPlan będzie ciągle zamykany w tle, co może powodować utratę pracy.</string>
-    <string name="welcome_view_prevent_frozen_instructions_title">Jak zapobiec zamrażaniu:</string>
-    <string name="welcome_view_prevent_frozen_instructions">1. Przytrzymaj ikonę BSPlan na launcherze Onyx (ekran główny).\n2. Wybierz &quot;Odmrozić&quot; z menu.</string>
-    <string name="welcome_view_prevent_frozen_recommended">Ten krok jest wysoce zalecany dla płynnego działania.</string>
-
-    <string name="welcome_view_quick_start_title"><![CDATA[📖 Szybki start i przewodnik gestów]]></string>
-    <string name="welcome_view_quick_start_navigation">Nawigacja</string>
-    <string name="welcome_view_quick_start_navigation_details">• Przeciągnij w górę/w dół: Przewijaj stronę\n• Przeciągnij w lewo/w prawo: Poprzednia/następna strona\n• Uszczypnij dwoma palcami: Przybliż/oddal\n• Stuknij numer strony: Szybkie przejście\n• Przeciągnięcie dwoma palcami w lewo/w prawo: Pokaż/ukryj pasek narzędzi</string>
-
-    <string name="welcome_view_quick_start_selection_editing_title"><![CDATA[Zaznaczanie i edycja]]></string>
-    <string name="welcome_view_quick_start_selection_editing_details"><![CDATA[• Przytrzymaj i przeciągnij: Zaznacz elementy\n• Podwójne stuknięcie: Cofnij\n• Podwójne stuknięcie na zaznaczeniu: Kopiuj\n• Przeciągnij zaznaczenie: Przenieś\n• Szkicuj, aby wymazać (jeśli włączone)]]></string>
-
-    <string name="welcome_view_quick_start_tips_title">Wskazówki</string>
-    <string name="welcome_view_quick_start_tips_details">• Użyj opcji eksportowania zaznaczenia, aby szybko udostępniać obrazy.\n• Stuknij numer strony, aby szybko przejść do wybranej strony.\n• Spróbuj włączyć \'Zamaż aby usunąć\' (\'Scribble to Erase\') w Ustawieniach, aby naturalnie wymazywać.\n• Podwójne stuknięcie cofa, a podwójne stuknięcie na zaznaczeniu kopiuje je.\n• Możesz dostosować akcje gestów w Ustawieniach.</string>
 
     <string name="export_pages">Eksportuj strony</string>
-    <string name="export_page_to">Eksportuj stronę do %1$s</string>
     <string name="exporting_this_page">Eksportowanie tej strony…</string>
     <string name="exporting_these_dates">Eksportowanie tych dni…</string>
     <string name="exporting_this_day">Eksportowanie tego dnia…</string>
-
-    <string name="export_book_to">Eksportuj zeszyt do %1$s</string>
-    <string name="exporting_the_book_to">Eksportowanie zeszytu do %1$s…</string>
-    <string name="clean_all_strokes">Wyczyść wszystkie kreski</string>
-    <string name="cleared_all_strokes">Wyczyszczono wszystkie kreski</string>
-    <string name="change_background">Zmień tło</string>
-    <string name="bug_report">Zgłoś błąd</string>
 
     <string name="choose_pdf_background">Wybierz tło PDF</string>
     <plurals name="pdf_has_pages">
@@ -118,7 +77,5 @@
     <string name="page_number">Numer strony</string>
     <string name="observe_pdf">Podgląd PDF</string>
     <string name="current_page">Bieżąca strona</string>
-
-    <string name="toolbar_scribble_to_erase_two_lined_short">Zamaż\n→usuń</string>
 
 </resources>

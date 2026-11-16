@@ -93,7 +93,7 @@ object BooxFreezeTip {
 
     private fun otherPopupOpen(): Boolean =
         com.boox.day.update.AppUpdateGate.isOpen || com.boox.day.diagnostics.CrashReportGate.isOpen ||
-            com.boox.day.ui.CalendarAiNotice.isOpen || com.boox.day.ui.AiKeyGate.isOpen || SupportPopup.isOpen
+            com.boox.day.ui.CalendarAiNotice.isOpen || com.boox.day.ui.AiKeyGate.isOpen
 
     private fun prefs(context: Context) = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

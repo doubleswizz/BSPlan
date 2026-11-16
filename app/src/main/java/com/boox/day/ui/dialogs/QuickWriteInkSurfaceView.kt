@@ -9,6 +9,7 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
@@ -47,6 +48,8 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
         private const val UI_FLUSH_MIN_IDLE_MS = 650L
         private const val UI_UNFREEZE_MS = 55L
         private const val ERASE_RADIUS_PX = 28f
+        internal const val DEFAULT_POINT_STEP_MS = 8L
+        internal const val MIN_INTER_STROKE_GAP_MS = 40L
     }
 
     var placeholderText: String = ""
@@ -80,6 +83,8 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
     private var pausedForTextEdit = false
     private var ownsExternalRawSurface = false
     @Volatile private var lastPenUpMs: Long = 0L
+    @Volatile private var currentStrokeStartMs: Long = 0L
+    private var lastCompletedStrokeEndMs: Long = 0L
 
     private val lastScreenLoc = IntArray(2) { -1 }
     private var lastWidth = 0
@@ -128,6 +133,7 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
     private val rawInputCallback = object : RawInputCallback() {
         override fun onBeginRawDrawing(cancelled: Boolean, point: TouchPoint?) {
             isStylusDown = true
+            currentStrokeStartMs = SystemClock.uptimeMillis()
             cancelScheduledCallbacks()
             if (!androidPenBackend && rawDrawingOpened && rawDrawingEnabled) {
                 touchHelper?.let {
@@ -151,11 +157,21 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
         override fun onRawDrawingTouchPointMoveReceived(point: TouchPoint?) = Unit
 
         override fun onRawDrawingTouchPointListReceived(plist: TouchPointList?) {
-            val captured = plist?.points?.map { InkPoint(it.x, it.y, it.timestamp) }.orEmpty()
+            val strokeStartMs = currentStrokeStartMs
+            val strokeEndMs = SystemClock.uptimeMillis()
+            currentStrokeStartMs = 0L
+            val rawCaptured = plist?.points?.map { InkPoint(it.x, it.y, it.timestamp) }.orEmpty()
             isStylusDown = false
             lastPenUpMs = System.currentTimeMillis()
             mainHandler.post {
+                val captured = normalizeCapturedStroke(
+                    rawPoints = rawCaptured,
+                    strokeStartMs = strokeStartMs,
+                    strokeEndMs = strokeEndMs,
+                    previousStrokeEndMs = lastCompletedStrokeEndMs
+                )
                 if (captured.isNotEmpty()) {
+                    lastCompletedStrokeEndMs = captured.last().t
                     completedStrokes.add(captured)
                     onStrokesUpdated?.invoke(completedStrokes.map { it.toList() })
                 }
@@ -189,6 +205,7 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
             isStylusDown = false
             mainHandler.post {
                 if (eraserPts.isNotEmpty() && eraseStrokesNearPoints(completedStrokes, eraserPts, ERASE_RADIUS_PX)) {
+                    lastCompletedStrokeEndMs = completedStrokes.lastOrNull()?.lastOrNull()?.t ?: 0L
                     onStrokesUpdated?.invoke(completedStrokes.map { it.toList() })
                     renderSurface()
                     if (!androidPenBackend) {
@@ -313,6 +330,8 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
     fun clearInk() {
         cancelScheduledCallbacks()
         androidStylusInput.cancel()
+        currentStrokeStartMs = 0L
+        lastCompletedStrokeEndMs = 0L
         completedStrokes.clear()
         onStrokesUpdated?.invoke(emptyList())
         renderSurface()
@@ -526,6 +545,65 @@ internal class QuickWriteInkSurfaceView(context: Context) : SurfaceView(context)
                 runCatching { holder.unlockCanvasAndPost(canvas) }
             }
         }
+    }
+}
+
+internal fun normalizeCapturedStroke(
+    rawPoints: List<InkPoint>,
+    strokeStartMs: Long,
+    strokeEndMs: Long,
+    previousStrokeEndMs: Long
+): List<InkPoint> {
+    if (rawPoints.isEmpty()) return emptyList()
+
+    // Drop duplicate consecutive coordinates while preserving single-point dots (e.g., i/j dots, periods).
+    val deduped = ArrayList<InkPoint>(rawPoints.size)
+    for (pt in rawPoints) {
+        val prev = deduped.lastOrNull()
+        if (prev == null || pt.x != prev.x || pt.y != prev.y) {
+            deduped.add(pt)
+        }
+    }
+
+    val effectiveStart = when {
+        previousStrokeEndMs > 0L ->
+            if (strokeStartMs > previousStrokeEndMs) strokeStartMs
+            else previousStrokeEndMs + QuickWriteInkSurfaceView.MIN_INTER_STROKE_GAP_MS
+        strokeStartMs > 0L -> strokeStartMs
+        else -> 1L
+    }
+
+    if (deduped.size == 1) {
+        return listOf(deduped[0].copy(t = effectiveStart))
+    }
+
+    val wallDurationMs = if (strokeStartMs > 0L && strokeEndMs > strokeStartMs) {
+        (strokeEndMs - strokeStartMs).coerceAtMost(60_000L)
+    } else {
+        0L
+    }
+    val minDurationMs = (deduped.size - 1) * QuickWriteInkSurfaceView.DEFAULT_POINT_STEP_MS
+
+    val firstRawT = deduped.first().t
+    val rawSpan = deduped.last().t - firstRawT
+    val monotonic = deduped.zipWithNext().all { (a, b) -> b.t >= a.t }
+    val validScale = if (wallDurationMs > 0L) {
+        rawSpan in 1L..(wallDurationMs * 4L + 500L)
+    } else {
+        rawSpan in 1L..60_000L
+    }
+
+    if (firstRawT > 0L && monotonic && validScale) {
+        return deduped.map { pt ->
+            pt.copy(t = effectiveStart + (pt.t - firstRawT))
+        }
+    }
+
+    val targetDuration = maxOf(wallDurationMs, minDurationMs)
+    val lastIdx = deduped.size - 1
+    return deduped.mapIndexed { idx, pt ->
+        val interpolatedT = effectiveStart + (targetDuration * idx) / lastIdx
+        pt.copy(t = interpolatedT)
     }
 }
 

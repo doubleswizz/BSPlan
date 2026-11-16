@@ -66,7 +66,7 @@ private fun AppUpdatePopup(state: State) {
         onDismissRequest = {
             when (state) {
                 is State.Available -> AppUpdateGate.notNow(context)
-                is State.Checking, is State.UpToDate, is State.Failed, is State.WhatsNew -> AppUpdateGate.close()
+                is State.Checking, is State.UpToDate, is State.Failed -> AppUpdateGate.close()
                 else -> Unit  // downloading or installing: only the buttons close it
             }
         },
@@ -148,37 +148,6 @@ private fun AppUpdatePopup(state: State) {
                                 "Then open BSPlan again."
                         )
                         Buttons(escape = "Close" to { AppUpdateGate.close() })
-                    }
-                    is State.WhatsNew -> {
-                        // The first start after an update (Oct 2026): that release's notes, once
-                        Title("BSPlan ${state.version}")
-                        val notesScroll = rememberScrollState()
-                        Box(modifier = Modifier.weight(1f, fill = false)) {
-                            Column(
-                                modifier = Modifier.verticalScroll(notesScroll),
-                                verticalArrangement = Arrangement.spacedBy(EInkTheme.Global.spacing)
-                            ) {
-                                Text(
-                                    text = "What's new",
-                                    fontSize = EInkTheme.Typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = EInkTheme.Colors.primary
-                                )
-                                state.notes.forEach { Bullet(it) }
-                            }
-                            ScrollMoreBar(notesScroll)
-                        }
-                        // Buy Me a Coffee (Oct 2026): one plain line, Close stays the main button
-                        TextLink("Enjoying BSPlan? Buy me a coffee") {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(ProjectInfo.SUPPORT_URL))
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                )
-                            }
-                            AppUpdateGate.close()
-                        }
-                        Buttons(main = "Close" to { AppUpdateGate.close() })
                     }
                     is State.Failed -> {
                         Title(if (state.info == null) "Couldn't check for updates" else "Update not installed")

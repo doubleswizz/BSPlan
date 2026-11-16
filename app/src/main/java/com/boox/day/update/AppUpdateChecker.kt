@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit
 object AppUpdateChecker {
     private const val TAG = "AppUpdateChecker"
     private const val LATEST_URL = "https://api.github.com/repos/doubleswizz/BSPlan/releases/latest"
-    private const val TAG_URL_PREFIX = "https://api.github.com/repos/doubleswizz/BSPlan/releases/tags/v"
     private const val MAX_NOTES = 6
 
     /** A release newer than the installed app. [sha256] is lower-case hex. */
@@ -80,24 +79,6 @@ object AppUpdateChecker {
         } catch (e: Exception) {
             Log.w(TAG, "Update check failed: ${e.message}")
             Result.Failed(e.message ?: "network error")
-        }
-    }
-
-    /**
-     * The "What's new" bullets of the published release v[version] (Oct 2026), for the first start
-     * after an update installed by hand, when the in-app updater saved none. Null when GitHub can't
-     * be reached or has no such release; asked once, never retried.
-     */
-    suspend fun releaseNotesFor(version: String): List<String>? = withContext(Dispatchers.IO) {
-        try {
-            client.newCall(gitHubRequest(TAG_URL_PREFIX + version)).execute().use { response ->
-                if (!response.isSuccessful) return@withContext null
-                val release = json.decodeFromString(ReleaseDto.serializer(), response.body?.string().orEmpty())
-                if (release.draft || release.prerelease) null else releaseNotes(release.body)
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Release notes for $version not loaded: ${e.message}")
-            null
         }
     }
 

@@ -31,7 +31,6 @@ import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.runtime.Composable
@@ -134,20 +133,6 @@ fun SettingsView(navController: NavController) {
                     2 -> DebugSettings(kv, settings)
                 }
 
-            }
-
-            // Additional actions, only on main settings tab
-            if (selectedTab == 0) {
-                Column(
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    GitHubSponsorButton(
-                        Modifier
-                            .padding(horizontal = 120.dp, vertical = 16.dp)
-                            .height(48.dp)
-                            .fillMaxWidth()
-                    )
-                }
             }
         }
     }
@@ -350,48 +335,6 @@ fun GestureSelectorRow(
                 if (updated != null) kv.setAppSettings(updated)
             }
         })
-}
-
-
-@Composable
-fun GitHubSponsorButton(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        // TODO: Configure sponsor URL when available
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(
-                    color = Color(0xFF24292E), shape = RoundedCornerShape(25.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
-                    contentDescription = "Heart Icon",
-                    tint = Color(0xFFEA4AAA),
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.sponsor_button_text),
-                    color = Color.White,
-                    style = MaterialTheme.typography.button.copy(
-                        fontWeight = FontWeight.Bold, fontSize = 16.sp
-                    ),
-                )
-            }
-        }
-    }
 }
 
 

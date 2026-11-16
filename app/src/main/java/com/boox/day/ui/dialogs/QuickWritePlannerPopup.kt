@@ -60,6 +60,7 @@ import com.boox.day.events.EventDraftSaver
 import com.boox.day.events.EventTargets
 import com.boox.day.ocr.DigitalInkModelManager
 import com.boox.day.ocr.DigitalInkService
+import com.boox.day.ocr.HandwritingNormalizerFactory
 import com.boox.day.ui.MainScreenRequest
 import com.boox.day.ui.MainScreenRequests
 import com.boox.day.ui.ScreenCentre
@@ -70,6 +71,8 @@ import com.boox.day.ui.theme.EInkTheme
 import com.boox.day.ui.theme.InkaTheme
 import com.boox.day.viewmodel.EventsViewModel
 import com.google.mlkit.vision.digitalink.recognition.Ink
+import com.google.mlkit.vision.digitalink.recognition.RecognitionContext
+import com.google.mlkit.vision.digitalink.recognition.WritingArea
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -159,6 +162,7 @@ private fun QuickWritePlannerPopup(
     var startMinute by remember(request) { mutableIntStateOf(0) }
     var endHour by remember(request) { mutableIntStateOf(10) }
     var endMinute by remember(request) { mutableIntStateOf(0) }
+    var timeManuallyAdjusted by remember(request) { mutableStateOf(false) }
     val calendarOptions = remember(request) { EventTargets.options() }
     var selectedTarget by remember(request) { mutableStateOf(EventTargets.current()) }
     var showCalendarDropdown by remember(request) { mutableStateOf(false) }
@@ -205,30 +209,47 @@ private fun QuickWritePlannerPopup(
                 Log.w("QuickWritePopup", "Handwriting recognizer unavailable for ${DigitalInkModelManager.activeLanguage.value}")
                 return
             }
-            val inkBuilder = Ink.builder()
-            var lastTimestamp = 0L
-            for (stroke in snapshot) {
-                if (stroke.isEmpty()) continue
-                val sb = Ink.Stroke.builder()
-                for (pt in stroke) {
-                    val t = if (pt.t > 0L) pt.t.coerceAtLeast(lastTimestamp) else lastTimestamp + 5L
-                    lastTimestamp = t
-                    sb.addPoint(Ink.Point.create(pt.x, pt.y, t))
+            val ink = buildQuickWriteInk(snapshot)
+            val padW = surfaceViewRef?.width?.toFloat() ?: 0f
+            val padH = surfaceViewRef?.height?.toFloat() ?: 0f
+            val recognitionContext = if (padW > 0f && padH > 0f) {
+                RecognitionContext.builder()
+                    .setWritingArea(WritingArea(padW, padH))
+                    .build()
+            } else {
+                null
+            }
+            val languageTag = DigitalInkModelManager.activeLanguage.value
+            val (rawBest, englishNormalizer) = withContext(Dispatchers.Default) {
+                val recognitionResult = if (recognitionContext != null) {
+                    recognizer.recognize(ink, recognitionContext).await()
+                } else {
+                    recognizer.recognize(ink).await()
                 }
-                inkBuilder.addStroke(sb.build())
+                val best = recognitionResult.candidates.firstOrNull()?.text.orEmpty()
+                val normalizer = if (
+                    languageTag.startsWith("en") &&
+                    HandwritingNormalizerFactory.hasLanguageSupport(context, languageTag)
+                ) {
+                    HandwritingNormalizerFactory.getInstance(context, languageTag)
+                } else {
+                    null
+                }
+                best to normalizer
             }
-            val result = withContext(Dispatchers.Default) {
-                recognizer.recognize(inkBuilder.build()).await()
-            }
-            val rawBest = result.candidates.firstOrNull()?.text.orEmpty()
             val tidied = DigitalInkService.tidyRecognizedText(
                 text = rawBest,
-                languageTag = DigitalInkModelManager.activeLanguage.value,
-                english = null
+                languageTag = languageTag,
+                english = englishNormalizer
             ).ifBlank { rawBest.trim() }
             if (tidied.isNotBlank()) {
                 if (request.type == QuickWriteType.Event) {
-                    val parsed = parseNaturalEventString(tidied, startHour, startMinute, endHour, endMinute, isAllDay)
+                    val baseStartH = if (timeManuallyAdjusted) startHour else 9
+                    val baseStartM = if (timeManuallyAdjusted) startMinute else 0
+                    val baseEndH = if (timeManuallyAdjusted) endHour else 10
+                    val baseEndM = if (timeManuallyAdjusted) endMinute else 0
+                    val baseAllDay = if (timeManuallyAdjusted) isAllDay else false
+                    val parsed = parseNaturalEventString(tidied, baseStartH, baseStartM, baseEndH, baseEndM, baseAllDay)
                     recognizedTitle = parsed.cleanTitle
                     isAllDay = parsed.isAllDay
                     startHour = parsed.startHour
@@ -247,18 +268,18 @@ private fun QuickWritePlannerPopup(
         }
     }
 
-    // Debounced auto-recognition 450ms after pen-up (cancelled if the user puts the pen back down)
+    // Debounced auto-recognition 750ms after pen-up (cancelled if the user puts the pen back down)
     LaunchedEffect(strokeRevision, writingActive) {
         if (writingActive || strokeRevision <= 0 || completedStrokes.isEmpty()) return@LaunchedEffect
-        delay(450L)
+        delay(750L)
         if (!writingActive && surfaceViewRef?.isStylusDown != true) {
             runHandwritingRecognition()
         }
     }
 
-    // Unfreeze Boox EPD briefly whenever Compose UI outside the pad changes while pen is resting
+    // Unfreeze Boox EPD briefly whenever Compose UI outside the pad finishes updating while pen is resting
     LaunchedEffect(recognizedTitle, isRecognizing, targetDate, isAllDay, startHour, startMinute, taskPriority, selectedTarget, showCalendarDropdown, completedStrokes.size) {
-        if (!writingActive && surfaceViewRef?.isStylusDown != true) {
+        if (!isRecognizing && !writingActive && surfaceViewRef?.isStylusDown != true) {
             surfaceViewRef?.flushHostUi()
         }
     }
@@ -445,7 +466,10 @@ private fun QuickWritePlannerPopup(
                                 .height(40.dp)
                                 .border(1.5.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                                 .background(if (isAllDay) EInkTheme.Colors.primary else Color.White, RoundedCornerShape(4.dp))
-                                .noRippleClickable { isAllDay = !isAllDay }
+                                .noRippleClickable {
+                                    timeManuallyAdjusted = true
+                                    isAllDay = !isAllDay
+                                }
                                 .padding(horizontal = 10.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -463,6 +487,7 @@ private fun QuickWritePlannerPopup(
                                     .size(40.dp)
                                     .border(1.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                                     .noRippleClickable {
+                                        timeManuallyAdjusted = true
                                         val total = ((startHour * 60 + startMinute) - 30 + 1440) % 1440
                                         startHour = total / 60
                                         startMinute = total % 60
@@ -488,6 +513,7 @@ private fun QuickWritePlannerPopup(
                                     .size(40.dp)
                                     .border(1.dp, EInkTheme.Colors.borderStrong, RoundedCornerShape(4.dp))
                                     .noRippleClickable {
+                                        timeManuallyAdjusted = true
                                         val total = ((startHour * 60 + startMinute) + 30) % 1440
                                         startHour = total / 60
                                         startMinute = total % 60
@@ -759,6 +785,22 @@ private fun QuickWritePlannerPopup(
             }
         }
     }
+}
+
+internal fun buildQuickWriteInk(strokes: List<List<InkPoint>>): Ink {
+    val inkBuilder = Ink.builder()
+    var lastTimestamp = 0L
+    for (stroke in strokes) {
+        if (stroke.isEmpty()) continue
+        val sb = Ink.Stroke.builder()
+        for (pt in stroke) {
+            val t = if (pt.t > 0L) pt.t.coerceAtLeast(lastTimestamp) else lastTimestamp + QuickWriteInkSurfaceView.DEFAULT_POINT_STEP_MS
+            lastTimestamp = t
+            sb.addPoint(Ink.Point.create(pt.x, pt.y, t))
+        }
+        inkBuilder.addStroke(sb.build())
+    }
+    return inkBuilder.build()
 }
 
 private fun format12Hour(hour24: Int, minute: Int): String {

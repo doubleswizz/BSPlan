@@ -26,8 +26,8 @@ android {
         minSdk 31
         targetSdk 35
 
-        versionCode 77
-        versionName '1.0.77'
+        versionCode 78
+        versionName '1.0.78'
         if (project.hasProperty('IS_NEXT') && project.IS_NEXT.toBoolean()) {
             def timestamp = new Date().format('dd.MM.YYYY-HH:mm')
             versionName = "${versionName}-next-${timestamp}"
@@ -240,8 +240,6 @@ dependencies {
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
     implementation "androidx.compose.runtime:runtime:$compose_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
-    // Entitlement system: ISO 8601 timestamp parsing for trial dates, key expiry
-    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.5.0'
 
     implementation "androidx.navigation:navigation-compose:2.9.6"
 

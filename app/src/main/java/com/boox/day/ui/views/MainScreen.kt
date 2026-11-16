@@ -1589,8 +1589,6 @@ fun MainScreen(
     com.boox.day.meetings.MeetingNotesHost()
     // In-app update popup (Oct 2026, update/AppUpdateGate)
     com.boox.day.ui.dialogs.AppUpdateHost()
-    // "Support BSPlan" (Oct 2026): from the Settings menu, About and Help
-    com.boox.day.ui.dialogs.SupportPopupHost()
     // "Reminders and sync on BOOX", once (Nov 2026, owner decision 73)
     com.boox.day.ui.dialogs.BooxFreezeTipHost()
     // "BSPlan closed unexpectedly" after a crash (Oct 2026, diagnostics/CrashReportGate)

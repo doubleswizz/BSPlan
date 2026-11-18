@@ -1,4 +1,4 @@
-appId: com.boox.day
+appId: com.bsplan.app
 ---
 # Calibration Flow - Screenshots every UI state for coordinate mapping
 # Run this when UI changes to update ui_map.yaml

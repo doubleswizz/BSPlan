@@ -1,0 +1,122 @@
+package com.bsplan.app.ui.attention
+
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.bsplan.app.booxnotes.BooxNotesAccess
+import com.bsplan.app.data.datastore.GlobalAppSettings
+import com.bsplan.app.notifications.NotificationChannelManager
+import com.bsplan.app.notifications.NotificationPermissionHelper
+
+/** The Settings menu entries that can need the user (Oct 2026, plan B3). */
+enum class SettingsPlace { PREFERENCES, CALENDAR_ACCOUNTS, BOOX_NOTES }
+
+/** Something that stops a feature the user turned on, and where to fix it. */
+data class AttentionItem(val place: SettingsPlace, val reason: String)
+
+/**
+ * What needs the user's action in Settings (Oct 2026, plan B3). The gear's number counts these and
+ * the menu marks their entries with a dot and the reason. Before, the number counted settings screens
+ * not opened yet, so it stayed up after setup and said nothing about real problems.
+ */
+data class SettingsAttention(val items: List<AttentionItem> = emptyList()) {
+    val count: Int get() = items.size
+    fun reasonFor(place: SettingsPlace): String? = items.firstOrNull { it.place == place }?.reason
+}
+
+/**
+ * A Settings entry opened from its dot (Oct 2026, plan B3): its dialog scrolls once to the card that
+ * needs the user (Preferences: reminders; AI Settings: AI Models when a pick fails).
+ */
+object SettingsJump {
+    private var target: SettingsPlace? = null
+
+    fun request(place: SettingsPlace) {
+        target = place
+    }
+
+    /** True once after [request] for [place]. */
+    fun consume(place: SettingsPlace): Boolean {
+        if (target != place) return false
+        target = null
+        return true
+    }
+}
+
+/** The facts the rules read; plain values, so the rules are tested without Android. */
+data class AttentionInputs(
+    val remindersOn: Boolean,
+    val notificationsAllowed: Boolean,
+    val reminderChannelsOn: Boolean,
+    val batteryOk: Boolean,
+    /** File access was allowed once (the Boox Notes dialog marks it) and Boox Notes is on. */
+    val booxNotesUsed: Boolean,
+    val booxNotesAccess: Boolean,
+    val accountsToReconnect: Int,
+    /** Task sync needs the user (sign in again, deletes to approve): why; null when it doesn't. */
+    val taskSyncNeeds: String? = null
+)
+
+object SettingsAttentionRules {
+
+    fun items(inputs: AttentionInputs): List<AttentionItem> = buildList {
+        with(inputs) {
+            taskSyncNeeds?.let { add(AttentionItem(SettingsPlace.PREFERENCES, it)) }
+            if (accountsToReconnect > 0) {
+                add(AttentionItem(SettingsPlace.CALENDAR_ACCOUNTS, if (accountsToReconnect == 1) "An account needs to reconnect" else "$accountsToReconnect accounts need to reconnect"))
+            }
+        }
+    }
+}
+
+/**
+ * The live list for the main screen. Settings are Compose state; Android permissions
+ * aren't, so they are read again each time BSPlan comes back to the front (no polling).
+ */
+@Composable
+fun rememberSettingsAttention(accountsToReconnect: Int): SettingsAttention {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var resumes by remember { mutableIntStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resumes++ }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val settings = GlobalAppSettings.current
+    // Task Sync's needs change with its runs, also while BSPlan stays in front
+    val taskSyncStatus by com.bsplan.app.tasksync.TaskSync.statusChanges.collectAsState()
+    return remember(settings, accountsToReconnect, resumes, taskSyncStatus) {
+        SettingsAttention(SettingsAttentionRules.items(inputsFor(context, accountsToReconnect)))
+    }
+}
+
+private fun inputsFor(context: Context, accountsToReconnect: Int): AttentionInputs {
+    val settings = GlobalAppSettings.current
+    val tasksOn = settings.taskNotificationsEnabled
+    val eventsOn = settings.eventNotificationsEnabled
+    val remindersOn = tasksOn || eventsOn
+    val channelsOn = !remindersOn ||
+        ((!tasksOn || NotificationChannelManager.isChannelEnabled(context, NotificationChannelManager.CHANNEL_ID_DUE_TASKS)) &&
+            (!eventsOn || NotificationChannelManager.isChannelEnabled(context, NotificationChannelManager.CHANNEL_ID_EVENT_REMINDERS)))
+    return AttentionInputs(
+        remindersOn = remindersOn,
+        notificationsAllowed = !remindersOn || NotificationPermissionHelper.hasNotificationPermission(context),
+        reminderChannelsOn = channelsOn,
+        batteryOk = !remindersOn || !NotificationPermissionHelper.isBooxDevice() ||
+            NotificationPermissionHelper.isBatteryOptimizationExempt(context),
+        booxNotesUsed = settings.booxNotesEnabled && settings.setupChecklist.booxNotesConfigured,
+        booxNotesAccess = !settings.booxNotesEnabled || BooxNotesAccess.has(context),
+        accountsToReconnect = accountsToReconnect,
+        taskSyncNeeds = com.bsplan.app.tasksync.TaskSync.attentionReason(context)
+    )
+}

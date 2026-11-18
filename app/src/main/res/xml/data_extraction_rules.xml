@@ -7,17 +7,13 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="sharedpref" path="boox_day_google_auth.xml" />
-        <exclude domain="sharedpref" path="api_key_prefs.xml" />
-        <exclude domain="sharedpref" path="user_api_key_encrypted.xml" />
+        <exclude domain="sharedpref" path="bsplan_google_auth.xml" />
         <exclude domain="sharedpref" path="account_secrets.xml" />
         <exclude domain="sharedpref" path="task_sync.xml" />
         <exclude domain="file" path="pages/previews/" />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="sharedpref" path="boox_day_google_auth.xml" />
-        <exclude domain="sharedpref" path="api_key_prefs.xml" />
-        <exclude domain="sharedpref" path="user_api_key_encrypted.xml" />
+        <exclude domain="sharedpref" path="bsplan_google_auth.xml" />
         <exclude domain="sharedpref" path="account_secrets.xml" />
         <exclude domain="sharedpref" path="task_sync.xml" />
         <exclude domain="file" path="pages/previews/" />

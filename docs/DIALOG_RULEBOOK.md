@@ -1,7 +1,7 @@
 # Dialog Rulebook - Mandatory UI Standards
 
 > **ENFORCEMENT LEVEL: MANDATORY**
-> This rulebook defines the ONLY acceptable patterns for dialog buttons in BooxDay.
+> This rulebook defines the ONLY acceptable patterns for dialog buttons in BSPlan.
 > AI agents MUST follow these rules exactly. No exceptions. No "improvements."
 
 ---
@@ -717,4 +717,4 @@ fun OfflineModeDialog(onDismiss: () -> Unit) {
 2. **Words must be specific**: "Delete Page" not "OK", "Save Event" not "Confirm"
 3. **Styling is standardized**: `EinkSecondaryButton` for left/middle, `ActionButton` for rightmost only
 
-**This is not a guideline. This is THE LAW for BooxDay dialogs.**
+**This is not a guideline. This is THE LAW for BSPlan dialogs.**

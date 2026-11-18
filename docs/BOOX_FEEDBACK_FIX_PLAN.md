@@ -46,7 +46,7 @@
 
 ## Context
 
-On 25 Oct 2026 we read BooxDay feedback from r/Onyx_Boox: the beta thread (Dec 2025), the closed test thread (Jan–Jun 2026) and a "vapourware" thread. Most of it is about the old closed builds (1.0.6–1.0.29). We also read GitHub issue #1, which is about 1.0.31 and later: on a Tab Ultra C (Android 11, firmware 4.2) the screen goes white after the start screens. We traced every report to today's code, and the line references were spot-checked.
+On 25 Oct 2026 we read BSPlan feedback from r/Onyx_Boox: the beta thread (Dec 2025), the closed test thread (Jan–Jun 2026) and a "vapourware" thread. Most of it is about the old closed builds (1.0.6–1.0.29). We also read GitHub issue #1, which is about 1.0.31 and later: on a Tab Ultra C (Android 11, firmware 4.2) the screen goes white after the start screens. We traced every report to today's code, and the line references were spot-checked.
 
 Review (1.0.37): re-traced against `04c9d8c` on 25 Oct; see the summary above.
 
@@ -75,7 +75,7 @@ Review (1.0.37): pens and Android versions, from BOOX's spec pages and reviews (
 - Review (1.0.37): the note about another session's uncommitted `editor/DrawCanvas.kt` changes is settled: the pen-rest blit is committed (`0c17cfc`), and so is the page-image save change (`f4ee7ce`). Part 2 below was re-checked against both. Still run `git status` first.
 - Step 0: copy this plan to `docs/BOOX_FEEDBACK_FIX_PLAN.md`, commit it ("Plan: fixes from BOOX user feedback"), and tick steps off there as they land.
 
-Paths are under `app/src/main/java/com/boox/day/`, and tests under `app/src/test/java/com/boox/day/`.
+Paths are under `app/src/main/java/com/bsplan/app/`, and tests under `app/src/test/java/com/bsplan/app/`.
 
 ---
 
@@ -133,7 +133,7 @@ The steps don't depend on each other. Do them in this order (most user-visible f
   |---|---|
   | No Wi-Fi / no internet | Same words as AiProblem |
   | Code 7 | "Couldn't reach Google. Check the internet connection." |
-  | Code 10 | "Google didn't accept BooxDay's sign-in (code 10). This is a setup problem in BooxDay, not your account. Please report it on GitHub." |
+  | Code 10 | "Google didn't accept BSPlan's sign-in (code 10). This is a setup problem in BSPlan, not your account. Please report it on GitHub." |
   | Code 12500 | "Google sign-in failed. Make sure Google Play services is up to date, then try again." |
   | Code 12501 | "Sign-in was cancelled." (shown, so something visible happens) |
   | Code 12502 | "Sign-in is already in progress." |
@@ -167,26 +167,26 @@ The steps don't depend on each other. Do them in this order (most user-visible f
 - **Cause:** `ocr/UnifiedOcrPipeline.kt` returns `BUDGET_EXHAUSTED` on `!quotaManager.canReadWithAi()` (1000 reads a month) without calling `IndexingStatus.onWaiting`. The settings line then says "N items pending • Processing during idle time" forever (`ui/dialogs/BooxNotesSettingsDialog.kt`).
   - The other budget check, `canIndexNewPage`, always returns true, so leave it alone.
 - **Change:**
-  - Add `AiProblem.MONTHLY_LIMIT`. Message: "BooxDay reads up to 1000 pages a month with AI. The rest will be read next month." Short text: "monthly limit of 1000 AI page reads reached". Update every exhaustive `when` on `AiProblem`.
+  - Add `AiProblem.MONTHLY_LIMIT`. Message: "BSPlan reads up to 1000 pages a month with AI. The rest will be read next month." Short text: "monthly limit of 1000 AI page reads reached". Update every exhaustive `when` on `AiProblem`.
   - Call `IndexingStatus.onWaiting(MONTHLY_LIMIT)` on that path.
 - **Tests:** extend `api/ai/AiProblemTest.kt`. If `processPageWithResult` can be reached without Android, add a pipeline test for the limit path. Otherwise say it wasn't covered.
 - **Review (1.0.37):** confirmed. The card above the status line already shows "AI page reads this month: N of 1000", but the status line still says "N items pending • Processing during idle time". There is no exhaustive `when` on `AiProblem` in the app. `AiProblemTest` requires `indexingWaits = true` for every problem except `MODEL_FAILED`, so `MONTHLY_LIMIT` needs `indexingWaits = true`. The short text also appears in the daily notes (`export/DailyNotes.kt`). Runtime cost: none.
   - Not reported in these words. The closest reports (Mar and Jun 2026, Tab Ultra C Pro, old builds) are a library of 500+ notes whose indexing "never completes". At 1000 reads a month, a library that size takes months even after this fix. Whether heavy users may raise the limit is the owner's call; this step only makes the wait visible.
 - **Done (26 Oct, texts approved by the owner):**
-  - `AiProblem.MONTHLY_LIMIT` has the message "BooxDay reads up to 1000 pages a month with AI. The rest are read next month." and the short text "monthly limit of 1000 AI page reads reached". The number comes from `OcrQuotaManager.MONTHLY_AI_READ_LIMIT`; `indexingWaits = true`.
+  - `AiProblem.MONTHLY_LIMIT` has the message "BSPlan reads up to 1000 pages a month with AI. The rest are read next month." and the short text "monthly limit of 1000 AI page reads reached". The number comes from `OcrQuotaManager.MONTHLY_AI_READ_LIMIT`; `indexingWaits = true`.
   - `UnifiedOcrPipeline` calls `IndexingStatus.onWaiting(MONTHLY_LIMIT)` on that path.
   - The Boox Notes status line becomes "Waiting: monthly limit of 1000 AI page reads reached • N items will be read later", and the daily note says the same.
   - Test: `AiProblemTest` (new case). The pipeline path itself isn't unit-tested: `UnifiedOcrPipeline` needs Android repositories and the quota manager.
 
 ### 1.4 Say where an exported PDF was saved
 - **Cause:** `io/ExportEngine.kt` (`saveInternal`) and `io/CompactExportEngine.kt` return only `"Saved $name"`.
-- **Change:** return `"Saved $name to <folder>"`, using the existing `export/DailyNoteWriter.folderLabel` style (for example "Documents/BooxDay/…"). Check that the snackbar (`ui/SnackBar.kt`) fits two lines on the Go 6.
+- **Change:** return `"Saved $name to <folder>"`, using the existing `export/DailyNoteWriter.folderLabel` style (for example "Documents/BSPlan/…"). Check that the snackbar (`ui/SnackBar.kt`) fits two lines on the Go 6.
 - **Tests:** a small JUnit test for the label function, if it's pure. Otherwise check by hand on a tablet.
-- **Review (1.0.37):** confirmed (`saveInternal`, and `savePdfDocument` in two places). `DailyNoteWriter.folderLabel` reads the daily-notes folder setting, so it can't be reused as is. Add a small label function for the export folder: a `file://` path under Documents becomes "Documents/BooxDay/…", and a picked folder shows its document id after ':'. Written to take a path string, it is unit-testable. Runtime cost: none. Reported 13 Dec: an exported memo, and no idea where the PDF went.
+- **Review (1.0.37):** confirmed (`saveInternal`, and `savePdfDocument` in two places). `DailyNoteWriter.folderLabel` reads the daily-notes folder setting, so it can't be reused as is. Add a small label function for the export folder: a `file://` path under Documents becomes "Documents/BSPlan/…", and a picked folder shows its document id after ':'. Written to take a path string, it is unit-testable. Runtime cost: none. Reported 13 Dec: an exported memo, and no idea where the PDF went.
 - **Done (26 Oct, text approved by the owner):**
   - `io/ExportFolderLabel`: `of(uri, storageRoot)`, plus the pure `forPath` / `forDocumentId` / `savedMessage`.
   - `ExportEngine.saveInternal` and both `CompactExportEngine.savePdfDocument` branches now say "Saved <file> to <folder>". When the folder can't be named, the message stays "Saved <file>".
-  - The folder name "BooxDay" is the real folder on the tablet; it stays.
+  - The folder name "BSPlan" is the real folder on the tablet; it stays.
   - Test: `ExportFolderLabelTest` (3, Robolectric).
   - **Manual check still to do:** the two-line snackbar on the Go 6.
 
@@ -201,7 +201,7 @@ The steps don't depend on each other. Do them in this order (most user-visible f
   - Runtime cost: none.
 - **Done (26 Oct, texts approved by the owner):**
   - The 7 tips, 4 Help lines and the Welcome line now say the paths of the owner's table, with "→" throughout. The gestures tip is removed.
-  - The Help backup line no longer suggests copying the `booxdaydb` folder (the database is private to the app). The lines above it that give the old database path are left for 4.7.
+  - The Help backup line no longer suggests copying the `bsplandb` folder (the database is private to the app). The lines above it that give the old database path are left for 4.7.
   - The two AI paths use the 4.8 names ("AI Settings → AI Preferences"). Ship them in the same release as 4.8, which renames the card.
   - Compiles; no tests exist for these texts.
 
@@ -245,7 +245,7 @@ The steps don't depend on each other. Do them in this order (most user-visible f
 ### 1.9 Manifest: microphone not required
 - Add `<uses-feature android:name="android.hardware.microphone" android:required="false"/>` to `AndroidManifest.xml`. `RECORD_AUDIO` otherwise implies a microphone, which is one reason Play once marked BOOX tablets "not compatible".
 - Build only; there is no test.
-- **Review (1.0.37): dropped.** It changes nothing today: Android doesn't check `uses-feature` when installing, only app stores filter on it, and BooxDay is installed from GitHub. The stated reason doesn't hold either. Every target tablet has a microphone, and so do both tablets reported as "not compatible" on Play (Tab Ultra C Pro, Note Air 5C), so their filtering had another cause. `RECORD_AUDIO` is the only permission in the manifest that implies hardware. Revisit only if a store listing is planned.
+- **Review (1.0.37): dropped.** It changes nothing today: Android doesn't check `uses-feature` when installing, only app stores filter on it, and BSPlan is installed from GitHub. The stated reason doesn't hold either. Every target tablet has a microphone, and so do both tablets reported as "not compatible" on Play (Tab Ultra C Pro, Note Air 5C), so their filtering had another cause. `RECORD_AUDIO` is the only permission in the manifest that implies hardware. Revisit only if a store listing is planned.
 
 **Part 1 is done when:** every step is committed, its focused tests pass, and `assembleDebug` builds. For the manual checks (1.4, 1.5, 1.7), list them for the owner and, with the owner's OK, do them on the Go 10.3 and the Go 6.
 
@@ -255,7 +255,7 @@ The steps don't depend on each other. Do them in this order (most user-visible f
   - Midnight end: after the startup sync rewrote 562 events, "Rebroadcast…" (7 Nov 23:00 to 8 Nov 00:00) no longer shows on 8 Nov as "Day 2/2". 8 Nov lists 3 events (was 4); 7 Nov lists it as a one-day event.
 - **1.7:** in 12-hour mode the start list opens with the selected hour (9) at the top; 12 sits at the list's end. With start 6 PM the end follows to 7 PM, and the end list opens with 7 at the top.
 - **Week start (Monday on this tablet):** the task picker ("Move tasks…") and the event date picker both show M T W T F S S, with 1 Nov in the Sunday column.
-- **1.4:** "Saved BooxDay-2026-10-15-p2.pdf to Documents/BooxDay/Calendar/2026-10", the same path the log shows. One line on the Go 10.3. **Not checked: the Go 6.**
+- **1.4:** "Saved BSPlan-2026-10-15-p2.pdf to Documents/BSPlan/Calendar/2026-10", the same path the log shows. One line on the Go 10.3. **Not checked: the Go 6.**
 - **1.2:** cancelling Google's account picker ("+ Add Gmail Account" → back) shows "Sign-in was cancelled." The log says `resultCode=0`, then 12501.
 - **1.8:** a "Debug: crash now" report has `Firmware: 2026-04-21_15-48_4.2-rel_04212_ce95d3767` and `Pen: SurfaceFlinger`. In a report whose last 150 log lines held a sync line, the account address reads `f…@<domain>` (U+2026); no unmasked address anywhere. The test reports were deleted with Close afterwards.
 - **Found during the check, not changed (owner to decide):**
@@ -366,7 +366,7 @@ Review (1.0.37): `PERF_LOGS` is `false` in every build (`Logging.kt`), so lines 
   - Review (1.0.37): only if the check shows a wrong page or the blank flash; otherwise no code. Then (1), **by reference, never a copy**: before switching, `cacheBitmapIfSynced(oldId)` with the old bitmap, only if that page's load finished. A bitmap copy would be about 10 MB on the main thread at every page switch. In the launched coroutine, only send the save for `oldId`; don't cache under `currentPageId`. The old bitmap object is never drawn into again (the new page gets its own bitmap), so keeping it is safe. Runtime cost: one map entry per switch. (2) is dropped: `updateActiveSurface` already posts.
 
 ### 2.4 Note Air 6C: the pen doesn't write, then a crash at start (Review (1.0.37): new)
-- **Report** (one user, r/Onyx_Boox thread of 16 Oct). On 1.0.31/1.0.32 the pen didn't write in BooxDay but worked in BOOX's own apps (16 Oct). The developer pointed them to 1.0.33's new pen SDK on 19 Oct. On 20 Oct they reported that 1.0.33 crashes at start, and said they would try a Note Air 5C next; no reply was archived after that. This is the only report on a target tablet since the open-source release: Android 16, EMR pen, neither of which the owner's tablets cover.
+- **Report** (one user, r/Onyx_Boox thread of 16 Oct). On 1.0.31/1.0.32 the pen didn't write in BSPlan but worked in BOOX's own apps (16 Oct). The developer pointed them to 1.0.33's new pen SDK on 19 Oct. On 20 Oct they reported that 1.0.33 crashes at start, and said they would try a Note Air 5C next; no reply was archived after that. This is the only report on a target tablet since the open-source release: Android 16, EMR pen, neither of which the owner's tablets cover.
 - **Ruled out from here:** native libraries on Android's 16 KB memory pages. In the Gradle cache, every arm64 library that 1.0.37 packages has 16 KB-aligned segments: onyxsdk-pen 1.5.8, onyxsdk-pennative 1.0.5 (`libneopen_jni.so`) and ML Kit digital ink 19.0.0. The one 4 KB library, `libneo_pen.so`, has been left out of the APK since 1.0.33. This was checked on the cached libraries, not on the APK itself.
 - **Check (no code):** ask the reporter to install 1.0.37 (3.4).
   - If it still crashes, reopen the app → "Copy Report" and send the text. 1.0.37 is the first release that keeps a crash report and offers it at the next start (`9e11e2d`); 1.0.33 had none.
@@ -399,9 +399,9 @@ Review (1.0.37): `PERF_LOGS` is `false` in every build (`Logging.kt`), so lines 
      - Seen in passing: New Event has its own small grey "scroll for more" inside the Save to card (`AddEditEventDialog.kt` ~1359), which 4.4 missed.
      - Proposal, one dialog at a time and New Event first: while the keyboard is open, the popup moves to the top of the screen and shrinks to the space above the keyboard, so the field being typed in and Cancel/Save stay visible; the form scrolls inside. First try reading the keyboard height in the popup (`WindowInsets.ime`). If a Compose `Popup` doesn't receive it (likely, see above), use the activity window's insets, which edge-to-edge does deliver. Check on the Go 10.3 and the Go 6. Runtime cost: none outside typing.
 2. **Google Cloud console.**
-   - Check that the Android OAuth client for `com.boox.day` has the **SHA-1 of the release key**. The executor can print it with `build-tools\36.0.0\apksigner.bat verify --print-certs booxday-release\booxday-1.0.36.apk`.
+   - Check that the Android OAuth client for `com.bsplan.app` has the **SHA-1 of the release key**. The executor can print it with `build-tools\36.0.0\apksigner.bat verify --print-certs bsplan-release\bsplan-1.0.36.apk`.
    - Check the consent screen status. Calendar is a sensitive scope: an unverified app shows a warning, and in testing mode only listed testers can sign in.
-   - 26 Oct: the release key's SHA-1, printed from `booxday-1.0.37.apk`, is `9D:FA:F2:D0:9F:63:C7:D3:09:A5:90:6C:A0:28:55:90:E7:DE:BC:2F` (SHA-256 `b037422f…bc0e`, as in CLAUDE.md). Debug builds use the same key. If Google sign-in works on the owner's tablet, this SHA-1 is already registered, and only the consent screen is left to check. The code 10 report (21 Jan) was a Play install, which Play signs with its own key.
+   - 26 Oct: the release key's SHA-1, printed from `bsplan-1.0.37.apk`, is `9D:FA:F2:D0:9F:63:C7:D3:09:A5:90:6C:A0:28:55:90:E7:DE:BC:2F` (SHA-256 `b037422f…bc0e`, as in CLAUDE.md). Debug builds use the same key. If Google sign-in works on the owner's tablet, this SHA-1 is already registered, and only the consent screen is left to check. The code 10 report (21 Jan) was a Play install, which Play signs with its own key.
    - Consent screen, what to look at (Google Cloud console → Google Auth Platform / OAuth consent screen):
      - **Publishing status:** "Testing" means only the listed test users can sign in. It needs to be "In production".
      - **Verification status:** if unverified, users see a "Google hasn't verified this app" warning, and Google limits an unverified app to about 100 users.
@@ -409,7 +409,7 @@ Review (1.0.37): `PERF_LOGS` is `false` in every build (`Logging.kt`), so lines 
    - Owner to post on r/Onyx_Boox asking for testers with a Note Air 4C/5C/6C, Go 10.3 Gen I, Go 7 Gen II or Note Max.
    - Hand them the checklist below.
    - Review (1.0.37): **corrected.** The crashes on writing (22 Jan – 5 Feb, 6 users, closed test) were on EMR tablets (Note Air 3C and 4C, Go 10.3 Gen I, Note Max) **and** on active-pen tablets: the Go 7 (InkSense) and the Tab X C (InkSpire, an active pen with wireless charging). So they weren't EMR-specific. All were on the old pen SDK (onyxsdk-pen 1.4.12.1); 1.0.33 moved to 1.5.8 (`a624882`), so their causes may be gone.
-   - What the new SDK hasn't been tried on: EMR pens (the owner's two tablets have active pens) and Android 16 (2.4). The Go 7 has an active pen like the owner's tablets: still useful for the 7-inch layout, but not for EMR. The README says BooxDay was tested on the Note Air 4C, Note Air 5C, Go 7 and Go 6 Gen II; ask the owner which builds that was.
+   - What the new SDK hasn't been tried on: EMR pens (the owner's two tablets have active pens) and Android 16 (2.4). The Go 7 has an active pen like the owner's tablets: still useful for the 7-inch layout, but not for EMR. The README says BSPlan was tested on the Note Air 4C, Note Air 5C, Go 7 and Go 6 Gen II; ask the owner which builds that was.
 4. **Reply to GitHub issue #1** (owner's OK before posting). Draft: thanks; ask for the BOOX model and firmware; ask whether a tap on the calendar makes the screen appear; if they have adb, ask for `adb logcat -d > log.txt` right after the white screen.
    - Review (1.0.37): put first: "1.0.33 changed the start-up hand-off for exactly this; please update to 1.0.37 (the app offers it, or download it from Releases) and tell us whether it still happens, and which version you had." Ask the rest only if it does. The issue was filed on 16 Oct, before 1.0.33, and has no comments yet.
    - Same kind of short reply in the 16 Oct Reddit thread (owner posts it): to the Note Air 6C user (2.4), asking for 1.0.37 and the crash report; and to the Tab X user ("not functioning", 17 Oct, no details), asking for 1.0.37 and what they see.
@@ -447,9 +447,9 @@ Review (1.0.37): `PERF_LOGS` is `false` in every build (`Logging.kt`), so lines 
    - Review (1.0.37): correct; the app targets 35 today (`app/build.gradle`).
 9. **CalDAV calendars: parked (owner, 26 Oct: "too much work for little benefit").** Nothing to do now. Kept here so the findings aren't lost:
    - **Asked by:** 4 Reddit users since Dec 2025 (CalDAV twice, Nextcloud, WebDAV).
-   - **BOOX's own calendar can't be shared.** Checked on the Go 10.3, firmware 4.2 of 21 Apr 2026, read-only. The calendar is part of BOOX Mail (`com.onyx.mail`). It has its own CalDAV client (dav4jvm + ical4j) but keeps the calendars in its own private database (`CalendarModel`, `CalendarEventModel`). It doesn't use Android's shared calendar store and offers no way for other apps to read it. So BooxDay can't read CalDAV accounts set up there.
+   - **BOOX's own calendar can't be shared.** Checked on the Go 10.3, firmware 4.2 of 21 Apr 2026, read-only. The calendar is part of BOOX Mail (`com.onyx.mail`). It has its own CalDAV client (dav4jvm + ical4j) but keeps the calendars in its own private database (`CalendarModel`, `CalendarEventModel`). It doesn't use Android's shared calendar store and offers no way for other apps to read it. So BSPlan can't read CalDAV accounts set up there.
    - **Route 2 (small):** read Android's shared calendar store. CalDAV users would add their account in DAVx⁵ (free on F-Droid, about $5–6.50 on Google Play). Android expands repeating events itself.
-   - **Route 1 (large):** a CalDAV client inside BooxDay, like BOOX's calendar.
+   - **Route 1 (large):** a CalDAV client inside BSPlan, like BOOX's calendar.
    - **If it is picked up:** `ProviderId.fromKey` reads an unknown provider as Google, so an older version restoring a newer backup would mistake the new account for a Google one. Give it a safe fallback first.
 
 ---
@@ -585,31 +585,31 @@ Heights below are estimates from the code, not measured. Take a Go 6 screenshot 
   - Says "you'll be asked to grant a few permissions" (`WelcomeView.kt:479–504`), but nothing asks: `requestPermissions` has no caller.
   - Says "Semantic search finds notes by meaning" (`:410`). Search matches words and word starts, with synonyms (`search/SearchText.ftsPrefixQuery`, `SearchDialog.kt:76`). The same claim is in `TipsRepository.kt:401` and `HelpDialog.kt:856`.
 - **WelcomePopup:** the "Settings → AI Assistant" path is already in 1.5. Two smaller things:
-  - It writes "Boox Day", where the welcome title and the start screen write "BooxDay". **Owner decides** one spelling.
-  - ~~Decided (owner, 26 Oct): "Boox Day"~~ **Changed by the owner the same day: "BooxDay"** everywhere, in the app and its content.
-    - **Done (26 Oct):** every "BooxDay" in the tracked files became "BooxDay": 170 places in 80 files (texts the user reads, code comments, tests, README, docs, the OpenRouter key label `OpenRouterConnect.KEY_LABEL`, the daily note front matter `source:`). `app_name`, `welcome_view_title` and the About texts already said "BooxDay". Lines above that quote the old texts were updated too. The GitHub release title stays "BooxDay 1.0.N" (CLAUDE.md).
-    - Not changed, as before: the package `com.boox.day`, the repo `booxday`, the APK name `booxday-1.0.N.apk`, tags `v1.0.N`, ids such as notification channel ids.
+  - It writes "BSPlan", where the welcome title and the start screen write "BSPlan". **Owner decides** one spelling.
+  - ~~Decided (owner, 26 Oct): "BSPlan"~~ **Changed by the owner the same day: "BSPlan"** everywhere, in the app and its content.
+    - **Done (26 Oct):** every "BSPlan" in the tracked files became "BSPlan": 170 places in 80 files (texts the user reads, code comments, tests, README, docs, the OpenRouter key label `OpenRouterConnect.KEY_LABEL`, the daily note front matter `source:`). `app_name`, `welcome_view_title` and the About texts already said "BSPlan". Lines above that quote the old texts were updated too. The GitHub release title stays "BSPlan 1.0.N" (CLAUDE.md).
+    - Not changed, as before: the package `com.bsplan.app`, the repo `bsplan`, the APK name `bsplan-1.0.N.apk`, tags `v1.0.N`, ids such as notification channel ids.
     - "Boox Notes" stays: that is BOOX's notes app, not this app's name.
   - It doesn't mention Help.
-- **Update popup:** every update says "BooxDay X is ready, with performance improvements and bug fixes." (hard-coded, `AppUpdatePopup.kt:104`), even for a feature release. **Fix:** "BooxDay X is ready." and let the release notes below it speak.
+- **Update popup:** every update says "BSPlan X is ready, with performance improvements and bug fixes." (hard-coded, `AppUpdatePopup.kt:104`), even for a feature release. **Fix:** "BSPlan X is ready." and let the release notes below it speak.
 - **What's New:** the app has none. The old What's New center was removed in DB v29 (`Migrations.kt:733–736`); comments in `CalendarView.kt` 592, 670 and 864 still point to it. Release notes reach users only in the update popup, before they update (at most 6 bullets). **Owner decides:** keep it that way (recommended: no new screen), or after an update show the notes once (a new flag like `onboardingDismissedAt`; that is a new feature). The stale comments can go with any edit to those lines.
   - **Decided (owner, 26 Oct): show the release notes once after an update.** Design:
-    - **When:** the app already knows the first start after an update (`AppUpdateGate.announceIfUpdated`, which today shows the snackbar "BooxDay was updated to X."). That start shows a popup instead of the snackbar. It is shown once per version: the stored version code is already updated there. A fresh install shows nothing; the welcome screens cover it.
+    - **When:** the app already knows the first start after an update (`AppUpdateGate.announceIfUpdated`, which today shows the snackbar "BSPlan was updated to X."). That start shows a popup instead of the snackbar. It is shown once per version: the stored version code is already updated there. A fresh install shows nothing; the welcome screens cover it.
     - **Where the notes come from:**
       1. In-app update: the updater already has the notes (`AppUpdateChecker.UpdateInfo.notes`, the release's `- ` bullets, at most 6). Save them in the update prefs, with the version, right before installing.
       2. Installed by hand (APK from GitHub): nothing was saved. Then fetch that version's release once (`releases/tags/v<versionName>`, the same parsing as the update check), only if online. If that fails, show the old snackbar and nothing more. Never retry.
-    - **Popup:** the update popup's frame and size (fits the Go 6, buttons fixed, 4.4 bar). Title "BooxDay 1.0.N", heading "What's new", the bullets, and one button, "Close".
+    - **Popup:** the update popup's frame and size (fits the Go 6, buttons fixed, 4.4 bar). Title "BSPlan 1.0.N", heading "What's new", the bullets, and one button, "Close".
     - **Timing:** wait like the update popup does: not while the pen is active or the crash popup is open, and after the welcome screens.
     - **Release notes rule:** the bullets are now read right after the update too, so keep them short and plain (the CLAUDE.md release notes format already says so).
     - **Runtime cost:** one prefs read at start (already done there). The network call happens only on the first start after an update installed by hand.
     - **Tests:** a JVM test for the choice: saved notes, then fetch, then snackbar only, and shown once.
-    - **Done (26 Oct):** `AppUpdateGate.State.WhatsNew`, shown by the existing `AppUpdateHost`, so MainScreen needed no change (its `AppUpdateGate.isOpen` check already keeps raw drawing off). `install()` saves the version and its bullets (`commit()`, before Android stops the app). `announcementFor()` picks: saved notes for this version, else one fetch of `releases/tags/v<version>` (`AppUpdateChecker.releaseNotesFor`), else the old snackbar; it is shown once because the version code is stored at that start. The popup: "BooxDay 1.0.N", "What's new", the bullets, Close. Test: `AppUpdateAnnouncementTest`. The update offer now says "BooxDay X is ready." Not seen on a tablet yet.
+    - **Done (26 Oct):** `AppUpdateGate.State.WhatsNew`, shown by the existing `AppUpdateHost`, so MainScreen needed no change (its `AppUpdateGate.isOpen` check already keeps raw drawing off). `install()` saves the version and its bullets (`commit()`, before Android stops the app). `announcementFor()` picks: saved notes for this version, else one fetch of `releases/tags/v<version>` (`AppUpdateChecker.releaseNotesFor`), else the old snackbar; it is shown once because the version code is stored at that start. The popup: "BSPlan 1.0.N", "What's new", the bullets, Close. Test: `AppUpdateAnnouncementTest`. The update offer now says "BSPlan X is ready." Not seen on a tablet yet.
 - Rewrite the welcome texts from what the app does today, using CLAUDE.md's feature list (calendar and accounts, Memos and Tasks, full screen, search, Boox Notes and Smart Link, AI on your own OpenRouter account, sleep screen, daily notes, updates). Short, no marketing words, nothing presented as new that isn't. The executor drafts and the owner approves before code.
   - **Done (26 Oct, texts pre-approved by the owner):**
     - WelcomeView subtitle: "Your calendar, memos and tasks in one place. Made for Boox tablets." (was "Your AI-powered e-ink planner").
     - The AI card is "AI features": "Smart Suggestions and Optimize My Day, from your calendar and notes" / "Run on your own OpenRouter account, added in AI Settings" (was "AI Chief of Staff").
     - Boox Notes card: "Smart Link connects your notes to calendar events" / "Search finds the words in your handwritten notes" (was "semantic search finds notes by meaning").
-    - The false permissions card is now "Also in BooxDay": Full screen, Sleep screen, Daily notes, Updates, and "Settings → Help explains every feature."
+    - The false permissions card is now "Also in BSPlan": Full screen, Sleep screen, Daily notes, Updates, and "Settings → Help explains every feature."
     - WelcomePopup: "Your calendar, memos and tasks in one place"; "Write memos and tasks with the pen"; "See your Google and Outlook calendars"; "Voice input, and AI features on your own OpenRouter account"; "Start with the settings that have a dot. Settings → Help explains every feature."; "Tip: with an OpenRouter key, Settings → AI Settings → AI Preferences makes suggestions fit your day."
     - The search claim in Help and the tips goes with 4.7.
 
@@ -635,7 +635,7 @@ Help is a 12-topic split popup of about 4,500–5,000 words (`HelpDialog.kt`). I
 - **Sync and data:**
   - :604 "6 months back and 6 months forward": it is 2 back and 3 forward (`SyncScheduler.kt:34–35`).
   - :1045 "Settings > Sync > Unlink Account": it is Calendar Accounts → Disconnect.
-  - :1061–1062 "external storage /Documents/booxdaydb/": the database is app-private (`dbUtils.kt:22–25`).
+  - :1061–1062 "external storage /Documents/bsplandb/": the database is app-private (`dbUtils.kt:22–25`).
   - :1066 "Settings > Backup": the menu says "Data & Backup".
 - **AI, voice, Boox Notes:**
   - :830, :884: see 4.2.
@@ -688,7 +688,7 @@ Help is a 12-topic split popup of about 4,500–5,000 words (`HelpDialog.kt`). I
     - **Read** for handwriting: tasks are "read on the tablet"; memo pages and Boox Notes pages are "read by AI". "AI page reads" for the monthly count. Not "OCR", "handwriting recognition" or "semantic".
     - **Turn on / turn off**, not "enable / disable"; the switch status says "On" / "Off".
     - **Feature names stay as the menus show them:** "AI tools" (the Memos AI button: Voice to Text, Recognize Handwriting, Summarize, Translate, Convert Memo to Tasks), "Task AI" (the Tasks AI button: Optimize My Day, Sort by Priority, Smart Suggestions, Break Down Task, Daily Summary, Weekly Summary), AI Style (a wizard tab), Smart Link.
-    - **AI Features off means none of your data goes to OpenRouter** (owner, 26 Oct, on Claude's recommendation). The switch turns off voice input, the AI tools and reading pages for search; Enable Indexing (Settings → Boox Notes) is the second switch, for page reading only. Texts say "With AI Features off, none of your data goes to OpenRouter.", not "nothing": with AI off BooxDay still refreshes the model list once a day with the key (`OpenRouterModelCatalog.init`) and checks the key when AI Settings opens, neither with any user content (pointed out by the Google verification session; its privacy policy uses the same words).
+    - **AI Features off means none of your data goes to OpenRouter** (owner, 26 Oct, on Claude's recommendation). The switch turns off voice input, the AI tools and reading pages for search; Enable Indexing (Settings → Boox Notes) is the second switch, for page reading only. Texts say "With AI Features off, none of your data goes to OpenRouter.", not "nothing": with AI off BSPlan still refreshes the model list once a day with the key (`OpenRouterModelCatalog.init`) and checks the key when AI Settings opens, neither with any user content (pointed out by the Google verification session; its privacy policy uses the same words).
       - **Done (26 Oct):**
         - `UnifiedOcrPipeline` waits (`aiReadWaitReason`: AI off, then no key, then the monthly limit), like without a key: nothing is marked or failed, and the idle processor rests (protected code untouched). Boox Notes settings show "Waiting: AI Features is off" and "On, paused: AI Features is off". New `AiProblem.AI_OFF`.
         - `AiKeyGate.requireKey()` refuses with a snackbar while AI is off. The task card's Break Down and the selection bar's Convert to Tasks reached AI with the switch off; the other buttons are greyed out.
@@ -738,23 +738,23 @@ Help is a 12-topic split popup of about 4,500–5,000 words (`HelpDialog.kt`). I
   - Proposal: "Clear All Memos on This Day" / "Clear All Tasks on This Day", and in the confirm: "This clears every memo page of Sun 8 Nov. It can't be undone."
   - Check the ≡ menu width on the Go 6: `ToolbarMenu.kt:82` notes the old label already wrapped at 230 dp.
   - **Done (26 Oct):** the ≡ items say "Clear This Day's Memos" / "Clear This Day's Tasks" (the proposal "Clear All Memos on This Day" is 6 letters longer and would wrap in the 260 dp menu). The confirm names the date in the user's date format (`DateTimeFormatUtils.formatDateFullFromString`): "This clears every memo page of Sunday, November 8, 2026. It can't be undone." Compiles; the Go 6 menu still to see.
-- **Opening BooxDay by `am start` fails while BOOX has it frozen.** After a force-stop, BOOX's app freeze disabled it (`enabled=3`), and `am start` said "No activity found". Opening it from the BOOX launcher icon unfreezes it. This is a note for testing, not an app fault.
+- **Opening BSPlan by `am start` fails while BOOX has it frozen.** After a force-stop, BOOX's app freeze disabled it (`enabled=3`), and `am start` said "No activity found". Opening it from the BOOX launcher icon unfreezes it. This is a note for testing, not an app fault.
 
 ### 4.11 Voice to Text: free Google speech, and the real AI model (owner, 26 Oct; Done)
 
 The owner asked to check Settings → Voice-to-Text: it showed a fixed "Gemini 2.5 AI", and free Google speech should keep working.
-- **How voice works (checked in the code):** `TranscriptionService` uses Android's `SpeechRecognizer` (the tablet's default speech service, free, no key) when `isSpeechRecognitionAvailable()` (the Google Search app is installed, or Android reports a speech service); otherwise AI on OpenRouter with the VOICE job's models (`ModelConfigProvider.getAudioFallbackChain`: the user's pick, then BooxDay's choice, Gemini 3.1 Flash Lite or a free model without credit). "Gemini 2.5" was never used.
+- **How voice works (checked in the code):** `TranscriptionService` uses Android's `SpeechRecognizer` (the tablet's default speech service, free, no key) when `isSpeechRecognitionAvailable()` (the Google Search app is installed, or Android reports a speech service); otherwise AI on OpenRouter with the VOICE job's models (`ModelConfigProvider.getAudioFallbackChain`: the user's pick, then BSPlan's choice, Gemini 3.1 Flash Lite or a free model without credit). "Gemini 2.5" was never used.
 - **Checked on the Go 10.3 (read-only, 26 Oct):** no Google Search app. Its speech service is Google's speech app `com.google.android.tts` (`voice_recognition_service`), which the firmware ships and makes visible to every app (`dumpsys package queries`: forceQueryable; "system apps queryable: false"). That is why free voice works there.
 - **Found:**
-  1. The manifest declared neither the speech service nor the Google Search app in `<queries>`. Since Android 11 an app sees a speech service only when it declares `android.speech.RecognitionService` there (AOSP `SpeechRecognizer.createSpeechRecognizer` docs). So on a BOOX where Google speech comes from a Google Search app the user installed, BooxDay can't see it: Voice settings say "Requires Google Search app" and voice falls back to paid AI or asks to configure. Inferred from Android's rules and the Go 10.3 table; not tested on such a tablet.
+  1. The manifest declared neither the speech service nor the Google Search app in `<queries>`. Since Android 11 an app sees a speech service only when it declares `android.speech.RecognitionService` there (AOSP `SpeechRecognizer.createSpeechRecognizer` docs). So on a BOOX where Google speech comes from a Google Search app the user installed, BSPlan can't see it: Voice settings say "Requires Google Search app" and voice falls back to paid AI or asks to configure. Inferred from Android's rules and the Go 10.3 table; not tested on such a tablet.
   2. A saved AI choice kept using AI (and credit) after Google speech became available, while Voice settings said Google is used and offered AI only without it.
   3. Texts: "Gemini 2.5 AI", "2x daily limits", "Free | On-device", "Ready (Google Search installed)" on a tablet without it.
 - **Fix (Done):**
   - Manifest `<queries>`: the `RecognitionService` intent and `com.google.android.googlequicksearchbox`. No runtime cost.
   - `voiceSource()` (`TranscriptionService.kt`): Google speech whenever the tablet has it; AI only when chosen and there is none. Test: `VoiceSourceTest`.
-  - Voice settings: the AI option is "AI on OpenRouter" and shows the model in use from AI Models ("Model: Gemini 3.1 Flash Lite, BooxDay's choice. Change it in AI Settings → AI Models."); Google Speech says "Ready on this tablet", free, and that Google may process the audio on its servers. Help's voice section says the same.
+  - Voice settings: the AI option is "AI on OpenRouter" and shows the model in use from AI Models ("Model: Gemini 3.1 Flash Lite, BSPlan's choice. Change it in AI Settings → AI Models."); Google Speech says "Ready on this tablet", free, and that Google may process the audio on its servers. Help's voice section says the same.
 - **Tablet check:** open Settings → Voice-to-Text on the Go 10.3 (Google Speech ready, the AI option shows the model) and record a voice task. On a tablet with the Google Search app installed by the user, voice should now use Google speech.
-  - **Checked on the Go 10.3 (26 Oct, `85270d6`):** Voice-to-Text shows Google Speech Recognition "Ready on this tablet" and selected, and "AI on OpenRouter" says "Model: Gemini 3.1 Flash Lite, BooxDay's choice. Change it in AI Settings → AI Models.", the same as the Voice line in AI Models. A voice task wasn't recorded (it needs speech).
+  - **Checked on the Go 10.3 (26 Oct, `85270d6`):** Voice-to-Text shows Google Speech Recognition "Ready on this tablet" and selected, and "AI on OpenRouter" says "Model: Gemini 3.1 Flash Lite, BSPlan's choice. Change it in AI Settings → AI Models.", the same as the Voice line in AI Models. A voice task wasn't recorded (it needs speech).
 
 ### 4.12 "Start the day" is confusing and plain (owner, 26 Oct; screenshot on the Go 10.3, build `bee387e`)
 
@@ -838,12 +838,12 @@ The owner closed the second session; this session owns its open items. All its w
      - `GoogleAuthManager.isSignedIn()` users: `DriveBackupService.isAvailable` / `DataBackupDialog` (Drive backup may say "not signed in"), SyncWorker's older pull, `MigrationHelper`.
      Worth checking Drive backup on the Go 10.3 first.
   2. Possible, not confirmed: `GoogleCalendarProvider.getSignedInAccounts` adds the last Google sign-in back when it's missing from the database. A removed Google account that was the last one signed in may come back while another Google account stays connected. Needs a test with two accounts.
-  3. Logging: BooxDay is the chattiest app in the tablet's log (866 KB in a 256 KB buffer), so Android drops its lines first. Fewer log lines would help crash reports and debugging.
+  3. Logging: BSPlan is the chattiest app in the tablet's log (866 KB in a 256 KB buffer), so Android drops its lines first. Fewer log lines would help crash reports and debugging.
 - **Housekeeping (owner's OK first):** the worktree `.claude/worktrees/google-verification` (it holds git-ignored copies of `local.properties` and `keystore.properties`) and the branch `google-verification` can be removed: everything is merged.
 
 ## Tester checklist (every target tablet)
 
-Note the model, firmware (Settings → About), pen type and the BooxDay version.
+Note the model, firmware (Settings → About), pen type and the BSPlan version.
 
 Review (1.0.37): testers should be on 1.0.37 or later; items 2 and 4 now ask about late ink directly, and item 10 checks the pen-rest post from `0c17cfc`.
 

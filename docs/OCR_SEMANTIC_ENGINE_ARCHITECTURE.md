@@ -1,6 +1,6 @@
 # Context-Aware OCR Semantic Interpretation Engine
 
-> **Version**: 3.0 | **Last Updated**: January 2026 | **Package**: `com.boox.day.ocr`
+> **Version**: 3.0 | **Last Updated**: January 2026 | **Package**: `com.bsplan.app.ocr`
 
 ## Executive Summary
 

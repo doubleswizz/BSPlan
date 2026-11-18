@@ -1,4 +1,4 @@
-# BooxDay: Next Improvements Plan
+# BSPlan: Next Improvements Plan
 
 **Status:** approved by the owner on 4 Nov 2026, with every decision taken (section 4). Phases 1A and 1B shipped on 5 Nov 2026 (1.0.61, 1.0.62); the phases after them are not built yet.
 **Baseline:** `main` at `d8df4cc` (version 1.0.60, database v34).
@@ -27,7 +27,7 @@ This is the execution guide for coding sessions. Read it with the project's loca
 | Hypothesis | A reasoned guess. Prove it before acting on it. |
 | Not run | Nothing was executed. No tablet was connected during this review. |
 
-Paths are relative to `app/src/main/java/com/boox/day/` unless they start with `app/`, `docs/` or a repo-root file. Line numbers are from `d8df4cc` and will drift, so search by name.
+Paths are relative to `app/src/main/java/com/bsplan/app/` unless they start with `app/`, `docs/` or a repo-root file. Line numbers are from `d8df4cc` and will drift, so search by name.
 
 ### Phase status
 
@@ -42,7 +42,7 @@ Paths are relative to `app/src/main/java/com/boox/day/` unless they start with `
 | 5 | Write It, Schedule It | Large | Shipped in 1.0.63 (5 Nov 2026), by the owner's choice with some checks left open. At release: works on the Go 10.3 with real ink (5 Nov 2026). Live check 20 of 20 on typed notes. Left: 20 samples in the owner's own handwriting, an event reaching Google and iCloud, offline and no-key on a tablet, the Go 6 |
 | 6 | Meeting Recap | Medium to large | Shipped in 1.0.63 (5 Nov 2026), by the owner's choice with some checks left open. At release: works on the Go 10.3 on typed notes (5 Nov 2026): card, Recap, Save to Notes, AI menu item, nothing-to-read card. Left: a recap of real handwriting, Share PDF and card Export on a tablet, offline, AI off, the Go 6, privacy lines (D14) |
 | 7 | Meeting Prep | Medium | Shipped in 1.0.63 (5 Nov 2026), by the owner's choice with some checks left open. At release: works on the Go 10.3 (5 Nov 2026): first-time meeting, Last time with the page picture, Open, Brief Me. Left: a saved recap showing as Last time, linked BOOX notes, a CalDAV series, offline, AI off, the Go 6, privacy lines (D14) |
-| 8 | Share to BooxDay | Medium | Shipped in 1.0.63 (5 Nov 2026), by the owner's choice with some checks left open. At release: works on the Go 10.3 by `am start` (5 Nov 2026): app open, in the background, closed (one main screen each), text, picture, 20,000 characters over 5 pages, Save as Note, Find Events and Tasks, Cancel brings the card back. Left: the real share sheet from real apps, a picture through Find, the pen after a share, offline, frozen, the Go 6, privacy lines (D14) |
+| 8 | Share to BSPlan | Medium | Shipped in 1.0.63 (5 Nov 2026), by the owner's choice with some checks left open. At release: works on the Go 10.3 by `am start` (5 Nov 2026): app open, in the background, closed (one main screen each), text, picture, 20,000 characters over 5 pages, Save as Note, Find Events and Tasks, Cancel brings the card back. Left: the real share sheet from real apps, a picture through Find, the pen after a share, offline, frozen, the Go 6, privacy lines (D14) |
 
 Phases 1A and 1B shipped as their own releases. **Phases 2 to 8 ship together as one release** (owner, 5 Nov 2026). They went out as 1.0.63 on 5 Nov 2026; the rows above say what was left unchecked.
 
@@ -91,7 +91,7 @@ From `CLAUDE.md` and the owner's brief. The full text wins.
 
 ## 1. Goal and scope
 
-**Goal:** make BooxDay a more useful, smarter and more polished daily planner, without losing its simplicity, speed or handwriting feel.
+**Goal:** make BSPlan a more useful, smarter and more polished daily planner, without losing its simplicity, speed or handwriting feel.
 
 ### In scope
 
@@ -104,14 +104,14 @@ From `CLAUDE.md` and the owner's brief. The full text wins.
 | 5 | Write It, Schedule It | 5 |
 | 6 | Meeting Recap | 6 |
 | 7 | Meeting Prep | 7 |
-| 8 | Share to BooxDay | 8 |
+| 8 | Share to BSPlan | 8 |
 | 9 | Export redesign: what to export, formats, where it goes, a new dialog | 1B |
 
 ### Out of scope
 
 - **Translating the app** (owner, 4 Nov 2026). Note for later: about 2,000 pieces of text sit in the code, and only 8 of 588 Kotlin files use string resources. New code in this plan should not make that worse, but needn't solve it.
 - **Landscape.** The app is portrait only (`AndroidManifest.xml`: both activities). The brief says "where supported", so no landscape work and no landscape tests.
-- **Plan my week, Ask BooxDay, meeting audio recording.** Proposed earlier, not in the owner's list.
+- **Plan my week, Ask BSPlan, meeting audio recording.** Proposed earlier, not in the owner's list.
 - **Microsoft To Do** (owner: later).
 - **PowerPoint and Word export, and direct links to services such as Notion or OneNote** (owner, 4 Nov 2026). Share, Save and Markdown reach those apps with no accounts. AI stays out of normal export.
 - **Clean-ups for their own sake:** dead Layout B code, Book export, XOPP, `autoExport`. Leave them unless a task needs them.
@@ -164,7 +164,7 @@ Confirmed by reading the code at `d8df4cc`, unless labelled. A second pass check
 
 **Possible, needs a device:** Android 11+ without All Files Access; a file left by an old install giving EACCES; Pencil strokes on a PDF canvas; memory on a large day on the Go 6.
 
-**No way to share an export.** The file is saved, and the user must find it. The pieces exist: `Documents/` is in `res/xml/file_paths.xml`, the FileProvider authority is `com.boox.day.provider`, and `SnackConf` takes actions. But `export()` returns only a String.
+**No way to share an export.** The file is saved, and the user must find it. The pieces exist: `Documents/` is in `res/xml/file_paths.xml`, the FileProvider authority is `com.bsplan.app.provider`, and `SnackConf` takes actions. But `export()` returns only a String.
 
 **Tests:** none for either engine. Robolectric has no PDF classes, so test on bitmaps. Template: `MemoPageContentTest`.
 
@@ -250,9 +250,9 @@ Confirmed by reading the code at `d8df4cc`, unless labelled. A second pass check
 - `MainActivity` uses standard launch mode: every intent aimed at it builds a new activity and a second canvas, while the pen helper is process-wide.
 - `OpenRouterConnectActivity` shows the safe pattern: its own light activity, then `backToApp()` with `NEW_TASK | CLEAR_TOP | SINGLE_TOP`.
 - `TaskFocusRequests` shows the safe hand-off: a pending `StateFlow` that survives a cold start. `MeetingNotesUi.pages` has no replay, so it would lose early events.
-- A cold start through another activity runs `BooxDayApp.onCreate` only: settings aren't loaded and `SCREEN_*` hold defaults.
+- A cold start through another activity runs `BSPlanApp.onCreate` only: settings aren't loaded and `SCREEN_*` hold defaults.
 - No web page fetch exists anywhere. A link stays text.
-- A frozen BooxDay likely vanishes from the share sheet (inference).
+- A frozen BSPlan likely vanishes from the share sheet (inference).
 
 ### 2.10 GitHub issues and PRs
 
@@ -295,7 +295,7 @@ The brief asked for judgment. These are the changes I recommend. Each is in sect
 
 1. **No new database table anywhere.** All eight items fit on database v34: settings go in `AppSettings` JSON, recaps go in text boxes, prep is computed, shared items wait in files. No migration means no risk to users' data. This is the strongest protection available.
 
-2. **Don't add times to tasks.** "Scheduled tasks" sounds like tasks with a time, but BooxDay deliberately has a due day and a reminder. A written time becomes a reminder time on the due day. This matches what Task Sync already does (decision 69).
+2. **Don't add times to tasks.** "Scheduled tasks" sounds like tasks with a time, but BSPlan deliberately has a due day and a reminder. A written time becomes a reminder time on the due day. This matches what Task Sync already does (decision 69).
 
 3. **Week view is an overlay, not a new route.** Leaving the main route disposes the canvas. An overlay keeps the pen session open, so closing it is instant.
 
@@ -361,7 +361,7 @@ graph TD
     P5 --> P6
     P6 --> P7[7 Meeting Prep]
     P4 --> P7
-    P5 --> P8[8 Share to BooxDay]
+    P5 --> P8[8 Share to BSPlan]
 ```
 
 | Order | Phase | Why here |
@@ -426,7 +426,7 @@ sealed interface ExportOutcome {
 object FileShare { fun share(context: Context, uris: List<Uri>, mimeType: String) }
 ```
 
-`FileShare` uses `com.boox.day.provider`, `FLAG_GRANT_READ_URI_PERMISSION` and a chooser. The Tasks export's `ExportResult` is a different type; leave it.
+`FileShare` uses `com.bsplan.app.provider`, `FLAG_GRANT_READ_URI_PERMISSION` and a chooser. The Tasks export's `ExportResult` is a different type; leave it.
 
 ### S3 Shown events merge
 
@@ -582,7 +582,7 @@ Every phase from 1 on also follows the **Definition of Done** at the end of this
 
 - The dialog stays as it is here; Phase 1B redesigns it. Only the messages change:
   - During: "Exporting this page…" or "Exporting this day…"
-  - After, one snack: "Saved BooxDay-2026-11-04.pdf to Documents/BooxDay/Calendar/2026-11", with a **Share** action
+  - After, one snack: "Saved BSPlan-2026-11-04.pdf to Documents/BSPlan/Calendar/2026-11", with a **Share** action
   - Failure: "Couldn't save the file. Your earlier exports are safe."
   - Too big: "This day is too big for one file. Try one page at a time."
   - Nothing there: "This page is empty, so nothing was exported."
@@ -666,7 +666,7 @@ Every phase from 1 on also follows the **Definition of Done** at the end of this
   - The Go 6: a 15+ page day (memory), the save message with Share on the narrow screen, the page counter's fit, a Go 10.3 memo restored there
 - [x] Clipboard, OCR and Tasks export checked
 - [x] Help and tip updated
-- [ ] Way back to the user's own image (owner, 5 Nov 2026): BOOX clears the user's sleep screen when an app sets one and apps can't read it, so turning on warns and asks for an image; BooxDay keeps a copy and hands it back at turn-off. Passed on the Go 10.3 awake (popup, picker, row, hand-off, files). A real sleep showing the image and the Go 6 are left
+- [ ] Way back to the user's own image (owner, 5 Nov 2026): BOOX clears the user's sleep screen when an app sets one and apps can't read it, so turning on warns and asks for an image; BSPlan keeps a copy and hands it back at turn-off. Passed on the Go 10.3 awake (popup, picker, row, hand-off, files). A real sleep showing the image and the Go 6 are left
 
 ---
 
@@ -703,7 +703,7 @@ Every phase from 1 on also follows the **Definition of Done** at the end of this
 │ │preview│  Fit more on each page  ›        │
 │ └───────┘  ☑ Typed text under each page    │
 │            ☑ The day's events and tasks    │
-│ Saves to Documents/BooxDay   Change        │
+│ Saves to Documents/BSPlan   Change        │
 │ [ Cancel ]      [ Share ]      [ Save ]    │
 └────────────────────────────────────────────┘
 ```
@@ -734,9 +734,9 @@ Save is rightmost because it's the main action (`docs/DIALOG_RULEBOOK.md`). Shar
 
 **Events and tasks:** a short block at the start of each day, from `DayDigestLoader`, which reads without creating anything.
 
-**Markdown:** one `yyyy-MM-dd.md` per day in the Daily notes format, so export and Daily notes update the same note, and text the user added outside BooxDay's markers is kept (`DailyNoteMarkdown.merge`). This is why D2's numbered copies don't apply here. Page images go in `attachments/` and use standard Markdown links, `![Page 1](attachments/2026-11-04-p1.png)`, which Obsidian and other apps read. With a page's image in the note, "Handwriting not read yet" is left out (owner, 5 Nov 2026).
+**Markdown:** one `yyyy-MM-dd.md` per day in the Daily notes format, so export and Daily notes update the same note, and text the user added outside BSPlan's markers is kept (`DailyNoteMarkdown.merge`). This is why D2's numbered copies don't apply here. Page images go in `attachments/` and use standard Markdown links, `![Page 1](attachments/2026-11-04-p1.png)`, which Obsidian and other apps read. With a page's image in the note, "Handwriting not read yet" is left out (owner, 5 Nov 2026).
 
-**File names:** `BooxDay 2026-11-04.pdf`, `BooxDay 2026-11-02 to 2026-11-08.pdf`. Name clashes follow D2.
+**File names:** `BSPlan 2026-11-04.pdf`, `BSPlan 2026-11-02 to 2026-11-08.pdf`. Name clashes follow D2.
 
 **PDF title:** Android's `PdfDocument` can't set one. mupdf, already in the app, has `Document.setMetaData` and `PDFDocument.save`. Set the title after writing, and drop this if it changes the file in any other way.
 
@@ -870,7 +870,7 @@ Protected code. The owner opened the erase row for this work (D3), on one condit
 - Eraser and pen dropdowns now take effect after the popup has left, and the fast refresh modes wait 220 ms: the pen layer came back 30 ms before the popup was removed, and the dropdown stayed on the panel.
 - Checks on the fix build: the log shows the Tasks tab (15 strokes, 4 erases, dropdowns, right ink widths); the owner reports Memos, each pen and Scribble to Erase clean, but that run isn't in the log. Test builds with the same eraser code logged 48 Memos strokes and 26 erases. Go tablets not retested: they get the pen style line and the dropdown change.
 
-**Working hypothesis (not proven): one cause, two symptoms.** If the eraser's style stays on after it lifts, Stroke Eraser gives dashed ink (DASH), and Standard Eraser gives almost invisible ink (SOFT_ERASER). Invisible ink would look like a delay until BooxDay redraws the page. So one fix might solve both of the reporter's symptoms.
+**Working hypothesis (not proven): one cause, two symptoms.** If the eraser's style stays on after it lifts, Stroke Eraser gives dashed ink (DASH), and Standard Eraser gives almost invisible ink (SOFT_ERASER). Invisible ink would look like a delay until BSPlan redraws the page. So one fix might solve both of the reporter's symptoms.
 
 1. **Reproduce first** on the Go 10.3, with both eraser styles, by the eraser end. The deciding test: erase, wait 2 seconds, then write.
    - Dashed or almost invisible ink means the style leaked. Go on to step 2.
@@ -901,7 +901,7 @@ Owner's standing rule: no startup or pen code for this until the cause is proven
 
 1. Wait for the reporter's version. If it's fixed on the latest version, ask to close with the owner's OK.
 2. If it still fails and D4 allows: add `diagnostics/StartupTrace.kt` behind a `BuildConfig` flag that is **false in normal builds**, set by a Gradle property such as `-PstartupTrace`. Normal builds carry no cost.
-3. It writes by itself, at 20 and 60 seconds after start, to `Documents/BooxDay/Diagnostics/`:
+3. It writes by itself, at 20 and 60 seconds after start, to `Documents/BSPlan/Diagnostics/`:
    - Identity: version, `Build.DISPLAY`, model, SDK, pen backend, `hasStylus`, input devices
    - Sizes: system and activity metrics, real size, rotation
    - Canvas size and place, limit and exclude rects
@@ -915,7 +915,7 @@ Owner's standing rule: no startup or pen code for this until the cause is proven
 | Rank | Hypothesis | Proven or killed by |
 |---|---|---|
 | 1 | Raw drawing stops all window updates on this firmware | PixelCopy shows full UI while the panel is white. A white PixelCopy kills it. |
-| 2 | `setSingleRegionMode` is needed (BOOX Notes calls it, BooxDay doesn't) | A test variant calling it lets UI outside the canvas update |
+| 2 | `setSingleRegionMode` is needed (BOOX Notes calls it, BSPlan doesn't) | A test variant calling it lets UI outside the canvas update |
 | 3 | `HAND_WRITING_REPAINT_MODE` acts on the whole window | Starting with another mode shows the UI |
 | 4 | Pen opens before the panel finished | A 5-second delay keeps the UI visible |
 | 5 | Pen area only: overwritten `xdpi/ydpi` affect mapping | The mapped limit rect changes without those two writes |
@@ -1275,7 +1275,7 @@ On every size: two columns of four cells, read down then across, like a paper pl
 | Situation | What the user sees |
 |---|---|
 | Nothing with a date | "No date or time found." [Close] [Add Event Myself] (title prefilled with the words read) |
-| No connection | "BooxDay needs a connection to read this. Your notes are safe." [Close] [Add Event Myself] |
+| No connection | "BSPlan needs a connection to read this. Your notes are safe." [Close] [Add Event Myself] |
 | AI off | The normal AI off message |
 | No key | The normal connect flow, then it carries on |
 | Selection has no strokes | "Select some handwriting first." |
@@ -1384,7 +1384,7 @@ Judge the screen the user ends on, never "a model answered" (the 1.0.56 lesson).
 
 Prep adds [Prepare] in Phase 7. Action Items stays: it's free, works offline and is on-tablet.
 
-**Changed (owner, 5 Nov 2026):** the card's Export saves the PDF straight to `Documents/BooxDay/Meetings`; there is no "This meeting" in the Export dialog.
+**Changed (owner, 5 Nov 2026):** the card's Export saves the PDF straight to `Documents/BSPlan/Meetings`; there is no "This meeting" in the Export dialog.
 
 **Also:** the Memos AI menu shows **Meeting Recap** when the open page belongs to a meeting. It doesn't appear otherwise, so the menu stays short.
 
@@ -1416,7 +1416,7 @@ Prep adds [Prepare] in Phase 7. Action Items stays: it's free, works offline and
 
 **Size behaviour:** `PanelDialog` width (94% narrow, 85% else), paged by section with S9. On the Go 6 expect 2 pages; on the 10.3-inch usually 1.
 
-**The meeting PDF.** Pages are A4, like other exports. Page 1: meeting title, date, time, location, then the recap. Then each notes page, drawn with S1, scaled to the page width. Name: `2026-11-03 Team sync.pdf` in `Documents/BooxDay/Meetings/2026-11/`. Attendees aren't printed unless the owner wants them.
+**The meeting PDF.** Pages are A4, like other exports. Page 1: meeting title, date, time, location, then the recap. Then each notes page, drawn with S1, scaled to the page width. Name: `2026-11-03 Team sync.pdf` in `Documents/BSPlan/Meetings/2026-11/`. Attendees aren't printed unless the owner wants them.
 
 #### Tasks, in order
 
@@ -1574,9 +1574,9 @@ Prep adds [Prepare] in Phase 7. Action Items stays: it's free, works offline and
 
 ---
 
-### Phase 8: Share to BooxDay
+### Phase 8: Share to BSPlan
 
-**Objective:** send text, links and images from any app into BooxDay. Keep them as a note, or let AI find events and tasks.
+**Objective:** send text, links and images from any app into BSPlan. Keep them as a note, or let AI find events and tasks.
 
 **User benefit:** an email with a date or a web page worth keeping lands in the planner without retyping.
 
@@ -1586,11 +1586,11 @@ Prep adds [Prepare] in Phase 7. Action Items stays: it's free, works offline and
 
 #### Design
 
-In another app: Share, then **Add to BooxDay**. BooxDay comes forward and shows:
+In another app: Share, then **Add to BSPlan**. BSPlan comes forward and shows:
 
 ```
 ┌───────────────────────────────────────────┐
-│ Add to BooxDay                            │
+│ Add to BSPlan                            │
 │ ┌───────────────────────────────────────┐ │
 │ │ Dinner at Sofia's on Friday at 7 ...  │ │
 │ │ (first lines)                         │ │
@@ -1639,14 +1639,14 @@ In another app: Share, then **Add to BooxDay**. BooxDay comes forward and shows:
 | Prompt test: shared text sits in the content part | Injection hygiene |
 
 **On tablets, the hard part.** Go 10.3 and Go 6:
-- Share while BooxDay is in the background, while closed, and while frozen (expect it missing from the sheet)
+- Share while BSPlan is in the background, while closed, and while frozen (expect it missing from the sheet)
 - After each: **one** `MainActivity` (`dumpsys activity activities`), and the pen works
 - From the BOOX browser, a mail app, and a gallery or file app
 - A very long text, an image, offline
 
 **Acceptance criteria**
 
-- BooxDay appears in the share sheet.
+- BSPlan appears in the share sheet.
 - A share never creates a second main screen, in any start state.
 - A shared item is never lost if the app is killed before the popup appears.
 - Nothing goes to AI without the user's tap.
@@ -1943,5 +1943,5 @@ Not a bug: copying a lasso image is cleared from the system clipboard on purpose
 - Space estimates for the top bar and the Week cells are arithmetic, and an earlier D7 figure was wrong (corrected 4 Nov 2026). Render tests will settle them.
 - Go 7 and Note Max sizes are worked out from their panels, not measured.
 - Reddit couldn't be read directly, so this rests on the comments the owner pasted.
-- BOOX Notes behaviour comes from a decompiled copy that isn't the same SDK version as BooxDay's.
+- BOOX Notes behaviour comes from a decompiled copy that isn't the same SDK version as BSPlan's.
 - Size labels are rough judgments, not schedules.

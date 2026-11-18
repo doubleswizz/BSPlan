@@ -89,9 +89,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Connect OpenRouter (Oct 2026): the return page's button opens
-             booxday-connect://openrouter?code=...&state=... Its own scheme and screen, so the
-             browser never starts a second MainActivity. -->
         <!-- Share to BSPlan: no canvas here; it brings the running app forward -->
         <activity
             android:name=".ShareReceiverActivity"
@@ -112,34 +109,14 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".OpenRouterConnectActivity"
-            android:configChanges="orientation|screenSize"
-            android:screenOrientation="portrait"
-            android:exported="true"
-            android:noHistory="true"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.Inka">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="bsplan-connect"
-                    android:host="openrouter" />
-            </intent-filter>
-        </activity>
-
         <!-- Read-only tasks feed for launchers and other apps (see share/TasksFeedProvider.kt). -->
         <provider
-            android:name="com.boox.day.share.TasksFeedProvider"
+            android:name="com.bsplan.app.share.TasksFeedProvider"
             android:authorities="com.bsplan.app.tasks"
             android:exported="true" />
 
         <provider
-            android:name="com.boox.day.editor.utils.Provider"
+            android:name="com.bsplan.app.editor.utils.Provider"
             android:authorities="com.bsplan.app.provider"
             android:exported="false"
             android:grantUriPermissions="true">

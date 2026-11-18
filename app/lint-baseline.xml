@@ -7,7 +7,7 @@
         errorLine1="                                date = String.format(&quot;%04d-%02d-%02d&quot;, pickerYear, pickerMonth, pickerDay)"
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="1020"
             column="40"/>
     </issue>
@@ -18,7 +18,7 @@
         errorLine1="        String.format(&quot;%02d&quot;, hour)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="1057"
             column="9"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="                            Text(String.format(&quot;%02d&quot;, h), fontSize = 16.sp)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="1094"
             column="34"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="                Text(text = String.format(&quot;%02d&quot;, minute), fontSize = 18.sp)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="1129"
             column="29"/>
     </issue>
@@ -51,7 +51,7 @@
         errorLine1="                        Text(String.format(&quot;%02d&quot;, m), fontSize = 16.sp)"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="1144"
             column="30"/>
     </issue>
@@ -62,7 +62,7 @@
         errorLine1="            val key = String.format(&quot;%04d-%02d&quot;, targetMonth.year, targetMonth.monthValue)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/CalendarSyncManager.kt"
+            file="src/main/java/com/bsplan/app/sync/CalendarSyncManager.kt"
             line="186"
             column="23"/>
     </issue>
@@ -73,7 +73,7 @@
         errorLine1="        return String.format(&quot;%04d-%02d&quot;, year, month)"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/viewmodel/CalendarSyncViewModel.kt"
+            file="src/main/java/com/bsplan/app/viewmodel/CalendarSyncViewModel.kt"
             line="499"
             column="16"/>
     </issue>
@@ -95,7 +95,7 @@
         errorLine1="            val file = java.io.File(&quot;/sdcard/debug_handwriting.jpg&quot;)"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ai/AiHandwritingService.kt"
+            file="src/main/java/com/bsplan/app/ai/AiHandwritingService.kt"
             line="522"
             column="38"/>
     </issue>
@@ -106,11 +106,11 @@
         errorLine1="        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="2576"
             column="9"/>
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="2575"
             column="5"
             message="Previous statement here"/>
@@ -122,7 +122,7 @@
         errorLine1="            densityDpi = targetDpi"
         errorLine2="                         ~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/MainActivity.kt"
+            file="src/main/java/com/bsplan/app/MainActivity.kt"
             line="71"
             column="26"/>
     </issue>
@@ -133,7 +133,7 @@
         errorLine1="            densityDpi = targetDpi"
         errorLine2="                         ~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/MainActivity.kt"
+            file="src/main/java/com/bsplan/app/MainActivity.kt"
             line="78"
             column="26"/>
     </issue>
@@ -331,7 +331,7 @@
         errorLine1="fun drawAnchorLabel(totalWidth: Dp, circleDiameter: Dp, extensionWidthDp: Dp) {"
         errorLine2="    ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/components/Anchor.kt"
+            file="src/main/java/com/bsplan/app/ui/components/Anchor.kt"
             line="80"
             column="5"/>
     </issue>
@@ -342,7 +342,7 @@
         errorLine1="    val screenHeightDp = configuration.screenHeightDp.dp"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/components/Anchor.kt"
+            file="src/main/java/com/bsplan/app/ui/components/Anchor.kt"
             line="45"
             column="26"/>
     </issue>
@@ -353,7 +353,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/AiToolbarButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/AiToolbarButton.kt"
             line="56"
             column="5"/>
     </issue>
@@ -364,7 +364,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/calendar/CalendarView.kt"
+            file="src/main/java/com/bsplan/app/ui/calendar/CalendarView.kt"
             line="81"
             column="5"/>
     </issue>
@@ -375,7 +375,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/calendar/CalendarView.kt"
+            file="src/main/java/com/bsplan/app/ui/calendar/CalendarView.kt"
             line="444"
             column="5"/>
     </issue>
@@ -386,7 +386,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/calendar/CalendarView.kt"
+            file="src/main/java/com/bsplan/app/ui/calendar/CalendarView.kt"
             line="587"
             column="5"/>
     </issue>
@@ -397,7 +397,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/calendar/CalendarView.kt"
+            file="src/main/java/com/bsplan/app/ui/calendar/CalendarView.kt"
             line="747"
             column="5"/>
     </issue>
@@ -408,7 +408,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/DrawingToolsButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/DrawingToolsButton.kt"
             line="55"
             column="5"/>
     </issue>
@@ -419,7 +419,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/EraserToolsButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/EraserToolsButton.kt"
             line="65"
             column="5"/>
     </issue>
@@ -430,7 +430,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/InlineRichTextEditor.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/InlineRichTextEditor.kt"
             line="61"
             column="5"/>
     </issue>
@@ -441,7 +441,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/InsertToolsButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/InsertToolsButton.kt"
             line="59"
             column="5"/>
     </issue>
@@ -452,7 +452,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3198"
             column="5"/>
     </issue>
@@ -463,7 +463,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3476"
             column="5"/>
     </issue>
@@ -474,7 +474,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/TaskAiButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/TaskAiButton.kt"
             line="71"
             column="5"/>
     </issue>
@@ -485,7 +485,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/TaskBulkActionsButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/TaskBulkActionsButton.kt"
             line="58"
             column="5"/>
     </issue>
@@ -496,7 +496,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/TaskRowHighlight.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/TaskRowHighlight.kt"
             line="27"
             column="5"/>
     </issue>
@@ -507,7 +507,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/TaskRowHighlight.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/TaskRowHighlight.kt"
             line="87"
             column="5"/>
     </issue>
@@ -518,7 +518,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/TaskStatsButton.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/TaskStatsButton.kt"
             line="72"
             column="5"/>
     </issue>
@@ -529,7 +529,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/TasksOverlay.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/TasksOverlay.kt"
             line="134"
             column="5"/>
     </issue>
@@ -540,7 +540,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/ToolSettingsIndicator.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/ToolSettingsIndicator.kt"
             line="43"
             column="5"/>
     </issue>
@@ -551,7 +551,7 @@
         errorLine1="    modifier: Modifier = Modifier"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/calendar/TopToolbar.kt"
+            file="src/main/java/com/bsplan/app/ui/calendar/TopToolbar.kt"
             line="42"
             column="5"/>
     </issue>
@@ -623,7 +623,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;about_description&quot; is not translated in &quot;pl&quot; (Polish)"
-        errorLine1="    &lt;string name=&quot;about_description&quot;>BooxDay brings together your Google Calendar, handwritten notes, and tasks in one beautiful app designed exclusively for Boox e-ink tablets. Write directly on your calendar, link your Boox Notes, and let AI help you stay organized.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;about_description&quot;>BSPlan brings together your Google Calendar, handwritten notes, and tasks in one beautiful app designed exclusively for Boox e-ink tablets. Write directly on your calendar, link your Boox Notes, and let AI help you stay organized.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -701,7 +701,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;about_disclaimer&quot; is not translated in &quot;pl&quot; (Polish)"
-        errorLine1="    &lt;string name=&quot;about_disclaimer&quot;>BooxDay is an independent application built using the Onyx Boox SDK to create great apps for the amazing Boox e-ink devices we all love. BooxDay is not affiliated with, endorsed by, or sponsored by Onyx International Inc. \&quot;Boox\&quot; and \&quot;Onyx\&quot; are registered trademarks of Onyx International Inc. All trademarks are the property of their respective owners.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;about_disclaimer&quot;>BSPlan is an independent application built using the Onyx Boox SDK to create great apps for the amazing Boox e-ink devices we all love. BSPlan is not affiliated with, endorsed by, or sponsored by Onyx International Inc. \&quot;Boox\&quot; and \&quot;Onyx\&quot; are registered trademarks of Onyx International Inc. All trademarks are the property of their respective owners.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -745,7 +745,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;welcome_view_permission_needed_desc&quot; is not translated in &quot;pl&quot; (Polish)"
-        errorLine1="    &lt;string name=&quot;welcome_view_permission_needed_desc&quot;>BooxDay needs storage access to save your handwritten notes and sync your calendar data.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_permission_needed_desc&quot;>BSPlan needs storage access to save your handwritten notes and sync your calendar data.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -789,7 +789,7 @@
     <issue
         id="MissingTranslation"
         message="&quot;welcome_view_tip_desc&quot; is not translated in &quot;pl&quot; (Polish)"
-        errorLine1="    &lt;string name=&quot;welcome_view_tip_desc&quot;>Long-press the BooxDay icon on your home screen and select \&quot;Unfreeze app\&quot; for the best experience.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_tip_desc&quot;>Long-press the BSPlan icon on your home screen and select \&quot;Unfreeze app\&quot; for the best experience.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
@@ -943,7 +943,7 @@
     <issue
         id="ExtraTranslation"
         message="&quot;welcome_view_prevent_frozen&quot; is translated here but not found in default locale"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen&quot;>⚠️ Zapobiegaj zamrażaniu BooxDay (urządzenia Onyx)&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen&quot;>⚠️ Zapobiegaj zamrażaniu BSPlan (urządzenia Onyx)&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -954,7 +954,7 @@
     <issue
         id="ExtraTranslation"
         message="&quot;welcome_view_prevent_frozen_details&quot; is translated here but not found in default locale"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_details&quot;>Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BooxDay będzie ciągle zamykany w tle, co może powodować utratę pracy.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_details&quot;>Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BSPlan będzie ciągle zamykany w tle, co może powodować utratę pracy.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -976,7 +976,7 @@
     <issue
         id="ExtraTranslation"
         message="&quot;welcome_view_prevent_frozen_instructions&quot; is translated here but not found in default locale"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_instructions&quot;>1. Przytrzymaj ikonę BooxDay na launcherze Onyx (ekran główny).\n2. Wybierz &amp;quot;Odmrizić&amp;quot; z menu.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_instructions&quot;>1. Przytrzymaj ikonę BSPlan na launcherze Onyx (ekran główny).\n2. Wybierz &amp;quot;Odmrizić&amp;quot; z menu.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -1117,7 +1117,7 @@
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/InlineRichTextEditor.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/InlineRichTextEditor.kt"
             line="346"
             column="13"/>
     </issue>
@@ -1128,7 +1128,7 @@
         errorLine1="                    gridState.layoutInfo,"
         errorLine2="                              ~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/PagesView.kt"
+            file="src/main/java/com/bsplan/app/ui/views/PagesView.kt"
             line="213"
             column="31"/>
     </issue>
@@ -1139,7 +1139,7 @@
         errorLine1="                    val viewportBottom = viewportTop + gridState.layoutInfo.viewportSize.height"
         errorLine2="                                                                 ~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/PagesView.kt"
+            file="src/main/java/com/bsplan/app/ui/views/PagesView.kt"
             line="273"
             column="66"/>
     </issue>
@@ -1150,7 +1150,7 @@
         errorLine1="    var startHour by remember { mutableStateOf(initialStartHour) }"
         errorLine2="                                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="143"
             column="33"/>
     </issue>
@@ -1161,7 +1161,7 @@
         errorLine1="    var startMinute by remember { mutableStateOf(initialStartMinute) }"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="144"
             column="35"/>
     </issue>
@@ -1172,7 +1172,7 @@
         errorLine1="    var endHour by remember { mutableStateOf(initialEndHour) }"
         errorLine2="                              ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="145"
             column="31"/>
     </issue>
@@ -1183,7 +1183,7 @@
         errorLine1="    var endMinute by remember { mutableStateOf(initialEndMinute) }"
         errorLine2="                                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="146"
             column="33"/>
     </issue>
@@ -1194,7 +1194,7 @@
         errorLine1="        mutableStateOf("
         errorLine2="        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="150"
             column="9"/>
     </issue>
@@ -1205,7 +1205,7 @@
         errorLine1="                    var pickerYear by remember { mutableStateOf(currentDate.year) }"
         errorLine2="                                                 ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="900"
             column="50"/>
     </issue>
@@ -1216,7 +1216,7 @@
         errorLine1="                    var pickerMonth by remember { mutableStateOf(currentDate.monthValue) }"
         errorLine2="                                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="901"
             column="51"/>
     </issue>
@@ -1227,7 +1227,7 @@
         errorLine1="                    var pickerDay by remember { mutableStateOf(currentDate.dayOfMonth) }"
         errorLine2="                                                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/AddEditEventDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/AddEditEventDialog.kt"
             line="902"
             column="49"/>
     </issue>
@@ -1238,7 +1238,7 @@
         errorLine1="    var currentPageIndex by remember { mutableStateOf(0) }"
         errorLine2="                                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/BooxNotesDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/BooxNotesDialog.kt"
             line="118"
             column="40"/>
     </issue>
@@ -1249,7 +1249,7 @@
         errorLine1="    var zoomLevel by remember { mutableStateOf(1.0f) }"
         errorLine2="                                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/BooxNotesDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/BooxNotesDialog.kt"
             line="474"
             column="33"/>
     </issue>
@@ -1260,7 +1260,7 @@
         errorLine1="    val zoomLevel by editorState?.pageView?.zoomLevel?.collectAsState() ?: remember { mutableStateOf(1f) }"
         errorLine2="                                                                                      ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/EditorGestureReceiver.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/EditorGestureReceiver.kt"
             line="86"
             column="87"/>
     </issue>
@@ -1271,7 +1271,7 @@
         errorLine1="    var dotCount by remember { mutableStateOf(0) }"
         errorLine2="                               ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/components/EinkLoadingDots.kt"
+            file="src/main/java/com/bsplan/app/ui/components/EinkLoadingDots.kt"
             line="44"
             column="32"/>
     </issue>
@@ -1282,7 +1282,7 @@
         errorLine1="    var spanVersion by remember(annotation.id) { mutableStateOf(0) }"
         errorLine2="                                                 ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/InlineRichTextEditor.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/InlineRichTextEditor.kt"
             line="86"
             column="50"/>
     </issue>
@@ -1293,7 +1293,7 @@
         errorLine1="    var currentTaskPageIndex by remember { mutableStateOf(0) }"
         errorLine2="                                           ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="282"
             column="44"/>
     </issue>
@@ -1304,7 +1304,7 @@
         errorLine1="    var actualCanvasHeight by remember { mutableStateOf(1080f) }"
         errorLine2="                                         ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="331"
             column="42"/>
     </issue>
@@ -1315,7 +1315,7 @@
         errorLine1="    var noteLinkRefreshTrigger by remember { mutableStateOf(0) }"
         errorLine2="                                             ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="365"
             column="46"/>
     </issue>
@@ -1326,7 +1326,7 @@
         errorLine1="    var currentPage by remember { mutableStateOf(0) }"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3224"
             column="35"/>
     </issue>
@@ -1337,7 +1337,7 @@
         errorLine1="    var previewPageIndex by remember { mutableStateOf(0) }"
         errorLine2="                                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3232"
             column="40"/>
     </issue>
@@ -1348,7 +1348,7 @@
         errorLine1="    var previewIconY by remember { mutableStateOf(0f) }  // Y position of clicked icon"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3233"
             column="36"/>
     </issue>
@@ -1359,7 +1359,7 @@
         errorLine1="    var eventsGridX by remember { mutableStateOf(0f) }"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3236"
             column="35"/>
     </issue>
@@ -1370,7 +1370,7 @@
         errorLine1="    var previewPageIndex by remember { mutableStateOf(0) }"
         errorLine2="                                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3503"
             column="40"/>
     </issue>
@@ -1381,7 +1381,7 @@
         errorLine1="    var previewIconY by remember { mutableStateOf(0f) }  // Y position of clicked icon"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3504"
             column="36"/>
     </issue>
@@ -1392,7 +1392,7 @@
         errorLine1="    var expandedListX by remember { mutableStateOf(0f) }"
         errorLine2="                                    ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3507"
             column="37"/>
     </issue>
@@ -1403,7 +1403,7 @@
         errorLine1="    var itemYPosition by remember { mutableStateOf(0f) }"
         errorLine2="                                    ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3727"
             column="37"/>
     </issue>
@@ -1414,7 +1414,7 @@
         errorLine1="    var displayedYear by remember { mutableStateOf(initialCalendar.get(Calendar.YEAR)) }"
         errorLine2="                                    ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/MoveTaskDialog.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/MoveTaskDialog.kt"
             line="73"
             column="37"/>
     </issue>
@@ -1425,7 +1425,7 @@
         errorLine1="    var displayedMonth by remember { mutableStateOf(initialCalendar.get(Calendar.MONTH)) }"
         errorLine2="                                     ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/MoveTaskDialog.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/MoveTaskDialog.kt"
             line="74"
             column="38"/>
     </issue>
@@ -1436,7 +1436,7 @@
         errorLine1="    var selectedRows by remember { mutableStateOf(0) }"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/TableCreationDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/TableCreationDialog.kt"
             line="83"
             column="36"/>
     </issue>
@@ -1447,7 +1447,7 @@
         errorLine1="    var selectedCols by remember { mutableStateOf(0) }"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/TableCreationDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/TableCreationDialog.kt"
             line="84"
             column="36"/>
     </issue>
@@ -1458,7 +1458,7 @@
         errorLine1="    var selectedThickness by remember { mutableStateOf(2f) }"
         errorLine2="                                        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/TableCreationDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/TableCreationDialog.kt"
             line="87"
             column="41"/>
     </issue>
@@ -1469,7 +1469,7 @@
         errorLine1="    var dragStartX by mutableStateOf(0f)"
         errorLine2="                      ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/state/TextBoxState.kt"
+            file="src/main/java/com/bsplan/app/editor/state/TextBoxState.kt"
             line="104"
             column="23"/>
     </issue>
@@ -1480,7 +1480,7 @@
         errorLine1="    var dragStartY by mutableStateOf(0f)"
         errorLine2="                      ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/state/TextBoxState.kt"
+            file="src/main/java/com/bsplan/app/editor/state/TextBoxState.kt"
             line="106"
             column="23"/>
     </issue>
@@ -1491,7 +1491,7 @@
         errorLine1="    var contextMenuX by mutableStateOf(0f)"
         errorLine2="                        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/state/TextBoxState.kt"
+            file="src/main/java/com/bsplan/app/editor/state/TextBoxState.kt"
             line="112"
             column="25"/>
     </issue>
@@ -1502,7 +1502,7 @@
         errorLine1="    var contextMenuY by mutableStateOf(0f)"
         errorLine2="                        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/state/TextBoxState.kt"
+            file="src/main/java/com/bsplan/app/editor/state/TextBoxState.kt"
             line="114"
             column="25"/>
     </issue>
@@ -1513,7 +1513,7 @@
         errorLine1="    var fontSize by remember { mutableStateOf(annotation.fontSize) }"
         errorLine2="                               ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/TextStyleDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/TextStyleDialog.kt"
             line="40"
             column="32"/>
     </issue>
@@ -1524,7 +1524,7 @@
         errorLine1="                var clipboardChangeCounter by remember { mutableStateOf(0) }"
         errorLine2="                                                         ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/toolbar/Toolbar.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/toolbar/Toolbar.kt"
             line="1118"
             column="58"/>
     </issue>
@@ -2001,7 +2001,7 @@
     <issue
         id="UnusedResources"
         message="The resource `R.string.welcome_view_prevent_frozen` appears to be unused"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen&quot;>⚠️ Zapobiegaj zamrażaniu BooxDay (urządzenia Onyx)&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen&quot;>⚠️ Zapobiegaj zamrażaniu BSPlan (urządzenia Onyx)&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -2012,7 +2012,7 @@
     <issue
         id="UnusedResources"
         message="The resource `R.string.welcome_view_prevent_frozen_details` appears to be unused"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_details&quot;>Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BooxDay będzie ciągle zamykany w tle, co może powodować utratę pracy.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_details&quot;>Urządzenia Onyx mogą automatycznie zamrażać (zamykać) aplikacje działające w tle, aby oszczędzać baterię. Jeśli nie wyłączysz tej funkcji, BSPlan będzie ciągle zamykany w tle, co może powodować utratę pracy.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -2034,7 +2034,7 @@
     <issue
         id="UnusedResources"
         message="The resource `R.string.welcome_view_prevent_frozen_instructions` appears to be unused"
-        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_instructions&quot;>1. Przytrzymaj ikonę BooxDay na launcherze Onyx (ekran główny).\n2. Wybierz &amp;quot;Odmrizić&amp;quot; z menu.&lt;/string>"
+        errorLine1="    &lt;string name=&quot;welcome_view_prevent_frozen_instructions&quot;>1. Przytrzymaj ikonę BSPlan na launcherze Onyx (ekran główny).\n2. Wybierz &amp;quot;Odmrizić&amp;quot; z menu.&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-pl/strings.xml"
@@ -2268,7 +2268,7 @@
         errorLine1="                .offset(x = thumbOffset)"
         errorLine2="                 ~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/components/Switch.kt"
+            file="src/main/java/com/bsplan/app/ui/components/Switch.kt"
             line="136"
             column="18"/>
     </issue>
@@ -2461,7 +2461,7 @@
         errorLine1="class DrawCanvas("
         errorLine2="      ~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/DrawCanvas.kt"
+            file="src/main/java/com/bsplan/app/editor/DrawCanvas.kt"
             line="145"
             column="7"/>
     </issue>
@@ -2472,7 +2472,7 @@
         errorLine1="        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ai/AiHandwritingService.kt"
+            file="src/main/java/com/bsplan/app/ai/AiHandwritingService.kt"
             line="498"
             column="22"/>
     </issue>
@@ -2483,7 +2483,7 @@
         errorLine1="                            val bitmap = Bitmap.createBitmap("
         errorLine2="                                         ^">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/BooxNotesDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/BooxNotesDialog.kt"
             line="192"
             column="42"/>
     </issue>
@@ -2494,7 +2494,7 @@
         errorLine1="                            val scaledBitmap = Bitmap.createScaledBitmap("
         errorLine2="                                               ^">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/BooxNotesDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/BooxNotesDialog.kt"
             line="200"
             column="48"/>
     </issue>
@@ -2505,7 +2505,7 @@
         errorLine1="    private val noteModelUri: Uri = Uri.parse(&quot;content://$notesAuthority/NoteModel&quot;)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/booxnotes/BooxNotesIntegration.kt"
+            file="src/main/java/com/bsplan/app/booxnotes/BooxNotesIntegration.kt"
             line="84"
             column="37"/>
     </issue>
@@ -2516,7 +2516,7 @@
         errorLine1="                bitmapToUse = Bitmap.createScaledBitmap(softwareBitmap, finalWidth, finalHeight, true)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/DrawCanvas.kt"
+            file="src/main/java/com/bsplan/app/editor/DrawCanvas.kt"
             line="1267"
             column="31"/>
     </issue>
@@ -2527,7 +2527,7 @@
         errorLine1="                                            Color(android.graphics.Color.parseColor(hex))"
         errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/EventDetailsDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/EventDetailsDialog.kt"
             line="131"
             column="51"/>
     </issue>
@@ -2538,7 +2538,7 @@
         errorLine1="        encryptedPrefs.edit()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="90"
             column="9"/>
     </issue>
@@ -2549,7 +2549,7 @@
         errorLine1="        encryptedPrefs.edit().putBoolean(&quot;sync_enabled&quot;, enabled).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="150"
             column="9"/>
     </issue>
@@ -2560,7 +2560,7 @@
         errorLine1="        encryptedPrefs.edit().putString(&quot;sync_frequency&quot;, frequency).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="159"
             column="9"/>
     </issue>
@@ -2571,7 +2571,7 @@
         errorLine1="        encryptedPrefs.edit().putLong(&quot;last_sync_time&quot;, timestamp).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="177"
             column="9"/>
     </issue>
@@ -2582,7 +2582,7 @@
         errorLine1="        encryptedPrefs.edit().putStringSet(&quot;selected_calendars&quot;, calendarIds).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="185"
             column="9"/>
     </issue>
@@ -2593,7 +2593,7 @@
         errorLine1="        encryptedPrefs.edit().putString(&quot;default_calendar_id&quot;, calendarId).apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="197"
             column="9"/>
     </issue>
@@ -2604,7 +2604,7 @@
         errorLine1="        encryptedPrefs.edit().clear().apply()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/sync/GoogleAuthManager.kt"
+            file="src/main/java/com/bsplan/app/sync/GoogleAuthManager.kt"
             line="226"
             column="9"/>
     </issue>
@@ -2615,7 +2615,7 @@
         errorLine1="                        val bitmap = android.graphics.Bitmap.createBitmap("
         errorLine2="                                     ^">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3030"
             column="38"/>
     </issue>
@@ -2626,7 +2626,7 @@
         errorLine1="                        val scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, 180, 216, true)"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/views/MainScreen.kt"
+            file="src/main/java/com/bsplan/app/ui/views/MainScreen.kt"
             line="3037"
             column="38"/>
     </issue>
@@ -2637,7 +2637,7 @@
         errorLine1="    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/ui/dialogs/NativeBackgroundDialog.kt"
+            file="src/main/java/com/bsplan/app/ui/dialogs/NativeBackgroundDialog.kt"
             line="166"
             column="18"/>
     </issue>
@@ -2648,7 +2648,7 @@
         errorLine1="        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/drawing/TableBitmapGenerator.kt"
+            file="src/main/java/com/bsplan/app/editor/drawing/TableBitmapGenerator.kt"
             line="49"
             column="22"/>
     </issue>
@@ -2659,7 +2659,7 @@
         errorLine1="        val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/ui/TaskPreviewBitmap.kt"
+            file="src/main/java/com/bsplan/app/editor/ui/TaskPreviewBitmap.kt"
             line="82"
             column="22"/>
     </issue>
@@ -2670,7 +2670,7 @@
         errorLine1="            canvas.save()"
         errorLine2="            ~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/drawing/TextBoxRenderer.kt"
+            file="src/main/java/com/bsplan/app/editor/drawing/TextBoxRenderer.kt"
             line="137"
             column="13"/>
     </issue>
@@ -2681,7 +2681,7 @@
         errorLine1="    canvas.save()"
         errorLine2="    ~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/boox/day/editor/drawing/pageDrawing.kt"
+            file="src/main/java/com/bsplan/app/editor/drawing/pageDrawing.kt"
             line="350"
             column="5"/>
     </issue>
@@ -2692,7 +2692,7 @@
         errorLine1="    val bmp = Bitmap.createBitmap("
         errorLine2="              ^">
         <location
-            file="src/main/java/com/boox/day/editor/utils/persistBitmap.kt"
+            file="src/main/java/com/bsplan/app/editor/utils/persistBitmap.kt"
             line="234"
             column="15"/>
     </issue>

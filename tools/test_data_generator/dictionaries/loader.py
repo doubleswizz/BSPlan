@@ -279,7 +279,7 @@ def get_loader(assets_path: Optional[str] = None) -> DictionaryLoader:
         possible_paths = [
             "app/src/main/assets/classification/en",
             "../../../app/src/main/assets/classification/en",
-            "C:/Users/fort/Projects/Boox_Day/app/src/main/assets/classification/en",
+            "./app/src/main/assets/classification/en",
         ]
         for path in possible_paths:
             if Path(path).exists():

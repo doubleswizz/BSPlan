@@ -1,6 +1,6 @@
 # EInkTheme Cheat Sheet
 
-> **BooxDay** - E-Ink Optimized Design System for Android/Compose
+> **BSPlan** - E-Ink Optimized Design System for Android/Compose
 > **Last Updated**: December 2025
 
 ---
@@ -28,7 +28,7 @@
 ## File Location
 
 ```
-app/src/main/java/com/boox/day/ui/theme/EInkTheme.kt
+app/src/main/java/com/bsplan/app/ui/theme/EInkTheme.kt
 ```
 
 ---
@@ -851,7 +851,7 @@ EInkTheme.BooxNotes.confidenceLowBackground    // Color(0xFFE57373)
 ## Usage Example
 
 ```kotlin
-import com.boox.day.ui.theme.EInkTheme
+import com.bsplan.app.ui.theme.EInkTheme
 
 @Composable
 fun MyPopupMenu() {

@@ -221,6 +221,6 @@ Your current coverage:
 
 
 if __name__ == "__main__":
-    base_path = "C:/Users/fort/Projects/Boox_Day/app/src/main/assets/classification/en"
+    base_path = "./app/src/main/assets/classification/en"
     results = analyze_directory(base_path)
     print_report(results)

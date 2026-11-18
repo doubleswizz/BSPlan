@@ -2,7 +2,7 @@
 (git credential fill); never prints it. Draft first, so nothing is public without its APK.
 
 Usage (the tag must already be pushed):
-    python tools/publish-github-release.py v1.0.32 "BooxDay 1.0.32" ../booxday-release/booxday-1.0.32.apk notes.md
+    python tools/publish-github-release.py v1.0.80 "BSPlan 1.0.80" BSPlan.apk notes.md
 
 Re-running reuses the draft for the tag and replaces a half-uploaded APK; it refuses to touch a
 release that is already published. Needs no gh CLI (not installed on this PC)."""
@@ -13,7 +13,7 @@ import sys
 import urllib.error
 import urllib.request
 
-REPO = "fortolano/booxday"
+REPO = "doubleswizz/BSPlan"
 TAG, TITLE, APK = sys.argv[1], sys.argv[2], sys.argv[3]
 BODY = open(sys.argv[4], encoding="utf-8").read().strip()
 ASSET_NAME = os.path.basename(APK)

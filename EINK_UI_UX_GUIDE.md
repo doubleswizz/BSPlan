@@ -1,11 +1,11 @@
-# E-Ink UI/UX Guide for BooxDay
+# E-Ink UI/UX Guide for BSPlan
 
 Purpose
 This guide turns the E-Ink constraints and `EInkTheme.kt` tokens into practical rules
 for new dialogs, screens, menus, and layouts. It is focused on Boox E-Ink devices.
 
 Use this before building any UI:
-- Check sizes and typography against `app/src/main/java/com/boox/day/ui/theme/EInkTheme.kt`.
+- Check sizes and typography against `app/src/main/java/com/bsplan/app/ui/theme/EInkTheme.kt`.
 - Favor clarity and stability over density and motion.
 
 Non-Negotiable Rules

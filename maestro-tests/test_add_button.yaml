@@ -1,4 +1,4 @@
-appId: com.boox.day
+appId: com.bsplan.app
 ---
 # Test if taps register - try the + (add event) button
 # + button should be at approximately x=557, which is 30%

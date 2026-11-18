@@ -1,4 +1,4 @@
-appId: com.boox.day
+appId: com.bsplan.app
 ---
 # Systematic grid test - map actual tap positions
 # Test top toolbar at y=40 with x from 50 to 900 in steps

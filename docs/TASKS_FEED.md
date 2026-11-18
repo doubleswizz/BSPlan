@@ -1,30 +1,30 @@
-# BooxDay tasks feed (read-only)
+# BSPlan tasks feed (read-only)
 
-Other apps on the reader (launchers, widgets, assistants) can read BooxDay tasks through a
+Other apps on the reader (launchers, widgets, assistants) can read BSPlan tasks through a
 content provider. They can't add, change, complete or delete tasks.
 
 | URI | Returns |
 | --- | --- |
-| `content://com.boox.day.tasks/due` | Open tasks due today or overdue, oldest due first |
-| `content://com.boox.day.tasks/today` | Every task with content on today's page |
-| `content://com.boox.day.tasks/open` | All open tasks with content, newest day first |
+| `content://com.bsplan.app.tasks/due` | Open tasks due today or overdue, oldest due first |
+| `content://com.bsplan.app.tasks/today` | Every task with content on today's page |
+| `content://com.bsplan.app.tasks/open` | All open tasks with content, newest day first |
 
 Optional `?limit=` (1 to 200, default 50).
 
 Columns: `_id`, `task_id`, `title`, `handwritten_only`, `day`, `due_day`, `completed`,
 `priority`, `overdue`, `parent_task_id`, `updated_at`. `title` is the converted, typed or
 recognised text, or "Handwritten task" when a task has only strokes (before handwriting
-recognition reads it, or when it can't). A row counts as handwritten by the same rule BooxDay
+recognition reads it, or when it can't). A row counts as handwritten by the same rule BSPlan
 uses on its own pages, so a stray line from the next row doesn't make an empty row a task.
 
 Only task text and dates are shared. Strokes, notes, pages, accounts, API keys and settings are
 not. The provider is exported without a permission, so any app on the device can read it.
 
-Readers are notified on `content://com.boox.day.tasks` whenever tasks change, including new
+Readers are notified on `content://com.bsplan.app.tasks` whenever tasks change, including new
 handwriting and handwriting recognition, about a second after the change (a burst of changes is
 one notice).
 
-Note: BOOX's app freezing disables idle apps, which also hides this feed until BooxDay is opened
-again. Turning off freezing for BooxDay keeps it available.
+Note: BOOX's app freezing disables idle apps, which also hides this feed until BSPlan is opened
+again. Turning off freezing for BSPlan keeps it available.
 
-Source: `app/src/main/java/com/boox/day/share/`.
+Source: `app/src/main/java/com/bsplan/app/share/`.

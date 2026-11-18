@@ -1,15 +1,15 @@
-# BooxDay Database Reference
+# BSPlan Database Reference
 
 > **Last Verified**: March 2026
 > **Covers Files**: Db.kt, all entity files, all DAO files
 > **Current Version**: 25 (First public production baseline)
-> **Database Location**: `context.filesDir/booxdaydb/app_database`
+> **Database Location**: `context.filesDir/bsplandb/app_database`
 
 ---
 
 ## Overview
 
-BooxDay uses Room (SQLite) for local storage. The database is stored in **internal storage** (no external storage permission needed). Reset via: `adb shell pm clear com.boox.day`.
+BSPlan uses Room (SQLite) for local storage. The database is stored in **internal storage** (no external storage permission needed). Reset via: `adb shell pm clear com.bsplan.app`.
 
 **Key Characteristics**:
 - **24 entities** (as of v25)
@@ -42,7 +42,7 @@ BooxDay uses Room (SQLite) for local storage. The database is stored in **intern
 - the public support promise starts at **v25**
 - every schema change after v25 must include a migration and test
 
-**Location**: `app/src/main/java/com/boox/day/data/db/Db.kt`
+**Location**: `app/src/main/java/com/bsplan/app/data/db/Db.kt`
 
 ---
 
@@ -77,7 +77,7 @@ data class Page(
 
 **DAO**: `PageDao` (`getById`, `insert`, `update`, `delete`)
 
-**File**: `app/src/main/java/com/boox/day/data/db/Page.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/Page.kt`
 
 ---
 
@@ -130,8 +130,8 @@ fun toStrokePoints(bytes: ByteArray?): List<StrokePoint>?
 **DAO**: `StrokeDao` (`getByPageId`, `insert`, `delete`, `deleteByIds`)
 
 **Files**:
-- `app/src/main/java/com/boox/day/data/db/Stroke.kt`
-- `app/src/main/java/com/boox/day/data/db/StrokeEncoding.kt` (SB1 implementation)
+- `app/src/main/java/com/bsplan/app/data/db/Stroke.kt`
+- `app/src/main/java/com/bsplan/app/data/db/StrokeEncoding.kt` (SB1 implementation)
 
 **See Also**: Legacy docs at `docs/database-structure.md` (NOTE: May be outdated)
 
@@ -160,7 +160,7 @@ data class Image(
 
 **DAO**: `ImageDao` (`getByPageId`, `insert`, `delete`)
 
-**File**: `app/src/main/java/com/boox/day/data/db/Image.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/Image.kt`
 
 ---
 
@@ -192,7 +192,7 @@ suspend fun getDatesWithNotesForMonth(yearMonth: String): List<String>
 suspend fun getOrCreatePageForDate(date: String, createIfMissing: Boolean = true): String
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/DayPage.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/DayPage.kt`
 
 ---
 
@@ -224,7 +224,7 @@ data class CalendarEvent(
 
 **DAO**: `CalendarEventDao` (basic CRUD)
 
-**File**: `app/src/main/java/com/boox/day/data/db/CalendarEvent.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/CalendarEvent.kt`
 
 ---
 
@@ -287,7 +287,7 @@ suspend fun getByAccountId(accountId: String): List<LocalEvent>
 suspend fun getPendingSync(): List<LocalEvent>
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/LocalEvent.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/LocalEvent.kt`
 
 ---
 
@@ -310,7 +310,7 @@ data class LocalCalendar(
 
 **Status**: Partially superseded by `CalendarSelectionEntity` (v18+). Still used for device calendar provider integration.
 
-**File**: `app/src/main/java/com/boox/day/data/db/LocalCalendar.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/LocalCalendar.kt`
 
 ---
 
@@ -354,7 +354,7 @@ suspend fun getById(id: String): ConnectedAccountEntity?
 suspend fun markInactive(id: String)
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/ConnectedAccountEntity.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/ConnectedAccountEntity.kt`
 
 ---
 
@@ -400,7 +400,7 @@ suspend fun getDefaultForAccount(accountId: String): CalendarSelectionEntity?
 suspend fun setDefault(id: String, accountId: String)
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/CalendarSelectionEntity.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/CalendarSelectionEntity.kt`
 
 ---
 
@@ -448,7 +448,7 @@ suspend fun setPriority(id: String, priority: Int)
 suspend fun setDueDate(id: String, dueDate: Long?)
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/Task.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/Task.kt`
 
 ---
 
@@ -473,7 +473,7 @@ data class Attachment(
 )
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/Attachment.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/Attachment.kt`
 
 ---
 
@@ -525,7 +525,7 @@ sealed class RichTextSpan {
 
 **DAO**: `TextAnnotationDao` (`getByPageId`, `insert`, `update`, `delete`)
 
-**File**: `app/src/main/java/com/boox/day/data/db/TextAnnotation.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/TextAnnotation.kt`
 
 ---
 
@@ -551,13 +551,13 @@ data class BooxNoteIndex(
 )
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/BooxNoteIndex.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/BooxNoteIndex.kt`
 
 ---
 
 #### BooxNoteLink
 
-**Purpose**: Links between BooxDay pages and Boox Notes pages.
+**Purpose**: Links between BSPlan pages and Boox Notes pages.
 
 **Schema**:
 ```kotlin
@@ -573,7 +573,7 @@ data class BooxNoteLink(
 )
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/BooxNoteLink.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/BooxNoteLink.kt`
 
 ---
 
@@ -598,7 +598,7 @@ data class SummaryCache(
 )
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/SummaryCache.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/SummaryCache.kt`
 
 ---
 
@@ -624,7 +624,7 @@ kvProxy.set("APP_SETTINGS", GlobalAppSettings.current)
 val settings = kvProxy.get<AppSettings>("APP_SETTINGS")
 ```
 
-**File**: `app/src/main/java/com/boox/day/data/db/Kv.kt`
+**File**: `app/src/main/java/com/bsplan/app/data/db/Kv.kt`
 
 ---
 
@@ -635,8 +635,8 @@ val settings = kvProxy.get<AppSettings>("APP_SETTINGS")
 **Status**: Dead code - entities exist but never queried in Day mode.
 
 **Files**:
-- `app/src/main/java/com/boox/day/data/db/Folder.kt`
-- `app/src/main/java/com/boox/day/data/db/Notebook.kt`
+- `app/src/main/java/com/bsplan/app/data/db/Folder.kt`
+- `app/src/main/java/com/bsplan/app/data/db/Notebook.kt`
 
 ---
 
@@ -685,7 +685,7 @@ val page = appRepository.pageRepository.getById(pageId)
 
 **Why**: Repositories handle threading, caching, and business logic.
 
-**Location**: `app/src/main/java/com/boox/day/data/repositories/`
+**Location**: `app/src/main/java/com/bsplan/app/data/repositories/`
 
 ---
 
@@ -771,7 +771,7 @@ private val MIGRATION_18_19 = object : Migration(18, 19) {
 
 **Testing Migrations**:
 ```bash
-adb shell pm clear com.boox.day  # Reset to test migration from scratch
+adb shell pm clear com.bsplan.app  # Reset to test migration from scratch
 ```
 
 ---
@@ -828,7 +828,7 @@ suspend fun getTasksForDay(date: String): List<Task>
 
 | Data Type | Location | Notes |
 |-----------|----------|-------|
-| **Database** | `context.filesDir/booxdaydb/` | Internal storage |
+| **Database** | `context.filesDir/bsplandb/` | Internal storage |
 | **Bitmaps** | `context.filesDir/pagedata/` | Cached page bitmaps |
 | **Attachments** | `context.filesDir/attachments/` | Task attachments |
 | **Boox Notes** | `/storage/emulated/0/.ksync/` | External (requires permission) |
@@ -841,10 +841,10 @@ suspend fun getTasksForDay(date: String): List<Task>
 
 ```bash
 # Pull database to computer
-adb pull /data/data/com.boox.day/files/booxdaydb/app_database ~/boox_day.db
+adb pull /data/data/com.bsplan.app/files/bsplandb/app_database ~/bsplan.db
 
 # Open with SQLite browser
-sqlite3 ~/boox_day.db
+sqlite3 ~/bsplan.db
 .tables
 SELECT * FROM Task;
 ```
@@ -852,7 +852,7 @@ SELECT * FROM Task;
 ### Reset Database
 
 ```bash
-adb shell pm clear com.boox.day
+adb shell pm clear com.bsplan.app
 ```
 
 ### Export Database

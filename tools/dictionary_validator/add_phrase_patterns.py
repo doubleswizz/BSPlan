@@ -181,7 +181,7 @@ def add_patterns_to_file(file_path: str, patterns: list) -> bool:
 
 
 def main():
-    intents_dir = Path("C:/Users/fort/Projects/Boox_Day/app/src/main/assets/classification/en/intents")
+    intents_dir = Path("./app/src/main/assets/classification/en/intents")
 
     if not intents_dir.exists():
         print(f"ERROR: Directory not found: {intents_dir}")

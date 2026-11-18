@@ -26,8 +26,8 @@ android {
         minSdk 31
         targetSdk 35
 
-        versionCode 79
-        versionName '1.0.79'
+        versionCode 80
+        versionName '1.0.80'
         if (project.hasProperty('IS_NEXT') && project.IS_NEXT.toBoolean()) {
             def timestamp = new Date().format('dd.MM.YYYY-HH:mm')
             versionName = "${versionName}-next-${timestamp}"
@@ -111,8 +111,6 @@ android {
             // Task sync (Oct 2026): it gates the whole engine, not just the settings card. On in release
             // builds since Google approved the Tasks permission (1 Nov 2026, the 1.0.53 release).
             buildConfigField("boolean", "TASK_SYNC_ENABLED", "true")
-            // No OpenRouter key in the APK (Oct 2026): AI runs only on the user's own key, entered in AI Settings
-            // No Cloud Vision key in the APK (Oct 2026): search indexing reads pages with AI on the user's own OpenRouter key
             // Apply signing config if available (env var or keystore.properties)
             if (System.getenv("STORE_FILE") != null || keystoreProperties['storeFile'] != null) {
                 signingConfig signingConfigs.release
@@ -124,8 +122,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("boolean", "IS_NEXT", IS_NEXT)
             buildConfigField("boolean", "TASK_SYNC_ENABLED", "true")  // see debug
-            // No OpenRouter key in the APK (Oct 2026): AI runs only on the user's own key, entered in AI Settings
-            // No Cloud Vision key in the APK (Oct 2026): search indexing reads pages with AI on the user's own OpenRouter key
             // Apply signing config if available (env var or keystore.properties)
             if (System.getenv("STORE_FILE") != null || keystoreProperties['storeFile'] != null) {
                 signingConfig signingConfigs.release
@@ -174,7 +170,7 @@ android {
             pickFirsts += ['**/libc++_shared.so']
         }
     }
-    namespace 'com.boox.day'
+    namespace 'com.bsplan.app'
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
@@ -186,6 +182,10 @@ android {
     testOptions {
         unitTests {
             returnDefaultValues = true
+            all {
+                maxHeapSize = "2048m"
+                forkEvery = 30
+            }
         }
     }
 }
@@ -327,7 +327,7 @@ dependencies {
     // for PDF support:
     implementation("com.artifex.mupdf:fitz:1.26.10")
 
-    // OpenRouter API for AI features
+    // Networking and JSON serialization
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
     implementation "com.squareup.retrofit2:converter-gson:2.9.0"
     implementation "com.squareup.okhttp3:okhttp:4.11.0"

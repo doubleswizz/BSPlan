@@ -1,0 +1,686 @@
+﻿package com.bsplan.app.editor.ui.toolbar
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import com.bsplan.app.ui.components.ScrollMoreIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import androidx.navigation.NavController
+import com.bsplan.app.R
+import com.bsplan.app.data.AppRepository
+import com.bsplan.app.data.datastore.BUTTON_SIZE
+import com.bsplan.app.editor.DrawCanvas
+import com.bsplan.app.editor.state.EditorState
+import com.bsplan.app.io.ExportRun
+import com.bsplan.app.io.ExportFormat
+import com.bsplan.app.io.ExportOutcome
+import com.bsplan.app.io.ExportTarget
+import com.bsplan.app.io.FileShare
+import com.bsplan.app.ui.LocalSnackContext
+import com.bsplan.app.ui.SnackConf
+import com.bsplan.app.ui.SnackState
+import com.bsplan.app.ui.showHint
+import com.bsplan.app.ui.convertDpToPixel
+import com.bsplan.app.data.db.TaskPageInfo
+import com.bsplan.app.editor.ui.TaskExportAction
+import com.bsplan.app.editor.ui.TaskExportDialog
+import com.bsplan.app.editor.ui.TaskExportFormat
+import com.bsplan.app.editor.ui.TaskExportScope
+import com.bsplan.app.io.TaskExportService
+import com.bsplan.app.ui.dialogs.ExportDialog
+import com.bsplan.app.ui.dialogs.ShowSimpleConfirmationDialog
+import com.bsplan.app.ui.noRippleClickable
+import com.bsplan.app.ui.theme.EInkTheme
+import com.bsplan.app.ui.views.EditorTab
+import com.bsplan.app.utils.DateTimeFormatUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+
+/**
+ * Width of the toolbar menu (≡) and of the tool menus shown in it (Oct 2026): wide enough for
+ * "Clear This Day's Memos" on one line ("Clear All Memos Today" wrapped at the 230 dp of
+ * EInkTheme.PopupMenu.width).
+ */
+private val TOOLBAR_MENU_WIDTH = 260.dp
+
+/**
+ * A toolbar tool that is not on the bar at this screen width, listed at the top of the toolbar
+ * menu (≡) with a label (Oct 2026).
+ *
+ * @param icon draws the tool's icon in the given tint
+ * @param selected shown inverted: the tool's mode is on (lasso)
+ * @param badge red "!": the tool needs setup (Boox Notes)
+ * @param onClick a plain action; the menu closes first
+ * @param mayOpenPage checked before [page] opens; false leaves the menu as it is (Boox Notes setup)
+ * @param page the tool's own menu, shown in place of the list with a back row; its argument closes
+ *   the whole menu
+ * @param pageWrapsContent the page takes its content's width instead of the menu width (pen pickers)
+ */
+class ToolbarMenuTool(
+    val label: String,
+    val icon: @Composable (tint: Color) -> Unit,
+    val enabled: Boolean = true,
+    val selected: Boolean = false,
+    val badge: Boolean = false,
+    val onClick: (() -> Unit)? = null,
+    val mayOpenPage: () -> Boolean = { true },
+    val page: (@Composable ColumnScope.(closeMenu: () -> Unit) -> Unit)? = null,
+    val pageWrapsContent: Boolean = false
+)
+
+/** The result of a memo export, with a way to send the file on (Nov 2026). */
+private fun exportResultSnack(context: Context, outcome: ExportOutcome): SnackConf = when (outcome) {
+    is ExportOutcome.Saved -> SnackConf(
+        text = outcome.message,
+        duration = EXPORT_SAVED_SNACK_MS,
+        actions = if (outcome.uris.isEmpty()) null else listOf<Pair<String, () -> Unit>>("Share" to {
+            try {
+                FileShare.share(context, outcome.uris, outcome.mimeType)
+            } catch (e: Exception) {
+                showHint("Couldn't open the share screen")
+            }
+        })
+    )
+    is ExportOutcome.Empty -> SnackConf(text = outcome.message, duration = SnackConf.DURATION_STANDARD)
+    is ExportOutcome.Failed -> SnackConf(text = outcome.message, duration = SnackConf.DURATION_ERROR)
+}
+
+/** Long enough to read the folder and reach for Share. */
+private const val EXPORT_SAVED_SNACK_MS = 10_000
+
+/** A long export says how far it's got, at most this often: each change is an e-ink refresh. */
+private const val EXPORT_PROGRESS_MS = 2_000L
+private const val EXPORT_PROGRESS_KEY = "export-progress"
+
+/** Runs a job from the Export dialog, with its progress and result in the snack bar. */
+private suspend fun runExport(context: Context, snackManager: SnackState, job: ExportRun.Job) {
+    val working = context.getString(
+        when {
+            job.target is ExportTarget.Page -> R.string.exporting_this_page
+            job.target is ExportTarget.Days -> R.string.exporting_these_dates
+            else -> R.string.exporting_this_day
+        }
+    )
+    var dismiss = snackManager.displaySnack(SnackConf(key = EXPORT_PROGRESS_KEY, text = working))
+    var lastShown = System.currentTimeMillis()
+    val outcome = try {
+        ExportRun.run(context, job) { done, total ->
+            val now = System.currentTimeMillis()
+            if (now - lastShown >= EXPORT_PROGRESS_MS) {
+                lastShown = now
+                dismiss = snackManager.displaySnack(SnackConf(key = EXPORT_PROGRESS_KEY, text = "$working $done of $total"))
+            }
+        }
+    } finally {
+        withContext(NonCancellable) { dismiss() }
+    }
+    if (job.share && outcome is ExportOutcome.Saved) {
+        try {
+            FileShare.share(context, outcome.uris, outcome.mimeType)
+        } catch (e: Exception) {
+            showHint("Couldn't open the share screen")
+        }
+    } else {
+        snackManager.displaySnack(exportResultSnack(context, outcome))
+    }
+}
+
+/**
+ * The toolbar menu (≡), tab-aware; opened from the bar's last button on both tabs (Oct 2026).
+ *
+ * - Top: the tools that are not on the bar at this screen width ([tools]), in bar order. A tool
+ *   with its own menu opens it in place of the list (a back row returns), so no popup ever opens
+ *   from inside this one.
+ * - Then the page items:
+ *   - **Memos tab**: Screen Refresh, Export Pages, Clear This Page, Delete Page, Clear This Day's Memos
+ *   - **Tasks tab**: Screen Refresh, Share/Export Tasks, Delete Page, Clear This Day's Tasks
+ *
+ * Page operations (Clear This Page, Delete Page) moved here from Eraser menu.
+ *
+ * @param activeTab The currently active tab (Memos or Tasks)
+ * @param taskPageInfo Current task page info (for Tasks tab export)
+ * @param canvasHeight Canvas height for stroke detection in task export
+ * @param maxHeight the space below the bar; a taller menu scrolls with a "Scroll for more" marker
+ */
+@Composable
+fun ToolbarMenu(
+    navController: NavController,
+    state: EditorState,
+    controlTower: com.bsplan.app.editor.EditorControlTower,
+    activeTab: EditorTab,
+    taskPageInfo: TaskPageInfo? = null,
+    canvasHeight: Float = 0f,
+    tools: List<ToolbarMenuTool> = emptyList(),
+    maxHeight: Dp = Dp.Unspecified,
+    onClearPage: () -> Unit,
+    onDeletePage: () -> Unit,
+    onScreenRefresh: () -> Unit = {},
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    // Phase 3 (Oct 2026): kept across recompositions; the unused page/book lookups (blocking
+    // database reads on the main thread on every recomposition, and a crash if the page was gone)
+    // are removed
+    val scope = remember { CoroutineScope(Dispatchers.IO) }
+    val snackManager = LocalSnackContext.current
+    val appRepository = remember { AppRepository(context) }
+
+    var showExportDialog by remember { mutableStateOf(false) }
+
+    // Confirmation dialog states
+    var showClearPageConfirmation by remember { mutableStateOf(false) }
+    var showDeletePageConfirmation by remember { mutableStateOf(false) }
+    var showClearMemosConfirmation by remember { mutableStateOf(false) }
+    var showClearTasksConfirmation by remember { mutableStateOf(false) }
+
+    // Task Export Dialog state
+    var showTaskExportDialog by remember { mutableStateOf(false) }
+
+    // Task Export Dialog
+    if (showTaskExportDialog && state.dayDate != null) {
+        TaskExportDialog(
+            dayDate = state.dayDate!!,
+            currentTaskPageIndex = taskPageInfo?.currentIndex ?: 0,
+            canvasHeight = canvasHeight,
+            onExport = { exportScope, format, action ->
+                showTaskExportDialog = false
+                onClose()
+
+                val dayDate = state.dayDate!!
+                val taskPageIndex = taskPageInfo?.currentIndex ?: 0
+                scope.launch {
+                    // Perform export using TaskExportService (with stroke detection), off the main thread
+                    val result = TaskExportService(context).export(
+                        scope = exportScope,
+                        format = format,
+                        action = action,
+                        dayDate = dayDate,
+                        currentTaskPageIndex = taskPageIndex,
+                        canvasHeight = canvasHeight
+                    )
+
+                    // Show result snackbar for both clipboard and share
+                    snackManager.displaySnack(
+                        SnackConf(
+                            text = result.message,
+                            duration = SnackConf.DURATION_QUICK
+                        )
+                    )
+                }
+            },
+            onDismiss = { showTaskExportDialog = false }
+        )
+    }
+
+    // Export dialog (for Memos)
+    if (showExportDialog) {
+        ExportDialog(
+            date = state.dayDate,
+            currentPageId = state.currentPageId,
+            dayPageIds = state.dayPageInfo?.pageIds ?: listOf(state.currentPageId),
+            onExport = { job ->
+                showExportDialog = false
+                onClose()
+                scope.launch { runExport(context, snackManager, job) }
+            },
+            onDismiss = { showExportDialog = false }
+        )
+    }
+
+    // Confirmation: Clear This Page (current page only)
+    if (showClearPageConfirmation) {
+        ShowSimpleConfirmationDialog(
+            title = "Clear This Page",
+            message = "This will remove all content from the current page. This action cannot be undone.",
+            confirmButtonText = "Clear Page",
+            cancelButtonText = "Cancel",
+            onConfirm = {
+                showClearPageConfirmation = false
+                onClose()
+                onClearPage()
+                scope.launch {
+                    snackManager.displaySnack(
+                        SnackConf(
+                            text = "Page cleared",
+                            duration = SnackConf.DURATION_QUICK
+                        )
+                    )
+                }
+            },
+            onCancel = { showClearPageConfirmation = false }
+        )
+    }
+
+    // Confirmation: Delete Page (removes entire page)
+    if (showDeletePageConfirmation) {
+        ShowSimpleConfirmationDialog(
+            title = "Delete Page",
+            message = "This will delete the entire page. This action cannot be undone.",
+            confirmButtonText = "Delete Page",
+            cancelButtonText = "Cancel",
+            onConfirm = {
+                showDeletePageConfirmation = false
+                onClose()
+                onDeletePage()
+                scope.launch {
+                    snackManager.displaySnack(
+                        SnackConf(
+                            text = "Page deleted",
+                            duration = SnackConf.DURATION_QUICK
+                        )
+                    )
+                }
+            },
+            onCancel = { showDeletePageConfirmation = false }
+        )
+    }
+
+    // The clears work on the day on screen, which is often not today (Oct 2026: they said "Today")
+    val shownDay = state.dayDate?.let { DateTimeFormatUtils.formatDateFullFromString(it) } ?: "this day"
+
+    // Confirmation: Clear This Day's Memos
+    if (showClearMemosConfirmation) {
+        ShowSimpleConfirmationDialog(
+            title = "Clear This Day's Memos",
+            message = "This clears every memo page of $shownDay. It can't be undone.",
+            confirmButtonText = "Clear All",
+            cancelButtonText = "Cancel",
+            onConfirm = {
+                showClearMemosConfirmation = false
+                onClose()
+                scope.launch {
+                    val pageCount = controlTower.clearMemoPages()
+                    snackManager.displaySnack(
+                        SnackConf(
+                            text = "Cleared $pageCount memo page(s)",
+                            duration = SnackConf.DURATION_QUICK
+                        )
+                    )
+                }
+            },
+            onCancel = { showClearMemosConfirmation = false }
+        )
+    }
+
+    // Confirmation: Clear This Day's Tasks
+    if (showClearTasksConfirmation) {
+        ShowSimpleConfirmationDialog(
+            title = "Clear This Day's Tasks",
+            message = "This clears every task page of $shownDay. It can't be undone.",
+            confirmButtonText = "Clear All",
+            cancelButtonText = "Cancel",
+            onConfirm = {
+                showClearTasksConfirmation = false
+                onClose()
+                // Full screen (Oct 2026): runs in the normal view, like the other Tasks page tools. On the
+                // full screen pages it deleted fewer pages, and leaving full screen put the others back.
+                com.bsplan.app.ui.FullScreenState.exitThen {
+                    scope.launch {
+                        val pageCount = controlTower.clearTaskPages()
+                        snackManager.displaySnack(
+                            SnackConf(
+                                text = "Cleared $pageCount task page(s)",
+                                duration = SnackConf.DURATION_QUICK
+                            )
+                        )
+                    }
+                }
+            },
+            onCancel = { showClearTasksConfirmation = false }
+        )
+    }
+
+    // The tool whose own menu is shown in place of the list (null: the list)
+    var openToolLabel by remember { mutableStateOf<String?>(null) }
+    val openTool = tools.firstOrNull { it.label == openToolLabel }
+
+    Popup(
+        alignment = Alignment.TopEnd,
+        onDismissRequest = { onClose() },
+        offset = IntOffset(
+            0,
+            convertDpToPixel(EInkTheme.PopupMenu.offsetY, context).toInt()
+        ),
+        properties = PopupProperties(focusable = true),
+    ) {
+        // Each page of the menu starts at its top
+        key(openToolLabel) {
+            val scrollState = rememberScrollState()
+            Box(
+                Modifier
+                    .background(EInkTheme.PopupMenu.background)
+                    .border(EInkTheme.PopupMenu.borderWidth, EInkTheme.PopupMenu.borderColor, RoundedCornerShape(EInkTheme.ModernDialog.cornerRadius))
+                    .then(
+                        if (openTool?.pageWrapsContent == true) Modifier.width(IntrinsicSize.Max)
+                        else Modifier.width(TOOLBAR_MENU_WIDTH)
+                    )
+            ) {
+                Column(
+                    Modifier
+                        .heightIn(max = maxHeight)
+                        .verticalScroll(scrollState)
+                ) {
+                    val page = openTool?.page
+                    if (openTool != null && page != null) {
+                        // A tool's own menu, with a row back to the list
+                        MenuPageHeader(label = openTool.label, onBack = { openToolLabel = null })
+                        Divider(color = EInkTheme.Divider.color, thickness = EInkTheme.Divider.thickness)
+                        page(this, onClose)
+                    } else {
+                        // The tools that are not on the bar, then the page items
+                        tools.forEach { tool ->
+                            ToolMenuRow(
+                                tool = tool,
+                                onOpenPage = { openToolLabel = tool.label },
+                                onClose = onClose
+                            )
+                        }
+                        if (tools.isNotEmpty()) {
+                            Divider(color = EInkTheme.Divider.color, thickness = EInkTheme.Divider.thickness)
+                        }
+
+                        // Screen Refresh (full e-ink GC refresh - moved from calendar toolbar)
+                        MenuItemWithDrawableIcon(
+                            label = "Screen Refresh",
+                            iconResId = R.drawable.refresh_40px
+                        ) {
+                            onScreenRefresh()
+                            onClose()
+                        }
+
+                        DividerCentered()
+
+                        // Tab-specific export options
+                        when (activeTab) {
+                            EditorTab.Memos -> {
+                                MenuItem(
+                                    label = stringResource(R.string.export_pages),
+                                    icon = Icons.Default.Share
+                                ) {
+                                    showExportDialog = true
+                                }
+                            }
+                            EditorTab.Tasks -> {
+                                MenuItem(
+                                    label = "Share/Export Tasks",
+                                    icon = Icons.Default.Share
+                                ) {
+                                    showTaskExportDialog = true
+                                }
+                            }
+                        }
+
+                        DividerCentered()
+
+                        // Page operations section
+                        if (activeTab == EditorTab.Memos) {
+                            // Memos: Clear This Page (removes content, keeps page)
+                            MenuItemWithDrawableIcon(
+                                label = "Clear This Page",
+                                iconResId = R.drawable.clear_all_40px
+                            ) {
+                                showClearPageConfirmation = true
+                            }
+
+                            DividerCentered()
+                        }
+
+                        // Both tabs: Delete Page
+                        MenuItemWithDrawableIcon(
+                            label = "Delete Page",
+                            iconResId = R.drawable.delete
+                        ) {
+                            showDeletePageConfirmation = true
+                        }
+
+                        DividerCentered()
+
+                        // Tab-specific clear all options (with clearer scope labels)
+                        when (activeTab) {
+                            EditorTab.Memos -> {
+                                MenuItem(
+                                    label = "Clear This Day's Memos",
+                                    icon = Icons.Default.DeleteSweep
+                                ) {
+                                    showClearMemosConfirmation = true
+                                }
+                            }
+                            EditorTab.Tasks -> {
+                                MenuItem(
+                                    label = "Clear This Day's Tasks",
+                                    icon = Icons.Default.DeleteSweep
+                                ) {
+                                    showClearTasksConfirmation = true
+                                }
+                            }
+                        }
+                    }
+                }
+                if (scrollState.canScrollForward) {
+                    Box(Modifier.align(Alignment.BottomCenter)) {
+                        ScrollMoreIndicator()
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** A tool in the toolbar menu: its icon and label, "!" when it needs setup, "›" when it has its own menu. */
+@Composable
+private fun ToolMenuRow(
+    tool: ToolbarMenuTool,
+    onOpenPage: () -> Unit,
+    onClose: () -> Unit
+) {
+    val isSelected = tool.selected && tool.enabled
+    val contentColor = when {
+        !tool.enabled -> EInkTheme.MenuItem.textColorDisabled
+        isSelected -> EInkTheme.MenuItem.selectedTextColor
+        else -> EInkTheme.MenuItem.textColor
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(EInkTheme.MenuItem.height)
+            .then(if (isSelected) Modifier.background(EInkTheme.MenuItem.selectedBackground) else Modifier)
+            .then(
+                if (tool.enabled) {
+                    Modifier.noRippleClickable {
+                        if (tool.page != null) {
+                            if (tool.mayOpenPage()) onOpenPage()
+                        } else {
+                            onClose()
+                            tool.onClick?.invoke()
+                        }
+                    }
+                } else Modifier
+            )
+            .padding(horizontal = EInkTheme.MenuItem.horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(EInkTheme.MenuItem.iconTextSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.size(EInkTheme.MenuItem.iconSize), contentAlignment = Alignment.Center) {
+            tool.icon(contentColor)
+        }
+        Text(
+            text = tool.label,
+            color = contentColor,
+            fontSize = EInkTheme.MenuItem.fontSize,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        if (tool.badge) {
+            Box(
+                modifier = Modifier
+                    .size(EInkTheme.AlertBadge.size)
+                    .background(EInkTheme.AlertBadge.background, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "!",
+                    color = EInkTheme.AlertBadge.textColor,
+                    fontSize = EInkTheme.AlertBadge.fontSize,
+                    fontWeight = EInkTheme.AlertBadge.fontWeight,
+                    lineHeight = EInkTheme.AlertBadge.lineHeight
+                )
+            }
+        }
+        if (tool.page != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier.size(EInkTheme.MenuItem.iconSize),
+                tint = contentColor
+            )
+        }
+    }
+}
+
+/** The first row of a tool's own menu: back to the list. */
+@Composable
+private fun MenuPageHeader(label: String, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(EInkTheme.MenuItem.height)
+            .noRippleClickable { onBack() }
+            .padding(horizontal = EInkTheme.MenuItem.horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(EInkTheme.MenuItem.iconTextSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            contentDescription = "Back to the menu",
+            modifier = Modifier.size(EInkTheme.MenuItem.iconSize),
+            tint = EInkTheme.MenuItem.iconColor
+        )
+        Text(
+            text = label,
+            color = EInkTheme.MenuItem.textColor,
+            fontSize = EInkTheme.MenuItem.fontSize,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun MenuItem(
+    label: String,
+    icon: ImageVector? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(EInkTheme.MenuItem.height)
+            .noRippleClickable { onClick() }
+            .padding(horizontal = EInkTheme.MenuItem.horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(EInkTheme.MenuItem.iconTextSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(EInkTheme.MenuItem.iconSize),
+                tint = EInkTheme.MenuItem.iconColor
+            )
+        }
+        Text(
+            text = label,
+            color = EInkTheme.MenuItem.textColor,
+            fontSize = EInkTheme.MenuItem.fontSize
+        )
+    }
+}
+
+@Composable
+private fun MenuItemWithDrawableIcon(
+    label: String,
+    iconResId: Int,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(EInkTheme.MenuItem.height)
+            .noRippleClickable { onClick() }
+            .padding(horizontal = EInkTheme.MenuItem.horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(EInkTheme.MenuItem.iconTextSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = iconResId),
+            contentDescription = label,
+            modifier = Modifier.size(EInkTheme.MenuItem.iconSize),
+            tint = EInkTheme.MenuItem.iconColor
+        )
+        Text(
+            text = label,
+            color = EInkTheme.MenuItem.textColor,
+            fontSize = EInkTheme.MenuItem.fontSize
+        )
+    }
+}
+
+@Composable
+private fun ColumnScope.DividerCentered() {
+    Box(
+        Modifier
+            .fillMaxWidth(1f / 2f)
+            .align(Alignment.CenterHorizontally)
+            .height(EInkTheme.Divider.subtleThickness)
+            .background(EInkTheme.Divider.subtleColor)
+    )
+}

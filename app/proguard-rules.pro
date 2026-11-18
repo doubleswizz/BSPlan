@@ -1,4 +1,4 @@
-# ProGuard rules for BooxDay
+# ProGuard rules for BSPlan
 # Generated for R8 optimization (Phase 4 APK size reduction)
 
 #==============================================================================
@@ -35,11 +35,11 @@
 # JNI / NATIVE CODE - BooxNative FFI
 #==============================================================================
 # Keep JNI methods and the classes they reference
--keep class com.boox.day.booxnotes.BooxNative { *; }
--keep class com.boox.day.booxnotes.BooxBitmap { *; }
+-keep class com.bsplan.app.booxnotes.BooxNative { *; }
+-keep class com.bsplan.app.booxnotes.BooxBitmap { *; }
 
 # External functions are called from Rust FFI
--keepclassmembers class com.boox.day.booxnotes.BooxNative {
+-keepclassmembers class com.bsplan.app.booxnotes.BooxNative {
     native <methods>;
 }
 
@@ -52,37 +52,37 @@
 -keep @androidx.room.Dao interface * { *; }
 
 # Keep all database entities
--keep class com.boox.day.data.db.DayPage { *; }
--keep class com.boox.day.data.db.CalendarEvent { *; }
--keep class com.boox.day.data.db.BooxNote { *; }
--keep class com.boox.day.data.db.BooxNotePage { *; }
--keep class com.boox.day.data.db.Kv { *; }
--keep class com.boox.day.data.db.Attachment { *; }
--keep class com.boox.day.data.db.Image { *; }
--keep class com.boox.day.data.db.Folder { *; }
--keep class com.boox.day.data.db.Notebook { *; }
--keep class com.boox.day.data.db.Stroke { *; }
--keep class com.boox.day.data.db.Page { *; }
--keep class com.boox.day.data.db.TextAnnotation { *; }
--keep class com.boox.day.data.db.Task { *; }
--keep class com.boox.day.data.db.BooxNoteIndex { *; }
--keep class com.boox.day.data.db.BooxNoteLink { *; }
--keep class com.boox.day.data.db.LocalEvent { *; }
--keep class com.boox.day.data.db.LocalCalendar { *; }
--keep class com.boox.day.data.db.SummaryCache { *; }
--keep class com.boox.day.data.db.ConnectedAccountEntity { *; }
--keep class com.boox.day.data.db.CalendarSelectionEntity { *; }
--keep class com.boox.day.data.db.UnifiedOcrPage { *; }
--keep class com.boox.day.data.db.UnifiedOcrText { *; }
--keep class com.boox.day.data.db.EntityCooccurrence { *; }
--keep class com.boox.day.data.db.UserActivityPattern { *; }
--keep class com.boox.day.data.db.WhatsNewMessage { *; }
+-keep class com.bsplan.app.data.db.DayPage { *; }
+-keep class com.bsplan.app.data.db.CalendarEvent { *; }
+-keep class com.bsplan.app.data.db.BooxNote { *; }
+-keep class com.bsplan.app.data.db.BooxNotePage { *; }
+-keep class com.bsplan.app.data.db.Kv { *; }
+-keep class com.bsplan.app.data.db.Attachment { *; }
+-keep class com.bsplan.app.data.db.Image { *; }
+-keep class com.bsplan.app.data.db.Folder { *; }
+-keep class com.bsplan.app.data.db.Notebook { *; }
+-keep class com.bsplan.app.data.db.Stroke { *; }
+-keep class com.bsplan.app.data.db.Page { *; }
+-keep class com.bsplan.app.data.db.TextAnnotation { *; }
+-keep class com.bsplan.app.data.db.Task { *; }
+-keep class com.bsplan.app.data.db.BooxNoteIndex { *; }
+-keep class com.bsplan.app.data.db.BooxNoteLink { *; }
+-keep class com.bsplan.app.data.db.LocalEvent { *; }
+-keep class com.bsplan.app.data.db.LocalCalendar { *; }
+-keep class com.bsplan.app.data.db.SummaryCache { *; }
+-keep class com.bsplan.app.data.db.ConnectedAccountEntity { *; }
+-keep class com.bsplan.app.data.db.CalendarSelectionEntity { *; }
+-keep class com.bsplan.app.data.db.UnifiedOcrPage { *; }
+-keep class com.bsplan.app.data.db.UnifiedOcrText { *; }
+-keep class com.bsplan.app.data.db.EntityCooccurrence { *; }
+-keep class com.bsplan.app.data.db.UserActivityPattern { *; }
+-keep class com.bsplan.app.data.db.WhatsNewMessage { *; }
 
 # Keep DAOs
--keep class com.boox.day.data.db.*Dao { *; }
+-keep class com.bsplan.app.data.db.*Dao { *; }
 
 # TypeConverters
--keep class com.boox.day.data.db.Converters { *; }
+-keep class com.bsplan.app.data.db.Converters { *; }
 
 #==============================================================================
 # GSON / RETROFIT - JSON Serialization
@@ -97,19 +97,19 @@
 }
 
 # Keep all API model classes (used with Retrofit/Gson)
--keep class com.boox.day.api.** { *; }
+-keep class com.bsplan.app.api.** { *; }
 
 # AI module — all inner data classes are deserialized via Gson reflection
 # Covers: TaskAiService, VoiceEventParser, VoicePreferencesParser,
 # TextInferenceService, MemoContextExtractor, MemoToTasksService,
 # AgenticPlanningService and all their private response/request classes
--keep class com.boox.day.ai.** { *; }
+-keep class com.bsplan.app.ai.** { *; }
 
 # AI data models (AgenticPlanResponse, AiPreferences, etc.)
--keep class com.boox.day.data.ai.** { *; }
+-keep class com.bsplan.app.data.ai.** { *; }
 
 # BooxNoteIndexer inner classes (LlmMatchItem used by Gson)
--keep class com.boox.day.booxnotes.BooxNoteIndexer$* { *; }
+-keep class com.bsplan.app.booxnotes.BooxNoteIndexer$* { *; }
 
 # Retrofit
 -keep class retrofit2.** { *; }
@@ -130,21 +130,21 @@
 -dontnote kotlinx.serialization.AnnotationsKt
 
 # Keep serializable data model classes
--keep class com.boox.day.data.datastore.AppSettings { *; }
--keep class com.boox.day.data.datastore.EditorSettingCacheManager$* { *; }
--keep class com.boox.day.data.model.ParsedEventData { *; }
--keep class com.boox.day.data.model.RichTextSpan { *; }
--keep class com.boox.day.editor.utils.PenKt$* { *; }
+-keep class com.bsplan.app.data.datastore.AppSettings { *; }
+-keep class com.bsplan.app.data.datastore.EditorSettingCacheManager$* { *; }
+-keep class com.bsplan.app.data.model.ParsedEventData { *; }
+-keep class com.bsplan.app.data.model.RichTextSpan { *; }
+-keep class com.bsplan.app.editor.utils.PenKt$* { *; }
 
 # OCR models — @Serializable enums and data classes used in Room converters
--keep class com.boox.day.ocr.model.** { *; }
--keep class com.boox.day.ocr.semantic.classification.DictionaryLoader$* { *; }
--keep class com.boox.day.ocr.semantic.classification.ConceptBridgeLoader$* { *; }
+-keep class com.bsplan.app.ocr.model.** { *; }
+-keep class com.bsplan.app.ocr.semantic.classification.DictionaryLoader$* { *; }
+-keep class com.bsplan.app.ocr.semantic.classification.ConceptBridgeLoader$* { *; }
 
 # Sync — backup schema models (kotlinx.serialization)
--keep class com.boox.day.sync.BackupSchema { *; }
--keep class com.boox.day.sync.BackupSchema$* { *; }
--keep class com.boox.day.sync.FullDatabaseBackupMetadata { *; }
+-keep class com.bsplan.app.sync.BackupSchema { *; }
+-keep class com.bsplan.app.sync.BackupSchema$* { *; }
+-keep class com.bsplan.app.sync.FullDatabaseBackupMetadata { *; }
 
 # Keep serializer companions
 -keepclassmembers class * {
@@ -155,33 +155,33 @@
 }
 
 # Keep generated serializers
--keep,includedescriptorclasses class com.boox.day.**$$serializer { *; }
--keepclassmembers class com.boox.day.** {
+-keep,includedescriptorclasses class com.bsplan.app.**$$serializer { *; }
+-keepclassmembers class com.bsplan.app.** {
     *** Companion;
 }
--keepclasseswithmembers class com.boox.day.** {
+-keepclasseswithmembers class com.bsplan.app.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
 #==============================================================================
 # WORKMANAGER WORKERS - Instantiated via reflection by WorkerFactory
 #==============================================================================
--keep class com.boox.day.notifications.DueDateNotificationWorker { *; }
--keep class com.boox.day.notifications.EventNotificationWorker { *; }
--keep class com.boox.day.ocr.semantic.EventSemanticIndexingWorker { *; }
--keep class com.boox.day.sync.SyncWorker { *; }
+-keep class com.bsplan.app.notifications.DueDateNotificationWorker { *; }
+-keep class com.bsplan.app.notifications.EventNotificationWorker { *; }
+-keep class com.bsplan.app.ocr.semantic.EventSemanticIndexingWorker { *; }
+-keep class com.bsplan.app.sync.SyncWorker { *; }
 
 #==============================================================================
 # MANIFEST COMPONENTS - Instantiated by Android framework via reflection
 #==============================================================================
 # BroadcastReceivers registered in AndroidManifest.xml
--keep class com.boox.day.notifications.BootReceiver { *; }
--keep class com.boox.day.notifications.DueDateAlarmReceiver { *; }
--keep class com.boox.day.notifications.EventAlarmReceiver { *; }
--keep class com.boox.day.notifications.TimeZoneChangeReceiver { *; }
+-keep class com.bsplan.app.notifications.BootReceiver { *; }
+-keep class com.bsplan.app.notifications.DueDateAlarmReceiver { *; }
+-keep class com.bsplan.app.notifications.EventAlarmReceiver { *; }
+-keep class com.bsplan.app.notifications.TimeZoneChangeReceiver { *; }
 
 # FileProvider
--keep class com.boox.day.editor.utils.Provider { *; }
+-keep class com.bsplan.app.editor.utils.Provider { *; }
 
 #==============================================================================
 # GOOGLE CALENDAR API
@@ -305,7 +305,7 @@
 -dontwarn com.google.api.client.googleapis.**
 
 # SDK 1.5.8 optional references retained by the SDK-wide keep rule above.
-# BooxDay does not use the SDK Wi-Fi UI, fastjson 1.x compatibility,
+# BSPlan does not use the SDK Wi-Fi UI, fastjson 1.x compatibility,
 # Apache LDAP hostname parsing or Kerberos/SPNEGO authentication.
 # Keep these scoped to R8's reported classes; never suppress all missing classes.
 -dontwarn com.alibaba.fastjson.JSONArray
@@ -333,7 +333,7 @@
 -dontwarn org.xmlpull.**
 -dontwarn org.slf4j.**
 # ical4j's filter expressions (jparsec), JSON validation (jsonsKema) and Groovy builder (java.beans):
-# not used, BooxDay only parses and writes calendar files
+# not used, BSPlan only parses and writes calendar files
 -dontwarn org.jparsec.**
 -dontwarn com.github.erosb.jsonsKema.**
 -dontwarn java.beans.**

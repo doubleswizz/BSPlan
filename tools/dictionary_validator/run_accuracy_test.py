@@ -28,7 +28,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 # Paths
-DICT_BASE = Path("C:/Users/fort/Projects/Boox_Day/app/src/main/assets/classification/en")
+DICT_BASE = Path("./app/src/main/assets/classification/en")
 GOLDEN_TESTS = Path(__file__).parent / "golden_tests" / "golden_test_cases.json"
 
 # Tier weights (matching Kotlin DomainIntentClassifier)

@@ -28,7 +28,7 @@ from typing import Dict, List, Set, Optional
 from collections import defaultdict
 
 # Base path for dictionaries
-DICT_BASE = Path("C:/Users/fort/Projects/Boox_Day/app/src/main/assets/classification/en")
+DICT_BASE = Path("./app/src/main/assets/classification/en")
 
 # =============================================================================
 # DOMAIN-SPECIFIC TERM GENERATION PROMPTS

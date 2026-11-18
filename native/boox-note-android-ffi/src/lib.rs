@@ -111,7 +111,7 @@ struct NoteInfo {
 /// # Returns
 /// * JSON array string: `[{"note_id": "...", "name": "..."}]`
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listNotesInFile(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_listNotesInFile(
     mut env: JNIEnv,
     _class: JClass,
     j_path: JString,
@@ -157,7 +157,7 @@ struct PagesInfo {
 /// # Returns
 /// * JSON object: `{"active": [...], "reserved": [...], "detached": [...]}`
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listPages(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_listPages(
     mut env: JNIEnv,
     _class: JClass,
     j_path: JString,
@@ -209,7 +209,7 @@ pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listPages(
 /// # Returns
 /// * `BooxBitmap` object or null on error
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_renderPage(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_renderPage(
     mut env: JNIEnv,
     _class: JClass,
     j_path: JString,
@@ -291,7 +291,7 @@ pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_renderPage(
         .expect("Failed to copy pixels");
 
     // Create and return BooxBitmap object
-    let cls = match env.find_class("com/boox/day/booxnotes/BooxBitmap") {
+    let cls = match env.find_class("com/bsplan/app/booxnotes/BooxBitmap") {
         Ok(c) => c,
         Err(_) => return JObject::null().into_raw(),
     };
@@ -388,7 +388,7 @@ struct OnDeviceNoteInfo {
 /// }
 /// ```
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listPagesOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_listPagesOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -558,7 +558,7 @@ fn load_page_dimensions(document_path: &PathBuf, page_id: &str) -> Option<(i32, 
 /// 4. For each matched shape, find the stroke data using `stroke_id`
 /// 5. Render each stroke to the canvas
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_renderPageOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_renderPageOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -606,7 +606,7 @@ pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_renderPageO
     }
 
     // Create BooxBitmap object to return
-    let cls = match env.find_class("com/boox/day/booxnotes/BooxBitmap") {
+    let cls = match env.find_class("com/bsplan/app/booxnotes/BooxBitmap") {
         Ok(c) => c,
         Err(_) => return JObject::null().into_raw(),
     };
@@ -818,7 +818,7 @@ fn render_page_on_device_impl(
 /// # Returns
 /// * JSON: `{"exists": bool, "document_exists": bool, "point_exists": bool, ...}`
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_noteExistsOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_noteExistsOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -952,7 +952,7 @@ struct AllNotesInfo {
 /// }
 /// ```
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listAllNotesOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_listAllNotesOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -980,7 +980,7 @@ pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_listAllNote
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_getNoteTextContentOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_getNoteTextContentOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -1143,7 +1143,7 @@ fn list_all_notes_impl(ksync_base: &str) -> Result<AllNotesInfo, String> {
 /// # Returns
 /// * Detailed JSON with debug information
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_debugRenderOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_debugRenderOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -1347,7 +1347,7 @@ fn debug_render_impl(ksync_base: &str, unique_id: &str, page_id: &str) -> String
 /// NOTE: Currently returns limited data. Would need to expose more from
 /// PointsFile to get complete stroke information.
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_getStrokeDataOnDevice(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_getStrokeDataOnDevice(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,
@@ -2068,7 +2068,7 @@ fn load_note_titles(ksync_base: &str) -> HashMap<String, String> {
 /// # Returns
 /// * JSON object mapping note_id -> title
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn Java_com_boox_day_booxnotes_BooxNative_getNoteTitles(
+pub unsafe extern "system" fn Java_com_bsplan_app_booxnotes_BooxNative_getNoteTitles(
     mut env: JNIEnv,
     _class: JClass,
     j_ksync_base: JString,

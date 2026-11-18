@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Database seeding script for BooxDay testing.
+Database seeding script for BSPlan testing.
 
-Populates the BooxDay database with sample events, tasks, memos, and AI preferences
+Populates the BSPlan database with sample events, tasks, memos, and AI preferences
 for testing purposes. By default, clears existing data before seeding.
 
 Usage:
@@ -52,7 +52,7 @@ Requirements:
     - Python 3.8+
     - ADB in PATH
     - Device connected with USB debugging enabled
-    - BooxDay app installed and database initialized
+    - BSPlan app installed and database initialized
 """
 
 import argparse
@@ -72,7 +72,7 @@ from typing import List, Tuple, Optional
 # Configuration
 # ============================================================================
 
-DB_PATH = "/data/data/com.boox.day/files/booxdaydb/app_database"
+DB_PATH = "/data/data/com.bsplan.app/files/bsplandb/app_database"
 TEMP_SQL_PATH = "/data/local/tmp/seed.sql"
 
 # Event colors (hex format)
@@ -4926,7 +4926,7 @@ def execute_via_adb(sql_content: str) -> bool:
 
         # Execute SQL using sqlite3
         # Note: Need root or run-as for app's private storage
-        cmd = f'run-as com.boox.day sqlite3 {DB_PATH} < {TEMP_SQL_PATH}'
+        cmd = f'run-as com.bsplan.app sqlite3 {DB_PATH} < {TEMP_SQL_PATH}'
         result = subprocess.run(
             ["adb", "shell", cmd],
             capture_output=True,
@@ -4962,13 +4962,13 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     local_dir.mkdir(exist_ok=True)
     local_db = local_dir / "app_database_local.db"
 
-    app_db_path = "/data/data/com.boox.day/files/booxdaydb/app_database"
-    app_db_dir = "/data/data/com.boox.day/files/booxdaydb"
+    app_db_path = "/data/data/com.bsplan.app/files/bsplandb/app_database"
+    app_db_dir = "/data/data/com.bsplan.app/files/bsplandb"
 
     # Step 0: Force stop the app to prevent DB write conflicts
     print("Stopping app to prevent DB conflicts...")
     subprocess.run(
-        ["adb", "shell", "am", "force-stop", "com.boox.day"],
+        ["adb", "shell", "am", "force-stop", "com.bsplan.app"],
         capture_output=True,
         timeout=10,
     )
@@ -4976,7 +4976,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     # Step 1: Checkpoint WAL to consolidate all changes into main DB file
     print("Checkpointing WAL mode...")
     subprocess.run(
-        ["adb", "shell", f"run-as com.boox.day sqlite3 {app_db_path} 'PRAGMA wal_checkpoint(TRUNCATE)'"],
+        ["adb", "shell", f"run-as com.bsplan.app sqlite3 {app_db_path} 'PRAGMA wal_checkpoint(TRUNCATE)'"],
         capture_output=True,
         timeout=30,
     )
@@ -4987,7 +4987,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     # Step 1: Use base64 to safely transfer binary data
     # This avoids binary corruption issues on Windows
     result = subprocess.run(
-        ["adb", "shell", f"run-as com.boox.day base64 {app_db_path}"],
+        ["adb", "shell", f"run-as com.bsplan.app base64 {app_db_path}"],
         capture_output=True,
         text=True,
         timeout=120,
@@ -5040,7 +5040,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     print("Pushing database back to device...")
 
     # Step 2: Push modified DB to /data/local/tmp
-    tmp_device = "/data/local/tmp/booxday_seed_db"
+    tmp_device = "/data/local/tmp/bsplan_seed_db"
 
     result = subprocess.run(
         ["adb", "push", str(local_db), tmp_device],
@@ -5057,7 +5057,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
 
     # Step 4: Copy into app sandbox using run-as (reading from world-readable tmp)
     result = subprocess.run(
-        ["adb", "shell", f"run-as com.boox.day sh -c 'cat {tmp_device} > {app_db_path}'"],
+        ["adb", "shell", f"run-as com.bsplan.app sh -c 'cat {tmp_device} > {app_db_path}'"],
         capture_output=True,
         text=True,
         timeout=60,
@@ -5074,7 +5074,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     # These files can cause issues if they're out of sync with the main DB
     print("Cleaning up WAL files...")
     subprocess.run(
-        ["adb", "shell", f"run-as com.boox.day sh -c 'rm -f {app_db_path}-wal {app_db_path}-shm'"],
+        ["adb", "shell", f"run-as com.bsplan.app sh -c 'rm -f {app_db_path}-wal {app_db_path}-shm'"],
         capture_output=True,
         timeout=10,
     )
@@ -5082,7 +5082,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     # Step 6: Force stop again to ensure app reloads fresh data on next launch
     print("Force stopping app to ensure fresh reload...")
     subprocess.run(
-        ["adb", "shell", "am", "force-stop", "com.boox.day"],
+        ["adb", "shell", "am", "force-stop", "com.bsplan.app"],
         capture_output=True,
         timeout=10,
     )
@@ -5090,7 +5090,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
     # Step 7: Launch the app so user sees the data immediately
     print("Launching app...")
     subprocess.run(
-        ["adb", "shell", "am", "start", "-n", "com.boox.day/.MainActivity"],
+        ["adb", "shell", "am", "start", "-n", "com.bsplan.app/.MainActivity"],
         capture_output=True,
         timeout=10,
     )
@@ -5112,7 +5112,7 @@ def execute_via_adb_alternative(sql_content: str) -> bool:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Seed BooxDay database with test data",
+        description="Seed BSPlan database with test data",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -5332,11 +5332,11 @@ def main():
         print("Executing SQL on device...")
         if execute_via_adb(sql_content):
             print()
-            print("Done! Open BooxDay and navigate to January 2026 to see the test data.")
+            print("Done! Open BSPlan and navigate to January 2026 to see the test data.")
         else:
             print()
             print("Failed to execute SQL on device.")
-            print(f"You can try manually: adb shell 'run-as com.boox.day sqlite3 {DB_PATH}' < {output_path}")
+            print(f"You can try manually: adb shell 'run-as com.bsplan.app sqlite3 {DB_PATH}' < {output_path}")
             sys.exit(1)
 
 

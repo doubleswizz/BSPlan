@@ -1,7 +1,7 @@
-# BooxDay Quick Reference
+# BSPlan Quick Reference
 
 > **Last Verified**: December 2025
-> **For**: Developers and AI agents working on BooxDay
+> **For**: Developers and AI agents working on BSPlan
 > **See Also**: CLAUDE.md (ultra-quick ref), memory.md (detailed ref)
 
 ---
@@ -10,7 +10,7 @@
 
 | Property | Value |
 |----------|-------|
-| **Package** | `com.boox.day` |
+| **Package** | `com.bsplan.app` |
 | **Min SDK** | 29 (Android 10) |
 | **Target SDK** | 35 (Android 14) |
 | **Compile SDK** | 36 |
@@ -26,20 +26,20 @@
 
 | Component | File Path |
 |-----------|-----------|
-| **Entry point** | `app/src/main/java/com/boox/day/MainActivity.kt` |
-| **App init** | `app/src/main/java/com/boox/day/BooxDayApp.kt` |
-| **Navigation** | `app/src/main/java/com/boox/day/ui/Router.kt` |
-| **Main UI** | `app/src/main/java/com/boox/day/ui/views/MainScreen.kt` |
-| **Canvas** | `app/src/main/java/com/boox/day/editor/DrawCanvas.kt` |
-| **Page state** | `app/src/main/java/com/boox/day/editor/PageView.kt` |
-| **Editor state** | `app/src/main/java/com/boox/day/editor/state/EditorState.kt` |
-| **Tab routing** | `app/src/main/java/com/boox/day/editor/EditorTabManager.kt` |
-| **Database** | `app/src/main/java/com/boox/day/data/db/Db.kt` |
-| **Settings** | `app/src/main/java/com/boox/day/data/datastore/AppSettings.kt` |
-| **Theme** | `app/src/main/java/com/boox/day/ui/theme/EInkTheme.kt` |
-| **AI client** | `app/src/main/java/com/boox/day/api/ai/AiClient.kt` |
-| **Sync manager** | `app/src/main/java/com/boox/day/sync/MultiAccountSyncManager.kt` |
-| **Cache manager** | `app/src/main/java/com/boox/day/data/PageDataManager.kt` |
+| **Entry point** | `app/src/main/java/com/bsplan/app/MainActivity.kt` |
+| **App init** | `app/src/main/java/com/bsplan/app/BSPlanApp.kt` |
+| **Navigation** | `app/src/main/java/com/bsplan/app/ui/Router.kt` |
+| **Main UI** | `app/src/main/java/com/bsplan/app/ui/views/MainScreen.kt` |
+| **Canvas** | `app/src/main/java/com/bsplan/app/editor/DrawCanvas.kt` |
+| **Page state** | `app/src/main/java/com/bsplan/app/editor/PageView.kt` |
+| **Editor state** | `app/src/main/java/com/bsplan/app/editor/state/EditorState.kt` |
+| **Tab routing** | `app/src/main/java/com/bsplan/app/editor/EditorTabManager.kt` |
+| **Database** | `app/src/main/java/com/bsplan/app/data/db/Db.kt` |
+| **Settings** | `app/src/main/java/com/bsplan/app/data/datastore/AppSettings.kt` |
+| **Theme** | `app/src/main/java/com/bsplan/app/ui/theme/EInkTheme.kt` |
+| **AI client** | `app/src/main/java/com/bsplan/app/api/ai/AiClient.kt` |
+| **Sync manager** | `app/src/main/java/com/bsplan/app/sync/MultiAccountSyncManager.kt` |
+| **Cache manager** | `app/src/main/java/com/bsplan/app/data/PageDataManager.kt` |
 
 ---
 
@@ -49,7 +49,7 @@
 
 ```bash
 # From project root
-powershell -Command "Set-Location 'C:\Users\fort\Projects\Boox_Day'; & .\gradlew.bat assembleDebug"
+powershell -Command "Set-Location 'C:\Users\fort\Projects\BSPlan'; & .\gradlew.bat assembleDebug"
 
 # Output location
 # app/build/outputs/apk/debug/app-debug.apk
@@ -62,7 +62,7 @@ powershell -Command "Set-Location 'C:\Users\fort\Projects\Boox_Day'; & .\gradlew
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 # If signature conflict:
-adb uninstall com.boox.day
+adb uninstall com.bsplan.app
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
@@ -70,7 +70,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ```bash
 # Clear all data (reset database)
-adb shell pm clear com.boox.day
+adb shell pm clear com.bsplan.app
 ```
 
 ---
@@ -106,7 +106,7 @@ adb shell pm clear com.boox.day
 
 2. **Import noRippleClickable**:
    ```kotlin
-   import com.boox.day.ui.noRippleClickable
+   import com.bsplan.app.ui.noRippleClickable
    ```
 
 3. **Use in composable**:
@@ -156,7 +156,7 @@ adb shell pm clear com.boox.day
 
 5. **Test**:
    ```bash
-   adb shell pm clear com.boox.day  # Test migration from fresh install
+   adb shell pm clear com.bsplan.app  # Test migration from fresh install
    ```
 
 **Reference**: `docs/database.md` - Migration strategy
@@ -281,10 +281,10 @@ adb exec-out screencap -p > screenshot.png
 
 ```bash
 # Pull database
-adb pull /data/data/com.boox.day/files/booxdaydb/app_database ~/boox_day.db
+adb pull /data/data/com.bsplan.app/files/bsplandb/app_database ~/bsplan.db
 
 # Open with sqlite3
-sqlite3 ~/boox_day.db
+sqlite3 ~/bsplan.db
 .tables
 SELECT * FROM Task WHERE dayDate = '2025-01-15';
 ```
@@ -494,7 +494,7 @@ dependenciesInfo {
 }
 ```
 
-**Do NOT remove** `HiddenApiBypass.addHiddenApiExemptions("")` from `BooxDayApp.kt`.
+**Do NOT remove** `HiddenApiBypass.addHiddenApiExemptions("")` from `BSPlanApp.kt`.
 
 ### Required Permissions
 
@@ -590,10 +590,10 @@ Use these to load domain-specific context in Claude Code:
 
 ```bash
 # Clear app data
-adb shell pm clear com.boox.day
+adb shell pm clear com.bsplan.app
 
 # Uninstall + reinstall
-adb uninstall com.boox.day
+adb uninstall com.bsplan.app
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
@@ -601,7 +601,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ```bash
 # Reset database
-adb shell pm clear com.boox.day
+adb shell pm clear com.bsplan.app
 ```
 
 ### Canvas Not Responding
@@ -620,7 +620,7 @@ Check logs for:
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `HiddenApiBypass not found` | Missing dependency | Check `build.gradle.kts` |
-| `TouchHelper null` | Onyx SDK init failed | Check `BooxDayApp.onCreate()` |
+| `TouchHelper null` | Onyx SDK init failed | Check `BSPlanApp.onCreate()` |
 | `SurfaceView not ready` | Canvas lifecycle issue | Wait for `surfaceCreated` callback |
 | `Room migration failed` | Missing migration | Add migration v17→v18 |
 | `Bitmap too large` | Memory issue | Reduce bitmap dimensions or quality |
@@ -670,7 +670,7 @@ adb logcat -s "AndroidRuntime"
 4. **Always use noRippleClickable**, not .clickable
 5. **Never modify NO-TOUCH zones** without understanding
 6. **Migrations required** for all database changes
-7. **Reset database** via `adb shell pm clear com.boox.day`
+7. **Reset database** via `adb shell pm clear com.bsplan.app`
 8. **Build on Windows** via PowerShell wrapper (gradlew.bat)
 9. **HiddenApiBypass required** for Onyx SDK
 10. **Reference CLAUDE.md** for quickest lookup

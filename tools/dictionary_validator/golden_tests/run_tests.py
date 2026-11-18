@@ -139,15 +139,15 @@ def generate_kotlin(data: dict):
     """Generate Kotlin test code."""
     print("""
 // Generated Kotlin test code for SemanticGenius golden tests
-// Place in: app/src/androidTest/java/com/boox/day/ocr/semantic/GoldenClassificationTest.kt
+// Place in: app/src/androidTest/java/com/bsplan/app/ocr/semantic/GoldenClassificationTest.kt
 
-package com.boox.day.ocr.semantic
+package com.bsplan.app.ocr.semantic
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.boox.day.ocr.model.Domain
-import com.boox.day.ocr.model.Intent
-import com.boox.day.ocr.semantic.classification.DomainIntentClassifier
+import com.bsplan.app.ocr.model.Domain
+import com.bsplan.app.ocr.model.Intent
+import com.bsplan.app.ocr.semantic.classification.DomainIntentClassifier
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test

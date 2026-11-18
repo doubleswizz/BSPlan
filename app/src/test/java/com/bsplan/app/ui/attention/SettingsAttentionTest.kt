@@ -1,0 +1,59 @@
+package com.bsplan.app.ui.attention
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * The Settings gear counts only what needs the user's action (Oct 2026, plan B3): never a screen
+ * that just wasn't opened yet, and nothing for a feature that is off.
+ */
+class SettingsAttentionTest {
+
+    private val allFine = AttentionInputs(
+        remindersOn = true, notificationsAllowed = true, reminderChannelsOn = true, batteryOk = true,
+        booxNotesUsed = true, booxNotesAccess = true, accountsToReconnect = 0
+    )
+
+    private fun places(inputs: AttentionInputs) = SettingsAttentionRules.items(inputs).map { it.place }
+
+    @Test
+    fun aSetUpTabletNeedsNothing() {
+        assertTrue(SettingsAttentionRules.items(allFine).isEmpty())
+    }
+
+    @Test
+    fun taskSyncNeedingTheUserPointsToPreferences() {
+        val items = SettingsAttentionRules.items(allFine.copy(taskSyncNeeds = "Task Sync needs you to sign in again"))
+        assertEquals(listOf(AttentionItem(SettingsPlace.PREFERENCES, "Task Sync needs you to sign in again")), items)
+    }
+
+    @Test
+    fun remindersNoLongerEmitAttention() {
+        assertTrue(places(allFine.copy(notificationsAllowed = false)).isEmpty())
+        assertTrue(places(allFine.copy(reminderChannelsOn = false)).isEmpty())
+        assertTrue(places(allFine.copy(batteryOk = false)).isEmpty())
+    }
+
+    @Test
+    fun booxNotesNoLongerEmitsAttention() {
+        assertTrue(places(allFine.copy(booxNotesAccess = false)).isEmpty())
+        assertTrue(places(allFine.copy(booxNotesUsed = false, booxNotesAccess = false)).isEmpty())
+    }
+
+    @Test
+    fun accountsToReconnect() {
+        val items = SettingsAttentionRules.items(allFine.copy(accountsToReconnect = 2))
+        assertEquals(listOf(SettingsPlace.CALENDAR_ACCOUNTS), items.map { it.place })
+        assertEquals("2 accounts need to reconnect", items[0].reason)
+    }
+
+    @Test
+    fun aJumpFromTheDotIsUsedOnceByItsOwnDialog() {
+        SettingsJump.request(SettingsPlace.PREFERENCES)
+        assertFalse("another dialog doesn't take it", SettingsJump.consume(SettingsPlace.BOOX_NOTES))
+        assertTrue(SettingsJump.consume(SettingsPlace.PREFERENCES))
+        assertFalse("only once", SettingsJump.consume(SettingsPlace.PREFERENCES))
+    }
+}

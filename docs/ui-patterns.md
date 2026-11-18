@@ -1,14 +1,14 @@
-# BooxDay UI Patterns & E-Ink Development Guide
+# BSPlan UI Patterns & E-Ink Development Guide
 
 > **Last Verified**: December 2025
 > **Covers Files**: EInkTheme.kt, all dialog files, Toolbar.kt, MainScreen.kt
-> **Theme File**: `app/src/main/java/com/boox/day/ui/theme/EInkTheme.kt`
+> **Theme File**: `app/src/main/java/com/bsplan/app/ui/theme/EInkTheme.kt`
 
 ---
 
 ## Overview
 
-BooxDay is optimized for E-Ink displays, which have unique constraints compared to LCD/OLED screens. This guide covers:
+BSPlan is optimized for E-Ink displays, which have unique constraints compared to LCD/OLED screens. This guide covers:
 - E-Ink display characteristics and constraints
 - Design patterns specific to E-Ink
 - EInkTheme usage
@@ -40,7 +40,7 @@ BooxDay is optimized for E-Ink displays, which have unique constraints compared 
 | **A2** (Animation) | Fast (~120ms) | Medium (4 levels) | UI transitions |
 | **FULL** (Complete) | Slow (~500ms) | Perfect | Eliminate ghosting |
 
-**BooxDay Strategy**:
+**BSPlan Strategy**:
 - Use **FULL refresh** on Dialog show/hide (avoids scrim ghosting)
 - Use **DU/A2** for drawing (fast stylus response)
 - Minimize animations (triggers GC16 refresh cascades)
@@ -101,11 +101,11 @@ Box(modifier = Modifier.clickable { onClick() })
 Box(modifier = Modifier.noRippleClickable { onClick() })
 ```
 
-**Location**: `app/src/main/java/com/boox/day/ui/Clickable.kt`
+**Location**: `app/src/main/java/com/bsplan/app/ui/Clickable.kt`
 
 **Import**:
 ```kotlin
-import com.boox.day.ui.noRippleClickable
+import com.bsplan.app.ui.noRippleClickable
 ```
 
 ---

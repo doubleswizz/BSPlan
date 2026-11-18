@@ -1,4 +1,4 @@
-# Maestro E2E Tests for BooxDay
+# Maestro E2E Tests for BSPlan
 
 Automated UI testing using [Maestro](https://maestro.mobile.dev/) on Boox e-ink devices.
 
@@ -82,7 +82,7 @@ Common actions are in `flows/`. Use them with `runFlow`:
 Example:
 
 ```yaml
-appId: com.boox.day
+appId: com.bsplan.app
 ---
 - launchApp
 - runScript:
@@ -120,4 +120,4 @@ When writing Maestro flows, refer to coordinates using these semantic labels (e.
 
 - **Blank screenshots**: Increase delay before screenshot
 - **Wrong element tapped**: Re-run calibration, update `ui_map.yaml`
-- **App won't launch**: Run `adb shell pm enable com.boox.day` first
+- **App won't launch**: Run `adb shell pm enable com.bsplan.app` first

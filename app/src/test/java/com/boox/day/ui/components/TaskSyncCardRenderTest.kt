@@ -83,8 +83,8 @@ class TaskSyncCardRenderTest {
         .mapIndexed { i, title -> TaskSyncCardList("c-$i", title, ticked = title in setOf("Personal", "Work")) }
 
     // The owner's own Google Tasks lists (30 Oct 2026), plus the test list
-    private val lists = listOf("My Tasks", "Tasks", "Personal", "Work", "Husband", "Church", "Dad", "Professional", "BooxDay test")
-        .mapIndexed { i, title -> TaskSyncCardList("l-$i", title, ticked = title in setOf("My Tasks", "Work", "Church", "BooxDay test")) }
+    private val lists = listOf("My Tasks", "Tasks", "Personal", "Work", "Husband", "Church", "Dad", "Professional", "BSPlan test")
+        .mapIndexed { i, title -> TaskSyncCardList("l-$i", title, ticked = title in setOf("My Tasks", "Work", "Church", "BSPlan test")) }
 
     // Many lists with long names: they wrap within their column
     private val manyLists = (lists.map { it.title } + listOf("Kids' school forms and trips", "House repairs", "Garden"))

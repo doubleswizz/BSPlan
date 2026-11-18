@@ -35,7 +35,7 @@ import java.time.temporal.ChronoUnit
 
 /**
  * Changes to a CalDAV event file made on the tablet (plan stage 3, step 3.5, Oct 2026). Only the
- * fields BooxDay edits change (title, day and times, place, notes); everything else in the file
+ * fields BSPlan edits change (title, day and times, place, notes); everything else in the file
  * (alarms, attendees, the organizer, other apps' properties, the series' other days) stays as the
  * server sent it. Attendees are never written: on iCloud and similar servers a new ATTENDEE sends
  * an invitation email.
@@ -46,7 +46,7 @@ import java.time.temporal.ChronoUnit
 internal object CalDavEditor {
     private const val PRODID = "-//BSPlan//BSPlan//EN"
 
-    /** BooxDay's fields of an event, as its dialog gives them (one day; end on that day or none). */
+    /** BSPlan's fields of an event, as its dialog gives them (one day; end on that day or none). */
     data class Fields(
         val title: String,
         val date: LocalDate,
@@ -74,7 +74,7 @@ internal object CalDavEditor {
     }
 
     /**
-     * [ics] with BooxDay's fields set on the event, or on one day of a series ([occurrence], the
+     * [ics] with BSPlan's fields set on the event, or on one day of a series ([occurrence], the
      * key in the row id). An all-day event that stays all-day keeps its number of days (the dialog
      * has no end date).
      */

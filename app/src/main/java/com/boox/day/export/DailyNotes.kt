@@ -44,7 +44,7 @@ object DailyNotes {
 
     fun isEnabled(context: Context): Boolean = false
 
-    /** BooxDayApp.onCreate. */
+    /** BSPlanApp.onCreate. */
     fun onAppStart(context: Context, appScope: CoroutineScope) {
         val app = context.applicationContext
         appContext = app

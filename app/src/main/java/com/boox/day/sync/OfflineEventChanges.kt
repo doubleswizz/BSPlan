@@ -9,7 +9,7 @@ import com.boox.day.data.db.SyncStatus
 
 /**
  * Editing or deleting a synced event while offline (owner, 2 Nov 2026; all services). Until then
- * BooxDay said "No internet connection" and the change was lost. Now the change shows at once and
+ * BSPlan said "No internet connection" and the change was lost. Now the change shows at once and
  * waits in the tablet's copy of the event (local_events, PENDING_UPDATE or PENDING_DELETE), which
  * the offline-change push (SyncWorker → LocalEventService.syncPendingChanges) sends when the tablet
  * is back online. A sync that runs first doesn't undo it ([withWaitingChanges]).

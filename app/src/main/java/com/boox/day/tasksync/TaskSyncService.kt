@@ -83,7 +83,7 @@ internal data class RemoteTaskState(
  */
 internal data class TaskExtras(val priority: String, val reminderMinute: Int?)
 
-/** What BooxDay sends for one task. [dueDay] null: the copy stays undated (owner decision 1). */
+/** What BSPlan sends for one task. [dueDay] null: the copy stays undated (owner decision 1). */
 internal data class OutgoingTask(
     val taskId: String,
     val listId: String,

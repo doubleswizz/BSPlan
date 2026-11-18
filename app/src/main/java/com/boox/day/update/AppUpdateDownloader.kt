@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Downloads a release APK into `cacheDir/updates` and checks it before anything installs it
- * (Oct 2026): the size and SHA-256 GitHub published, then that it is BooxDay, newer than the
+ * (Oct 2026): the size and SHA-256 GitHub published, then that it is BSPlan, newer than the
  * installed app and signed with the same key. Android checks the key again when installing; doing
  * it here gives a plain message instead of a cryptic install failure. `cacheDir` is never in a
  * backup, and Android may clear it when storage runs low (the download then simply starts over).
@@ -132,7 +132,7 @@ object AppUpdateDownloader {
         }
 
     /**
-     * Checks that [apk] is BooxDay, newer than the installed version and signed with the same key.
+     * Checks that [apk] is BSPlan, newer than the installed version and signed with the same key.
      * Deletes the file when it is not.
      */
     fun checkPackage(context: Context, apk: File): Result {
@@ -164,7 +164,7 @@ object AppUpdateDownloader {
         return null
     }
 
-    /** SHA-256 of each signing certificate (current signers; BooxDay has one key, no rotation). */
+    /** SHA-256 of each signing certificate (current signers; BSPlan has one key, no rotation). */
     private fun signerDigests(info: PackageInfo): Set<String> {
         val signing = info.signingInfo
         @Suppress("DEPRECATION")

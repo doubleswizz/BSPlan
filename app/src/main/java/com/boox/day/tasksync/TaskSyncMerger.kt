@@ -17,7 +17,7 @@ import java.time.LocalDate
  *   wins and the recognized words go back (owner decision 2).
  * - **New due day** (owner decision 10): the task moves to that day with its ink (and its subtasks,
  *   as Move does), or only its own due day changes when it has one apart from its day. A subtask
- *   only changes its own due day (decision 25); one BooxDay refuses (after its parent's) goes back.
+ *   only changes its own due day (decision 25); one BSPlan refuses (after its parent's) goes back.
  *   No due day in the service: the task stays where it is, undated there (decision 1).
  * - **Subtasks:** each side keeps its own grouping (decision 24); the service's parent is only
  *   recorded (remoteParentId), for deleting a parent safely.

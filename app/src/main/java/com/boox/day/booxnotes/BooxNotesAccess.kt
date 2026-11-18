@@ -8,7 +8,7 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 
 /**
- * Can BooxDay read the Boox Notes folder? (Oct 2026: one check instead of copies.) Android 11 and
+ * Can BSPlan read the Boox Notes folder? (Oct 2026: one check instead of copies.) Android 11 and
  * later need "All files access". Android 10 (requestLegacyExternalStorage is set) needs the storage
  * permission: the copies said yes there, while the scan required it and nothing asked for it, so
  * Boox Notes never scanned on Android 10 tablets.

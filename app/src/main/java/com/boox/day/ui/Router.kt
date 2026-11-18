@@ -66,7 +66,7 @@ private const val STARTUP_CANVAS_HANDOFF_TIMEOUT_MS = 1800L
 private const val STARTUP_CANVAS_DRAWN_TIMEOUT_MS = 1000L
 
 /**
- * Main Router for BooxDay
+ * Main Router for BSPlan
  *
  * Navigation structure:
  * - "main" - Calendar + Drawing canvas (default start)

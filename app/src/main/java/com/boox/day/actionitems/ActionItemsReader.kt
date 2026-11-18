@@ -46,7 +46,7 @@ object ActionItemsReader {
 
 /**
  * Action items already added to Tasks or hidden, per day, so they aren't offered again
- * (BooxDay's key-value store; old days are dropped).
+ * (BSPlan's key-value store; old days are dropped).
  */
 object ActionItemsMemory {
     const val ADDED = "added"

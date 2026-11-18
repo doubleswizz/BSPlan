@@ -132,7 +132,7 @@ private fun label(section: String) = SECTION_LABELS[section] ?: section
 private class BackupRejected(message: String) : Exception(message)
 
 /**
- * Import Service for BooxDay backup restore (formats v1-v3, see BackupSchema.kt).
+ * Import Service for BSPlan backup restore (formats v1-v3, see BackupSchema.kt).
  *
  * Restore is all-or-nothing:
  * 1. The whole file is read and checked first: every row decodes, every stroke's points can be

@@ -218,7 +218,7 @@ private val SCREEN_POPUP_MAX_HEIGHT: Dp get() = (LayoutProfiles.screenHeightDp *
  *
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Centralized E-Ink Design System for BooxDay
+ * Centralized E-Ink Design System for BSPlan
  *
  * All UI components should reference these values instead of hardcoding.
  * Change a value here = entire app updates on next build.

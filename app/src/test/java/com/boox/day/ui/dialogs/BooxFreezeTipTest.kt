@@ -4,7 +4,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Owner decision 73: once, on BOOX only, when something needs BooxDay in the background, never over the welcome. */
+/** Owner decision 73: once, on BOOX only, when something needs BSPlan in the background, never over the welcome. */
 class BooxFreezeTipTest {
 
     private fun show(

@@ -9,7 +9,7 @@ import org.junit.Test
 
 /**
  * Reading GitHub's `releases/latest` answer and comparing versions (Oct 2026). The release below is
- * the real v1.0.33 answer (22 Oct 2026), cut to the fields BooxDay reads plus a few it ignores.
+ * the real v1.0.33 answer (22 Oct 2026), cut to the fields BSPlan reads plus a few it ignores.
  */
 class AppUpdateCheckerTest {
 
@@ -36,7 +36,7 @@ class AppUpdateCheckerTest {
           "html_url": "https://github.com/fortolano/booxday/releases/tag/$tag",
           "id": 123,
           "tag_name": "$tag",
-          "name": "BooxDay 1.0.33",
+          "name": "BSPlan 1.0.33",
           "draft": $draft,
           "prerelease": $prerelease,
           "published_at": "2026-10-19T21:45:49Z",
@@ -113,7 +113,7 @@ class AppUpdateCheckerTest {
         assertEquals(listOf(1, 0, 33), AppUpdateChecker.parseVersion("v1.0.33"))
         assertEquals(listOf(1, 0, 33), AppUpdateChecker.parseVersion("1.0.33"))
         assertEquals(listOf(1, 0, 34), AppUpdateChecker.parseVersion("1.0.34-next-20.10.2026-14:00"))
-        assertNull(AppUpdateChecker.parseVersion("BooxDay"))
+        assertNull(AppUpdateChecker.parseVersion("BSPlan"))
     }
 
     @Test

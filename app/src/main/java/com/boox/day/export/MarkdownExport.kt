@@ -21,7 +21,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Export as Markdown (Nov 2026): one note per day in the Daily notes format, so export and Daily
- * notes update the same file and what the user wrote around BooxDay's part stays. With page images,
+ * notes update the same file and what the user wrote around BSPlan's part stays. With page images,
  * each page goes in attachments/ as a PNG, linked with plain Markdown that Obsidian and others read.
  */
 object MarkdownExport {

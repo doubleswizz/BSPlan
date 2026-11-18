@@ -133,8 +133,8 @@ class AiClientResponseTest {
     }
 
     @Test
-    fun `BooxDay's models send their tested level, and a feature's override still wins`() {
-        // 29 Oct 2026: "reasoning on" let BooxDay's models think through the whole output limit
+    fun `BSPlan's models send their tested level, and a feature's override still wins`() {
+        // 29 Oct 2026: "reasoning on" let BSPlan's models think through the whole output limit
         val tested = aiRequest {
             model(model(userChoice = false, reasoning = ReasoningConfig.withEffort("low")))
             userMessage("Hi")
@@ -172,7 +172,7 @@ class AiClientResponseTest {
         assertEquals(8_192, aiRequest { model(picked); userMessage("Hi"); maxTokens(8_192) }.config.maxTokens)
         // A higher setting is kept
         assertEquals(20_000, aiRequest { model(model(true, maxTokens = 20_000)); userMessage("Hi"); maxTokens(8_192) }.config.maxTokens)
-        // BooxDay's models: the feature's value as before
+        // BSPlan's models: the feature's value as before
         assertEquals(2_000, aiRequest { model(model(false)); userMessage("Hi"); maxTokens(2_000) }.config.maxTokens)
     }
 }

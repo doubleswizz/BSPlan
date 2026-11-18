@@ -43,7 +43,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
-/** Pictures of Meeting Recap, Meeting Prep and Share to BooxDay at every tablet size, made-up data (Nov 2026). */
+/** Pictures of Meeting Recap, Meeting Prep and Share to BSPlan at every tablet size, made-up data (Nov 2026). */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class, qualifiers = "w2600dp-h3400dp-mdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)

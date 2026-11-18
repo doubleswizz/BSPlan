@@ -90,7 +90,7 @@ object SettingsAttentionRules {
 
 /**
  * The live list for the main screen. Settings and the key are Compose state; Android permissions
- * aren't, so they are read again each time BooxDay comes back to the front (no polling).
+ * aren't, so they are read again each time BSPlan comes back to the front (no polling).
  */
 @Composable
 fun rememberSettingsAttention(accountsToReconnect: Int): SettingsAttention {
@@ -105,7 +105,7 @@ fun rememberSettingsAttention(accountsToReconnect: Int): SettingsAttention {
     val settings = GlobalAppSettings.current
     val hasKey = UserOpenRouterKey.hasKey
     val failingPicks = AiPickStatus.failures.size
-    // Task Sync's needs change with its runs, also while BooxDay stays in front
+    // Task Sync's needs change with its runs, also while BSPlan stays in front
     val taskSyncStatus by com.boox.day.tasksync.TaskSync.statusChanges.collectAsState()
     return remember(settings, hasKey, failingPicks, accountsToReconnect, resumes, taskSyncStatus) {
         SettingsAttention(SettingsAttentionRules.items(inputsFor(context, accountsToReconnect, hasKey, failingPicks)))

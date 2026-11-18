@@ -13,7 +13,7 @@ import java.time.ZoneId
 /**
  * CalDAV tasks (VTODO) as task sync reads and writes them (plan stage 4, owner decisions 67, 69):
  * priority A/B/C, the reminder as a reminder on the due day (or the phone's due time), a parent by
- * UID; repeating tasks marked to be left out; an edit changes only BooxDay's fields and reads back as
+ * UID; repeating tasks marked to be left out; an edit changes only BSPlan's fields and reads back as
  * written, so a sync never sends the same task again and again.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -67,7 +67,7 @@ class CalDavTasksTest {
         assertTrue("the start after the new due day goes", "DTSTART" !in edited)
         assertEquals("the same fields again: the file reads the same", back, CalDavTasks.read(CalDavTasks.edit(edited, wanted, zone, NOW), zone))
 
-        // The usual time (no reminder of its own): BooxDay's reminder goes, no due time stands in for it
+        // The usual time (no reminder of its own): BSPlan's reminder goes, no due time stands in for it
         val usual = CalDavTasks.read(CalDavTasks.edit(edited, wanted.copy(reminderMinute = null), zone, NOW), zone)!!
         assertNull(usual.reminderMinute)
 

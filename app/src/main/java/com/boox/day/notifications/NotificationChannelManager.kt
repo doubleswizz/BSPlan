@@ -7,7 +7,7 @@ import android.os.Build
 import android.util.Log
 
 /**
- * Manages notification channels for the BooxDay app.
+ * Manages notification channels for the BSPlan app.
  *
  * Channels (Android O+):
  * - CHANNEL_ID_DUE_TASKS: Task due date reminders

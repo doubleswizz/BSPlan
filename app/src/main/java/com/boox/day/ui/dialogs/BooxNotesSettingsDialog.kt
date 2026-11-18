@@ -115,7 +115,7 @@ fun BooxNotesSettingsDialog(
     var hasPermission by remember {
         mutableStateOf(BooxNotesAccess.has(localContext))
     }
-    // Goes up when BooxDay comes back from Android settings or Calendar Accounts
+    // Goes up when BSPlan comes back from Android settings or Calendar Accounts
     var resumeCount by remember { mutableIntStateOf(0) }
 
     // Oct 2026: the Settings-menu dot clears once file access is given, from Settings or the
@@ -158,7 +158,7 @@ fun BooxNotesSettingsDialog(
         legacyStorageLauncher.launch(BooxNotesAccess.LEGACY_PERMISSIONS)
     }
 
-    // Oct 2026 (plan B2): read again when BooxDay comes back from Android settings, instead of polling
+    // Oct 2026 (plan B2): read again when BSPlan comes back from Android settings, instead of polling
     // every 3 seconds while access was missing
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

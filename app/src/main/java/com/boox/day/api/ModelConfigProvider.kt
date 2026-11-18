@@ -11,7 +11,7 @@ import com.boox.day.data.datastore.GlobalAppSettings
  *
  * 1. The model the user picked for the job in AI Settings, with its reasoning level and output
  *    tokens ([userModel]).
- * 2. BooxDay's choice: tested models in this file, which follow app updates instead of being
+ * 2. BSPlan's choice: tested models in this file, which follow app updates instead of being
  *    copied into the user's settings. While the account has no credit ([OpenRouterAccount]) it is
  *    the free set, so AI keeps working on free models.
  *
@@ -74,9 +74,9 @@ object ModelConfigProvider {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Models for [job] in the order to try: the user's pick, then BooxDay's choice. Models that
+     * Models for [job] in the order to try: the user's pick, then BSPlan's choice. Models that
      * OpenRouter's recent list no longer has, or that the account's settings block, are skipped
-     * (OpenRouterModelCatalog), and a pick that can't do the job ([pickProblem]); BooxDay's choice
+     * (OpenRouterModelCatalog), and a pick that can't do the job ([pickProblem]); BSPlan's choice
      * is never skipped down to nothing.
      */
     fun getChain(job: AiJob): List<AiModel> {
@@ -118,11 +118,11 @@ object ModelConfigProvider {
         return (listed == null || modelId in listed) && (allowed == null || modelId in allowed)
     }
 
-    /** BooxDay's choice for [job]; [freeOnly] = the free set. */
+    /** BSPlan's choice for [job]; [freeOnly] = the free set. */
     fun defaultChain(job: AiJob, freeOnly: Boolean): List<ModelEntry> =
         (if (freeOnly) NO_CREDIT else WITH_CREDIT).getValue(job)
 
-    /** The first of BooxDay's models for [job] right now (the model list's pinned row). */
+    /** The first of BSPlan's models for [job] right now (the model list's pinned row). */
     fun defaultModel(job: AiJob): AiModel = usableDefaults(job).first()
 
     /**
@@ -204,7 +204,7 @@ object ModelConfigProvider {
     }
 
     /**
-     * One of BooxDay's models as an AiModel: a custom model with the job's capabilities and its
+     * One of BSPlan's models as an AiModel: a custom model with the job's capabilities and its
      * tested reasoning level. Never one of the old built-in models (GPT-5 Nano was, until Oct
      * 2026), which carry no level.
      */

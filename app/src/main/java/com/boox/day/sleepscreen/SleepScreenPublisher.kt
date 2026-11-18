@@ -47,7 +47,7 @@ object SleepScreenPublisher {
 
     private val mutex = Mutex()
 
-    /** The folder BooxDay writes the image to; BOOX reads it from there. */
+    /** The folder BSPlan writes the image to; BOOX reads it from there. */
     fun folder(): File = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BSPlan")
 
     /** The day the image on the sleep screen shows, or null when none was handed over. */
@@ -132,7 +132,7 @@ object SleepScreenPublisher {
     }
 
     /**
-     * The setting was turned off: the image files go, BooxDay's and BOOX's copy in Pictures/,
+     * The setting was turned off: the image files go, BSPlan's and BOOX's copy in Pictures/,
      * so the sleep screen no longer shows a day that is over.
      */
     fun withdraw(context: Context) {
@@ -161,7 +161,7 @@ object SleepScreenPublisher {
         }
     }
 
-    /** Deletes BooxDay's sleep images, in its folder and BOOX's copies in Pictures/, except [keep]. */
+    /** Deletes BSPlan's sleep images, in its folder and BOOX's copies in Pictures/, except [keep]. */
     private fun deleteImages(keep: Set<String>) {
         listOfNotNull(folder(), folder().parentFile).forEach { dir ->
             runCatching {
@@ -179,7 +179,7 @@ object SleepScreenPublisher {
     internal fun panel(context: Context): Triple<Int, Int, Int> {
         val size = runCatching { ScreenUtils.getScreenSize(context) }.getOrNull()
             ?: Resources.getSystem().displayMetrics.let { intArrayOf(it.widthPixels, it.heightPixels) }
-        // Physical pixels per inch (BooxDay changes the app's density, not the panel's xdpi)
+        // Physical pixels per inch (BSPlan changes the app's density, not the panel's xdpi)
         val ppi = Resources.getSystem().displayMetrics.xdpi.toInt().takeIf { it in 150..500 } ?: 300
         return Triple(minOf(size[0], size[1]), maxOf(size[0], size[1]), ppi)
     }

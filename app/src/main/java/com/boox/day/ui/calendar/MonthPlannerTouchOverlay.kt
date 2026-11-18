@@ -35,10 +35,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -46,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -56,9 +60,6 @@ import com.boox.day.editor.DrawCanvas
 import com.boox.day.editor.drawing.MonthPlannerCanvasRenderer
 import com.boox.day.ui.noRippleClickable
 import com.boox.day.ui.theme.EInkTheme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.Locale
@@ -530,10 +531,63 @@ fun PlannerHeaderActionButton(
 }
 
 /**
+ * Palm-rejecting finger tap detector shared by Month and Day full-page canvas overlays.
+ * Rejects stylus/eraser contacts, multi-finger/palm contacts, OS-canceled palm touches,
+ * large contact areas (tracked via [DrawCanvas.recordAndroidTouchMetrics]), concurrent/recent
+ * stylus hover or strokes, and slow palm rests (> [maxDurationMs]).
+ */
+internal fun Modifier.plannerFingerTap(
+    maxMovePx: Float = 24f,
+    maxDurationMs: Long = 280L,
+    onTap: (Offset, IntSize) -> Unit
+): Modifier = pointerInput(Unit) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        if (down.type != PointerType.Touch || DrawCanvas.isCurrentTouchGestureRejectedForPalm()) {
+            return@awaitEachGesture
+        }
+
+        val startPos = down.position
+        val downTimeMs = down.uptimeMillis
+        var upPos = startPos
+        var upTimeMs = downTimeMs
+        var rejected = false
+
+        while (true) {
+            val event = awaitPointerEvent()
+            if (event.type == PointerEventType.Exit ||
+                event.changes.any { it.type != PointerType.Touch } ||
+                event.changes.count { it.pressed } > 1 ||
+                DrawCanvas.isCurrentTouchGestureRejectedForPalm()
+            ) {
+                rejected = true
+            }
+            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+            upPos = change.position
+            upTimeMs = change.uptimeMillis
+            if (hypot((upPos.x - startPos.x).toDouble(), (upPos.y - startPos.y).toDouble()) > maxMovePx) {
+                rejected = true
+            }
+            if (!change.pressed) {
+                if (!rejected) change.consume()
+                break
+            }
+        }
+
+        if (rejected ||
+            upTimeMs - downTimeMs > maxDurationMs ||
+            DrawCanvas.isCurrentTouchGestureRejectedForPalm()
+        ) {
+            return@awaitEachGesture
+        }
+        onTap(upPos, size)
+    }
+}
+
+/**
  * Transparent touch overlay over the Full-Page Month View canvas:
- * - Ignores [PointerType.Stylus] so the Boox stylus can write anywhere over the Month Grid with zero lag.
- * - Listens for finger taps ([PointerType.Touch]) on any of the visible day cells (4–6 week rows,
- *   including spillover days) and opens that day in [PlannerViewMode.Day].
+ * - Ignores [PointerType.Stylus] and rejects resting-hand/palm touches so you can write anywhere.
+ * - Listens for clean single-finger taps on any visible day cell and opens that day in [PlannerViewMode.Day].
  */
 @Composable
 fun MonthGridTouchOverlay(
@@ -547,48 +601,21 @@ fun MonthGridTouchOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    // Let stylus strokes pass untouched to Onyx TouchHelper / DrawCanvas
-                    if (down.type == PointerType.Stylus || down.type == PointerType.Eraser) {
-                        return@awaitEachGesture
-                    }
+            .plannerFingerTap { upPos, overlaySize ->
+                val activeGrid = currentGridState.value ?: return@plannerFingerTap
+                val cellIndex = MonthPlannerGridState.hitTestCellIndex(
+                    xPx = upPos.x,
+                    yPx = upPos.y,
+                    widthPx = overlaySize.width.toFloat(),
+                    heightPx = overlaySize.height.toFloat(),
+                    headerPx = MonthPlannerCanvasRenderer.WEEKDAY_HEADER_HEIGHT_PX,
+                    rowCount = activeGrid.rowCount
+                ) ?: return@plannerFingerTap
 
-                    val startPos = down.position
-                    var upPos = startPos
-                    var movedTooFar = false
-
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        upPos = change.position
-                        if (hypot((upPos.x - startPos.x).toDouble(), (upPos.y - startPos.y).toDouble()) > 28.0) {
-                            movedTooFar = true
-                        }
-                        if (!change.pressed) {
-                            change.consume()
-                            break
-                        }
-                    }
-
-                    if (movedTooFar) return@awaitEachGesture
-
-                    val activeGrid = currentGridState.value ?: return@awaitEachGesture
-                    val cellIndex = MonthPlannerGridState.hitTestCellIndex(
-                        xPx = upPos.x,
-                        yPx = upPos.y,
-                        widthPx = size.width.toFloat(),
-                        heightPx = size.height.toFloat(),
-                        headerPx = MonthPlannerCanvasRenderer.WEEKDAY_HEADER_HEIGHT_PX,
-                        rowCount = activeGrid.rowCount
-                    ) ?: return@awaitEachGesture
-
-                    val tappedCell = activeGrid.cells.getOrNull(cellIndex)
-                    if (tappedCell != null) {
-                        DrawCanvas.forceUnfreeze()
-                        currentCallback.value(tappedCell)
-                    }
+                val tappedCell = activeGrid.cells.getOrNull(cellIndex)
+                if (tappedCell != null) {
+                    DrawCanvas.forceUnfreeze()
+                    currentCallback.value(tappedCell)
                 }
             }
     )
@@ -645,13 +672,13 @@ fun MonthPlannerEffects(
     LaunchedEffect(
         year,
         monthZeroBased,
-        selectedDate,
         firstDayOfWeek,
         datesWithNotes,
         datesWithEvents,
         datesWithTasks,
         syncRevision
     ) {
+        val previous = MonthPlannerGridState.currentGrid
         val grid = MonthPlannerGridState.loadMonthGrid(
             context = context,
             year = year,
@@ -662,7 +689,7 @@ fun MonthPlannerEffects(
             loadEventsForDay = loadEventsForDay
         )
         MonthPlannerGridState.currentGrid = grid
-        if (PlannerNavigationState.mode == PlannerViewMode.Month) {
+        if (PlannerNavigationState.mode == PlannerViewMode.Month && !monthGridVisuallyEqual(previous, grid)) {
             DrawCanvas.forceUpdate.emit(null)
         }
     }
@@ -672,13 +699,28 @@ fun MonthPlannerEffects(
         onEnsureMemosTab()
         if (mode == lastMode) return@LaunchedEffect
         lastMode = mode
-        val before = DrawCanvas.surfaceSize.value
-        withTimeoutOrNull(1500L) {
-            DrawCanvas.surfaceSize.first { it != null && it != before }
-        }
-        delay(120L)
+        // Yield a single frame so Compose updates headers/overlays cleanly without waiting 1.5s.
+        withFrameNanos { }
         DrawCanvas.forceUpdate.emit(null)
         DrawCanvas.forceUnfreeze()
+    }
+}
+
+private fun monthGridVisuallyEqual(a: MonthGridModel?, b: MonthGridModel): Boolean {
+    if (a == null) return false
+    if (a.year != b.year || a.monthZeroBased != b.monthZeroBased || a.rowCount != b.rowCount) return false
+    if (a.weekdayHeaders != b.weekdayHeaders || a.cells.size != b.cells.size) return false
+    return a.cells.indices.all { i ->
+        val ca = a.cells[i]
+        val cb = b.cells[i]
+        ca.date == cb.date &&
+            ca.isCurrentMonth == cb.isCurrentMonth &&
+            ca.isToday == cb.isToday &&
+            ca.headerLabel == cb.headerLabel &&
+            ca.events == cb.events &&
+            ca.openTaskCount == cb.openTaskCount &&
+            ca.taskPreviews == cb.taskPreviews &&
+            ca.hasDayNotes == cb.hasDayNotes
     }
 }
 

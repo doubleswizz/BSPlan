@@ -17,7 +17,7 @@ dependencyResolutionManagement {
         maven {url "https://maven.ghostscript.com"}
     }
 }
-rootProject.name = "BooxDay"
+rootProject.name = "BSPlan"
 include ':app'
 
 

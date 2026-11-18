@@ -54,7 +54,7 @@ import java.io.File
 import java.time.LocalDate
 import java.util.UUID
 
-/** Add to BooxDay: what came from another app waits here for the user's choice. */
+/** Add to BSPlan: what came from another app waits here for the user's choice. */
 object ShareUi {
     const val SOURCE = "shared"
     private const val MARGIN = MeetingRecapSaver.MARGIN

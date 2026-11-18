@@ -26,7 +26,7 @@ import java.io.File
 /**
  * The offline-edit push (SyncWorker) often runs with no screen open. Then MainActivity hasn't loaded
  * the settings and GlobalAppSettings holds defaults (Private Mode): until Oct 2026 the worker read
- * those and skipped, so edits made offline reached Google only once BooxDay was opened again.
+ * those and skipped, so edits made offline reached Google only once BSPlan was opened again.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)

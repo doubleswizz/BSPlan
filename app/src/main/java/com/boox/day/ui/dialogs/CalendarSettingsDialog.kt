@@ -48,7 +48,7 @@ import com.boox.day.ui.noRippleClickable
 import com.boox.day.ui.theme.EInkTheme
 
 /**
- * Unified Calendar Settings Dialog for BooxDay
+ * Unified Calendar Settings Dialog for BSPlan
  *
  * RESTRUCTURED (Dec 2025 - Settings Redesign Phase 3):
  * - Display & Mode: First Day of Week, Show Week Numbers, Sync Mode

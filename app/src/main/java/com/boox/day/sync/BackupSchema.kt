@@ -4,7 +4,7 @@ import android.os.Build
 import kotlinx.serialization.Serializable
 
 /**
- * Backup schema for BooxDay app data.
+ * Backup schema for BSPlan app data.
  *
  * Version history:
  * - v1: Initial backup format (Dec 2025)

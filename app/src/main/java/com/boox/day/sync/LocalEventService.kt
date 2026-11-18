@@ -48,8 +48,8 @@ class LocalEventService(
 
     /**
      * Get current sync mode from settings: the saved ones when no screen has loaded them. The
-     * offline-change push runs from SyncWorker, often with BooxDay closed; with the in-memory
-     * defaults (Private Mode) it skipped every change until BooxDay was opened (plan step 3.7).
+     * offline-change push runs from SyncWorker, often with BSPlan closed; with the in-memory
+     * defaults (Private Mode) it skipped every change until BSPlan was opened (plan step 3.7).
      */
     private fun getSyncMode(): AppSettings.SyncMode {
         return workerAppSettings(context).syncMode
@@ -1005,7 +1005,7 @@ internal fun pendingPushTarget(event: LocalEvent): PendingPushTarget {
 }
 
 /**
- * The service says the event isn't there (deleted elsewhere): BooxDay's not-found, or Google's
+ * The service says the event isn't there (deleted elsewhere): BSPlan's not-found, or Google's
  * 404 / 410 inside a provider error.
  */
 internal fun isGoneOnService(error: Throwable?): Boolean {

@@ -102,7 +102,7 @@ data class TaskCardData(
 )
 
 data class TaskCardList(
-    /** The lists BooxDay syncs: id to name. */
+    /** The lists BSPlan syncs: id to name. */
     val lists: List<Pair<String, String>>,
     /** The list it is in, or goes to when it first syncs. */
     val currentId: String?,
@@ -332,7 +332,7 @@ private fun MainList(
     }
 }
 
-/** The task lists BooxDay syncs; picking one moves the task there (owner decision 47). */
+/** The task lists BSPlan syncs; picking one moves the task there (owner decision 47). */
 @Composable
 private fun ColumnScope.ListScreen(list: TaskCardList, subtitle: String, go: (TaskCardScreen) -> Unit, actions: TaskCardActions) {
     Header("${list.serviceName} list", subtitle)

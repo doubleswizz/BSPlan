@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
- * Share to BooxDay (Nov 2026): a light screen with no canvas, as OpenRouterConnectActivity. It copies
+ * Share to BSPlan (Nov 2026): a light screen with no canvas, as OpenRouterConnectActivity. It copies
  * what came at once, because the right to read a shared file is temporary, then brings the running app
  * forward: MainActivity never starts a second canvas for this.
  */

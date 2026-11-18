@@ -29,7 +29,7 @@ import java.util.UUID
  * Signed in through Calendar Accounts: the same account, password and trusted certificate.
  *
  * - A list is a collection (its id: the URL path), a task one file (its remote id: the URL path),
- *   kept whole in caldav_task_file so a change made here touches only BooxDay's fields ([CalDavTasks]).
+ *   kept whole in caldav_task_file so a change made here touches only BSPlan's fields ([CalDavTasks]).
  * - Reading: a list whose change marker didn't move costs one request; else its files' tags are
  *   listed and only new or changed files are downloaded. A change whose merge had to wait (the pull
  *   keeps its old cursor) comes again from the stored file: a linked task whose version isn't the

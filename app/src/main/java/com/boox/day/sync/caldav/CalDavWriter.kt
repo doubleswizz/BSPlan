@@ -17,7 +17,7 @@ import java.util.UUID
  * Events created, changed or deleted on the tablet, written to the CalDAV server (plan stage 3, step
  * 3.5, Oct 2026; owner decision 60: show and edit, like Google). Every write is guarded by the file's
  * change tag (If-Match): when the file changed on the server meanwhile, it is read again and the
- * change is made to the new version, once. [CalDavEditor] changes only BooxDay's fields, and of
+ * change is made to the new version, once. [CalDavEditor] changes only BSPlan's fields, and of
  * those an edit takes the server's new value for each one the user left as it was ([merged]), so a
  * phone edit made since the last sync isn't undone by a dialog that still showed the old value.
  * A second clash fails with [CalDavConnection.Failure.Server] 412.
@@ -186,7 +186,7 @@ internal class CalDavWriter(
 
     private fun CalDavEditor.Fields.timing() = listOf(date, startTime, endTime, isAllDay)
 
-    /** BooxDay's fields of one row of a stored file, or null when the row isn't in it. */
+    /** BSPlan's fields of one row of a stored file, or null when the row isn't in it. */
     private fun fieldsOf(resource: CalDavResource, eventId: String, occurrence: String?, zone: ZoneId): CalDavEditor.Fields? {
         // Around the day's original date for a series; any date for a single event (one row)
         val around = occurrence?.take(8)?.let { LocalDate.parse(it, DateTimeFormatter.BASIC_ISO_DATE) }

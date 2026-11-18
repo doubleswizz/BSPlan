@@ -493,12 +493,77 @@ class DrawCanvas(
         // See: CLAUDE.md "Critical Bug Fixes" and memory.md section 14
         private val stylusContact = StylusContactGuard()
         @Volatile var lastStylusActivityMs: Long = 0L
+        @Volatile private var isStylusHovering: Boolean = false
+        @Volatile private var lastStylusHoverMs: Long = 0L
+        @Volatile private var lastFingerGestureRejected: Boolean = false
+        private val unfreezeHandler by lazy { android.os.Handler(Looper.getMainLooper()) }
+        private var pendingUnfreezeRunnable: Runnable? = null
         const val PALM_REJECTION_WINDOW_MS = 2000L  // 2 seconds - DO NOT REDUCE
 
         fun isStylusRecentlyActive(): Boolean {
             return stylusContact.isActive ||
                 System.currentTimeMillis() - lastStylusActivityMs < PALM_REJECTION_WINDOW_MS
         }
+
+        fun recordStylusHover(hovering: Boolean) {
+            isStylusHovering = hovering
+            lastStylusHoverMs = SystemClock.uptimeMillis()
+            if (hovering) lastFingerGestureRejected = true
+        }
+
+        fun recordStylusTouchHint() {
+            lastStylusActivityMs = System.currentTimeMillis()
+            lastFingerGestureRejected = true
+        }
+
+        /**
+         * Tracks Android MotionEvent telemetry from MainActivity so planner touch overlays can reject
+         * palm contacts (large touchMajor, multi-pointer touches, OS-canceled palm gestures, or
+         * concurrent stylus contact/hover) without affecting stylus raw drawing.
+         */
+        fun recordAndroidTouchMetrics(event: MotionEvent, maxFingerTouchMajorPx: Float) {
+            val action = event.actionMasked
+            val hasStylus = (0 until event.pointerCount).any { idx ->
+                val tool = event.getToolType(idx)
+                tool == MotionEvent.TOOL_TYPE_STYLUS || tool == MotionEvent.TOOL_TYPE_ERASER
+            }
+            if (hasStylus) {
+                recordStylusTouchHint()
+                return
+            }
+
+            if (action == MotionEvent.ACTION_DOWN) {
+                val touchMajor = event.getTouchMajor(0)
+                val palmSized = maxFingerTouchMajorPx > 0f && touchMajor > maxFingerTouchMajorPx
+                lastFingerGestureRejected = palmSized ||
+                    event.pointerCount > 1 ||
+                    (event.flags and MotionEvent.FLAG_CANCELED) != 0 ||
+                    isPalmRejectionActive()
+                return
+            }
+
+            val canceled = action == MotionEvent.ACTION_CANCEL ||
+                (event.flags and MotionEvent.FLAG_CANCELED) != 0
+            val multiPointer = event.pointerCount > 1 || action == MotionEvent.ACTION_POINTER_DOWN
+            val anyPalmSized = maxFingerTouchMajorPx > 0f && (0 until event.pointerCount).any { idx ->
+                event.getTouchMajor(idx) > maxFingerTouchMajorPx
+            }
+            if (canceled || multiPointer || anyPalmSized || isPalmRejectionActive()) {
+                lastFingerGestureRejected = true
+            }
+        }
+
+        fun isPalmRejectionActive(recentWindowMs: Long = 900L, hoverGraceMs: Long = 450L): Boolean {
+            val nowMs = System.currentTimeMillis()
+            val nowUptimeMs = SystemClock.uptimeMillis()
+            return stylusContact.isActive ||
+                isStylusHovering ||
+                (lastStylusHoverMs > 0L && nowUptimeMs - lastStylusHoverMs < hoverGraceMs) ||
+                (lastStylusActivityMs > 0L && nowMs - lastStylusActivityMs < recentWindowMs)
+        }
+
+        fun isCurrentTouchGestureRejectedForPalm(): Boolean =
+            lastFingerGestureRejected || isPalmRejectionActive()
 
         // How long the pen must rest before completed strokes are posted to the surface.
         // Above the ~190 ms a stroke's live ink stays on the panel, well below the system's own
@@ -693,18 +758,22 @@ class DrawCanvas(
             val helper = sharedTouchHelper ?: return
             if (viewportMoving) return  // see flushUIUpdates
             try {
-                Log.i("DrawCanvas", "UNFREEZE: Force unfreezing e-ink (tap outside canvas)")
+                pendingUnfreezeRunnable?.let { unfreezeHandler.removeCallbacks(it) }
                 helper.setRawDrawingEnabled(false)
-                // Post re-enable to give Android one frame to rasterize
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                // Coalesce rapid ACTION_DOWN -> onClick calls and give Compose + E-Ink 120ms to
+                // paint the UI transition before raw drawing resumes (unless a modal stays open).
+                val resume = Runnable {
+                    pendingUnfreezeRunnable = null
+                    val currentHelper = sharedTouchHelper ?: return@Runnable
                     if (isCanvasInputBlockedByOverlay()) {
                         Log.i("DrawCanvas", "UNFREEZE: Keeping raw drawing disabled because a blocking overlay is open")
                     } else {
-                        Log.i("DrawCanvas", "UNFREEZE: Re-enabling raw drawing after force unfreeze")
-                        helper.setRawDrawingEnabled(true)
-                        setEraserTrail(helper)  // The firmware forgets it on enable
+                        currentHelper.setRawDrawingEnabled(true)
+                        setEraserTrail(currentHelper)  // The firmware forgets it on enable
                     }
-                }, 50)
+                }
+                pendingUnfreezeRunnable = resume
+                unfreezeHandler.postDelayed(resume, 120L)
             } catch (e: Exception) {
                 Log.w("DrawCanvas", "forceUnfreeze failed: ${e.message}")
             }
@@ -1274,7 +1343,7 @@ class DrawCanvas(
      * erase (decompiled knote2: EraseFinishAction, InvalidateViewWithPenControlAction) (Oct 2026).
      *
      * While the pen layer is on, the screen driver is in handwriting mode: it rejects ordinary
-     * updates, and the hardware keeps its own copy of every stroke drawn live. BooxDay deleted the
+     * updates, and the hardware keeps its own copy of every stroke drawn live. BSPlan deleted the
      * strokes from its page, but that copy still had them, so each time the screen left handwriting
      * mode they blinked back, every stroke erased so far at once. Pushing the clean page, pausing,
      * or reopening the pen did not help while it came too early or too late (0 ms, 100 ms, never):

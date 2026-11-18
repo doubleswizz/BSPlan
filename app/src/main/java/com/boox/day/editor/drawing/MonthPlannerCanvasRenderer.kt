@@ -266,6 +266,9 @@ object MonthPlannerCanvasRenderer {
                     canvas.drawText(labelText, labelX, labelBaselineY, paint)
                 }
 
+                // Spillover days from previous/next month display only their date label, no events/tasks.
+                if (!cell.isCurrentMonth) continue
+
                 // Draw small note page indicator in top-right if day has handwritten notes
                 if (cell.hasDayNotes) {
                     val iconRight = cellRight - 10f

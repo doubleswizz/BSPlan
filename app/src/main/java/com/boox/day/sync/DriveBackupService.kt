@@ -13,10 +13,10 @@ import android.util.Log
 import java.io.ByteArrayOutputStream
 
 /**
- * Google Drive Backup Service for BooxDay.
+ * Google Drive Backup Service for BSPlan.
  *
  * Handles cloud backup operations:
- * - Creating/finding the BooxDay backup folder
+ * - Creating/finding the BSPlan backup folder
  * - Uploading backup files
  * - Downloading backup files for restore
  * - Listing available backups
@@ -753,7 +753,7 @@ class DriveBackupService(private val context: Context) {
         /**
          * The saved backup folder if Drive still has it, else one found by name, else null.
          * A saved ID Drive doesn't know is dropped: drive.file only sees files made by the same
-         * Google Cloud project, so an ID saved before BooxDay's move to its own project (27 Oct
+         * Google Cloud project, so an ID saved before BSPlan's move to its own project (27 Oct
          * 2026) answers 404.
          */
         internal fun findBackupFolder(

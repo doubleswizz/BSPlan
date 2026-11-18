@@ -14,7 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/** The models each AI job tries: the user's pick first, then BooxDay's choice. */
+/** The models each AI job tries: the user's pick first, then BSPlan's choice. */
 class ModelConfigProviderTest {
 
     private lateinit var savedSettings: AppSettings
@@ -64,7 +64,7 @@ class ModelConfigProviderTest {
         )
         OpenRouterAccount.onPaidRequestRefused()
         assertEquals(listOf("google/gemma-4-31b-it:free"), ModelConfigProvider.getReasoningFallbackChain().map { it.id })
-        // Nothing of BooxDay's allowed: keep the list rather than send no request at all
+        // Nothing of BSPlan's allowed: keep the list rather than send no request at all
         listed("x/other", allowed = listOf("x/other"))
         assertEquals(2, ModelConfigProvider.getReasoningFallbackChain().size)
     }
@@ -121,7 +121,7 @@ class ModelConfigProviderTest {
     }
 
     @Test
-    fun `without a pick every job uses BooxDay's choice`() {
+    fun `without a pick every job uses BSPlan's choice`() {
         pick(AiJob.WRITING, null)
         assertEquals(
             listOf("openai/gpt-6-luna", "google/gemini-3.1-flash-lite", "google/gemini-3.8-flash"),
@@ -229,7 +229,7 @@ class ModelConfigProviderTest {
     }
 
     @Test
-    fun `with credit BooxDay's choice is paid models only, each with its tested reasoning level`() {
+    fun `with credit BSPlan's choice is paid models only, each with its tested reasoning level`() {
         // 29 Oct 2026: "reasoning on" let GPT-5 Nano and Gemini 3 Flash Preview think through the
         // whole output limit, and the free backups were rate-limited on every try
         for (job in AiJob.entries) {

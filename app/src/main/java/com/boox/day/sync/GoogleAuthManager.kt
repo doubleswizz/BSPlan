@@ -18,7 +18,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 /**
- * Google Authentication Manager for BooxDay
+ * Google Authentication Manager for BSPlan
  * Handles OAuth 2.0 authentication for:
  * - Calendar sync ([CALENDAR_SCOPES]: read-write events, read the calendar list)
  * - Cloud backup (DRIVE_FILE scope for app-specific files)
@@ -53,7 +53,7 @@ class GoogleAuthManager(private val context: Context) {
         // Least access sync needs (Oct 2026, for Google's OAuth verification): read and write
         // events on the user's calendars (events list/get/insert/update/delete) and read the
         // calendar list (calendarList list/get). The full "calendar" scope also allows sharing and
-        // creating or deleting calendars, which BooxDay never did. Accounts that granted the old
+        // creating or deleting calendars, which BSPlan never did. Accounts that granted the old
         // full scope (1.0.37 and older) keep working: Google gives them tokens for these without
         // asking again (Go 10.3, 26 Oct 2026: 8 calendars and 618 events synced, no prompt).
         const val CALENDAR_LIST_READONLY = "https://www.googleapis.com/auth/calendar.calendarlist.readonly"

@@ -43,7 +43,7 @@ import java.io.File
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class AboutHeaderRenderTest {
 
-    /** The About dialog's width (ModernDialog width fraction, at most 570 dp) and BooxDay's density. */
+    /** The About dialog's width (ModernDialog width fraction, at most 570 dp) and BSPlan's density. */
     private data class Device(val name: String, val dialogWidthDp: Int, val density: Float)
 
     private val devices = listOf(

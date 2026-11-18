@@ -103,7 +103,7 @@ fun WelcomeView(navController: NavController) {
             ) {
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // App Icon (actual BooxDay logo)
+                // App Icon (actual BSPlan logo)
                 Icon(
                     painter = painterResource(R.drawable.ic_launcher_foreground_vector),
                     contentDescription = "BSPlan",

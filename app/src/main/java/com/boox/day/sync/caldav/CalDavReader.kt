@@ -15,7 +15,7 @@ import java.util.Date
  * the window's event files with their change tags (one small request); only new or changed files are
  * downloaded, files that left the calendar or the window are forgotten, and every kept file becomes
  * its rows ([CalDavEvents]). The files are kept whole in caldav_resource, so a tablet edit (step 3.5)
- * changes only BooxDay's fields.
+ * changes only BSPlan's fields.
  *
  * The rows cover the whole window, or the read fails (a [CalDavConnection.Failure]): the sync manager
  * deletes window events a provider didn't return, so a half-read calendar must never look complete.

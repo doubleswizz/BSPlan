@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 import java.util.TimeZone
 
 /**
- * Tablet edits to CalDAV event files (plan step 3.5): only BooxDay's fields change (alarms,
+ * Tablet edits to CalDAV event files (plan step 3.5): only BSPlan's fields change (alarms,
  * attendees and other apps' data stay), one day of a series changes or goes alone and keeps its row
  * id, an all-day trip keeps its length when moved.
  */

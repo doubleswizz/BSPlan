@@ -11,12 +11,12 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
 
 /**
- * When task sync runs by itself while BooxDay is open (plan step 2.7, owner decisions 11 and 34):
+ * When task sync runs by itself while BSPlan is open (plan step 2.7, owner decisions 11 and 34):
  * - about 10 s after an edit: the change watcher's scan (10 s after the last change, owner 31 Oct
  *   2026) queued something, then [AFTER_EDIT_MS]; more edits in that time push it back;
- * - when BooxDay comes to the front (its first start too), at most every [RETURN_GAP_MS] since the
+ * - when BSPlan comes to the front (its first start too), at most every [RETURN_GAP_MS] since the
  *   last run of any kind: each run costs about one Google call per ticked list, from a limit all
- *   BooxDay users share;
+ *   BSPlan users share;
  * - the calendar's Sync button, always;
  * - again after a run that couldn't finish (offline, Google busy, an error, or a change whose send
  *   failed and waits): after [RETRY_WAITS_MS] (1, 2, 4, 8, 15 minutes), then no more until the next

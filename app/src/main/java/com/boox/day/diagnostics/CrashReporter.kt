@@ -28,7 +28,7 @@ data class CrashReport(
  * Before this, a crash left nothing behind: StartupDiagnostics only knows the startup steps it
  * guards, and only until the process dies.
  *
- * Installed first thing in BooxDayApp.onCreate. On an uncaught exception it writes the report
+ * Installed first thing in BSPlanApp.onCreate. On an uncaught exception it writes the report
  * (version, device, exception, stack, the app's own last log lines) to filesDir/crash, then hands
  * the exception to the handler that was there before (Android's "app stopped" and process exit).
  * It never throws and gives the log reader at most [LOG_TIMEOUT_MS].

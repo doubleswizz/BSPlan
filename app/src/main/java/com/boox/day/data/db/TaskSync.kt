@@ -12,7 +12,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
- * Task sync (v30, Oct 2026): BooxDay tasks kept in step with a task service (Google Tasks first,
+ * Task sync (v30, Oct 2026): BSPlan tasks kept in step with a task service (Google Tasks first,
  * CalDAV task lists later). Plan: C:\Users\fort\.claude\plans\reactive-wiggling-micali.md.
  *
  * A task row is a slot on a day's page, not a task: moving or sorting copies the content to
@@ -125,7 +125,7 @@ data class TaskSyncList(
     @ColumnInfo(defaultValue = "") val serverUrl: String = "",
     val listId: String,
     val title: String,
-    /** The list tasks written in BooxDay go to ("New tasks go to"). */
+    /** The list tasks written in BSPlan go to ("New tasks go to"). */
     val isDefaultForNew: Boolean = false,
     /** Where the next pull starts (Google `updatedMin`, CalDAV sync token); null = pull everything. */
     val pullCursor: String? = null,
@@ -263,7 +263,7 @@ interface TaskSyncDao {
     @Query("UPDATE task_sync_link SET listId = :listId, remoteId = :remoteId WHERE taskId = :taskId")
     fun moveLinkToList(taskId: String, listId: String, remoteId: String)
 
-    /** After BooxDay moved the copy itself: the version it got there, so the next pull doesn't merge it again. */
+    /** After BSPlan moved the copy itself: the version it got there, so the next pull doesn't merge it again. */
     @Query("UPDATE task_sync_link SET remoteVersion = :version, syncedAt = :now WHERE taskId = :taskId")
     fun setMovedVersion(taskId: String, version: String?, now: Long)
 

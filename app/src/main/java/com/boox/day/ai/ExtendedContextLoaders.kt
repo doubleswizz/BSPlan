@@ -214,7 +214,7 @@ object ExtendedContextLoaders {
 
     /**
      * A task's words for the AI: the handwriting read just now ([ocrResults]), else typed, else
-     * converted, else the handwriting BooxDay stored when it was written (the order TaskOcrService
+     * converted, else the handwriting BSPlan stored when it was written (the order TaskOcrService
      * uses). 29 Oct 2026: only the first two, so ticked handwritten tasks and the handwritten
      * tasks of other days had no words, and Smart Suggestions suggested them again.
      */

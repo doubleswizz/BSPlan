@@ -252,7 +252,7 @@ internal fun OpenRouterIntroCard(
             )
             QuestionAndAnswer(
                 "What does it cost?",
-                // Measured 29 Oct 2026 with BooxDay's models: 6 of 7 actions under a cent (Voice to Task 1.7)
+                // Measured 29 Oct 2026 with BSPlan's models: 6 of 7 actions under a cent (Voice to Task 1.7)
                 "Signing up is free. Free AIs work, but they're often busy. For AI that just works, add " +
                     "credit (from \$5). You pay only for what you use: most things cost less than a cent."
             )

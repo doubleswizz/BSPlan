@@ -11,7 +11,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Removing the last Google account withdraws BooxDay's Google access (Nov 2026). It used to clear
+ * Removing the last Google account withdraws BSPlan's Google access (Nov 2026). It used to clear
  * the whole settings file, which also holds the calendar sync switch and Sync frequency that Outlook
  * and CalDAV accounts use: they went back to "on, every 4 hours". (The app's file is encrypted with
  * the Android Keystore, which Robolectric lacks, so a plain file stands in for it.)

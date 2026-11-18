@@ -2,7 +2,7 @@ package com.boox.day.share
 
 import android.net.Uri
 
-/** Public, read-only contract other apps can copy to read BooxDay tasks. */
+/** Public, read-only contract other apps can copy to read BSPlan tasks. */
 object TasksFeedContract {
     const val AUTHORITY = "com.bsplan.app.tasks"
     const val PATH_DUE = "due"
@@ -11,7 +11,7 @@ object TasksFeedContract {
     val BASE_URI: Uri = Uri.parse("content://$AUTHORITY")
 
     const val ID = "_id"                     // row number in this result, not stable
-    const val TASK_ID = "task_id"            // stable BooxDay task id
+    const val TASK_ID = "task_id"            // stable BSPlan task id
     const val TITLE = "title"                // converted, typed or recognised text; "Handwritten task" if none
     const val HANDWRITTEN_ONLY = "handwritten_only" // 1 when there is no text yet
     const val DAY = "day"                    // yyyy-MM-dd page the task lives on

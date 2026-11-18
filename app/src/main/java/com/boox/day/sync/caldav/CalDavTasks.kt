@@ -50,10 +50,10 @@ import java.time.temporal.ChronoUnit
  * CalDAV tasks (VTODO, RFC 5545) as task sync reads and writes them (plan stage 4, steps 4.3-4.5,
  * Nov 2026):
  * - SUMMARY = the words; STATUS COMPLETED (or CANCELLED, or a COMPLETED time / 100 % without a
- *   status) = ticked; DUE = the due day (BooxDay has no due time); RELATED-TO (RELTYPE PARENT, the
+ *   status) = ticked; DUE = the due day (BSPlan has no due time); RELATED-TO (RELTYPE PARENT, the
  *   default) = the parent's UID; PRIORITY 1-4 / 5 / 6-9 = A / B / C.
  * - The reminder (owner decision 69): a reminder (VALARM) that rings on the due day, else a due time,
- *   is the task's own reminder time. BooxDay writes its own reminder time as a VALARM at that time
+ *   is the task's own reminder time. BSPlan writes its own reminder time as a VALARM at that time
  *   on the due day and sends none for the usual time (the tablet's setting).
  * - A repeating task (RRULE or RDATE) comes as one task per due day (owner decision 76, Nov 2026,
  *   Thunderbird's way): [occurrences] gives the days, each with its own day exception
@@ -66,7 +66,7 @@ import java.time.temporal.ChronoUnit
 internal object CalDavTasks {
     private const val PRODID = "-//BSPlan//BSPlan//EN"
 
-    /** A task file's fields as BooxDay reads them. */
+    /** A task file's fields as BSPlan reads them. */
     data class Read(
         val uid: String?,
         val title: String,
@@ -83,7 +83,7 @@ internal object CalDavTasks {
         val modifiedAt: Long?
     )
 
-    /** What BooxDay writes. [priority] and [reminderMinute] only count with `extras` (always, for CalDAV). */
+    /** What BSPlan writes. [priority] and [reminderMinute] only count with `extras` (always, for CalDAV). */
     data class Fields(
         val title: String,
         val completed: Boolean,
@@ -131,7 +131,7 @@ internal object CalDavTasks {
         return write(calendar)
     }
 
-    /** [ics] with BooxDay's fields set; the rest as it was. */
+    /** [ics] with BSPlan's fields set; the rest as it was. */
     fun edit(ics: String, fields: Fields, zone: ZoneId, now: Long): String {
         val calendar = checkNotNull(CalDavEvents.parse(ics)) { "Unreadable task file" }
         val todo = checkNotNull(calendar.todos().master()) { "No task in the file" }
@@ -166,7 +166,7 @@ internal object CalDavTasks {
         return series.at(key)
     }
 
-    /** [ics] with BooxDay's fields set on the day [key] of the series: its exception, made from the series when it has none. */
+    /** [ics] with BSPlan's fields set on the day [key] of the series: its exception, made from the series when it has none. */
     fun editOccurrence(ics: String, key: String, fields: Fields, zone: ZoneId, now: Long): String {
         val calendar = checkNotNull(CalDavEvents.parse(ics)) { "Unreadable task file" }
         val series = checkNotNull(Series.of(calendar.todos(), zone)) { "Not a repeating task" }
@@ -339,7 +339,7 @@ internal object CalDavTasks {
         val due = dueOf(todo, zone)
         val wanted = fields.reminderMinute?.takeIf { due != null }
         if (due != null && reminderOf(todo, due, zone) != wanted) {
-            // The reminders on the due day give way to BooxDay's (none for the usual time); a due
+            // The reminders on the due day give way to BSPlan's (none for the usual time); a due
             // time stood for the reminder too, so the due date keeps only its day
             // (alarms is a filtered copy: they live in the task's components)
             alarmsOnDueDay(todo, due, zone).forEach { todo.components.remove(it.first) }

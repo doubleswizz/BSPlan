@@ -3,11 +3,11 @@ package com.boox.day.ui.messages
 import kotlin.random.Random
 
 /**
- * The light-hearted lines shown while BooxDay waits (AI features, voice, calendar sync).
+ * The light-hearted lines shown while BSPlan waits (AI features, voice, calendar sync).
  *
  * Rewritten 29 Oct 2026: RotatingFunMessage shows a new line every 4 s and most waits are 3-14 s,
  * so each line is about what is happening and readable at a glance (AiFeedbackMessagesTest:
- * 60 characters at most, no repeats). No song lyrics, no "my servers" (BooxDay has none: the AI
+ * 60 characters at most, no repeats). No song lyrics, no "my servers" (BSPlan has none: the AI
  * runs on the user's own OpenRouter account), nothing that sounds like the app got it wrong.
  */
 object AiFeedbackMessages {

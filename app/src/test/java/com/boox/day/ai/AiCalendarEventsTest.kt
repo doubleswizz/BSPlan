@@ -22,7 +22,7 @@ import java.time.ZoneId
  * A day's events for the AI features (Oct 2026): Daily Summary, Weekly Summary and Smart Suggestions
  * read only events kept on the tablet, so a synced Google/Outlook calendar never reached them (Go
  * 10.3: 607 synced events, none on the tablet). Synced and tablet events are read, each event once,
- * from the calendars shown in BooxDay (the privacy policy: only Optimize My Day reads hidden ones).
+ * from the calendars shown in BSPlan (the privacy policy: only Optimize My Day reads hidden ones).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
@@ -64,7 +64,7 @@ class AiCalendarEventsTest {
     }
 
     @Test
-    fun `a calendar hidden in BooxDay is left out, as on the calendar`() = runBlocking {
+    fun `a calendar hidden in BSPlan is left out, as on the calendar`() = runBlocking {
         db.calendarEventDao().upsertAll(listOf(
             synced("shown", "2026-11-02", hour = 9),
             synced("private", "2026-11-02", hour = 12, calendarId = "hidden")

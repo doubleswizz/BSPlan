@@ -34,7 +34,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * Bringing the service's changes onto the tablet (task sync step 2.3), through BooxDay's real task
+ * Bringing the service's changes onto the tablet (task sync step 2.3), through BSPlan's real task
  * operations: moves carry ink and links, clears remove the row, subtask rules apply.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -187,7 +187,7 @@ class TaskSyncMergerTest {
         assertNothingWaits()
 
         merger.merge(remote("r-c", "Hotel", dueDay = "2026-11-09", parent = "r-p", version = "v3"))
-        assertEquals("BooxDay refuses a subtask due after its parent", "2026-11-04", tasks.getById(child)!!.dueDay)
+        assertEquals("BSPlan refuses a subtask due after its parent", "2026-11-04", tasks.getById(child)!!.dueDay)
         assertEquals("the tablet's due day goes back", listOf(TaskSyncOp.UPSERT to child), sync.getOutbox().map { it.op to it.taskId })
     }
 
@@ -440,7 +440,7 @@ class TaskSyncMergerTest {
         KvProxy(context).setKv(APP_SETTINGS_KEY, AppSettings(version = 1, tasksInkCanvasHeight = 1386f, tasksInkTopOffset = 3f), AppSettings.serializer())
 
         assertEquals(1386f, syncCanvasHeight(context))
-        assertEquals("BooxDay's row code reads the top offset from the session", 3f, GlobalAppSettings.tasksTopOffsetPx)
+        assertEquals("BSPlan's row code reads the top offset from the session", 3f, GlobalAppSettings.tasksTopOffsetPx)
     }
 
     // ── Priority and reminder (a CalDAV list carries them; owner decisions 67, 69) ──

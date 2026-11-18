@@ -18,7 +18,7 @@ private class PointerTrack(
 
 /*
  * From Notable (github.com/Ethran/notable, gestures/PointerTracker.kt at 16dfdbd, 25 Oct 2026,
- * GPL-3.0 like BooxDay), for the Memos two-finger drag (Oct 2026). Added: [pressedTravels].
+ * GPL-3.0 like BSPlan), for the Memos two-finger drag (Oct 2026). Added: [pressedTravels].
  */
 
 /**

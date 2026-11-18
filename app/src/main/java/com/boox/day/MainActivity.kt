@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
         SCREEN_HEIGHT = applicationContext.resources.displayMetrics.heightPixels
 
         if (StartupDiagnostics.hasFatalFailure()) {
-            setBooxDayContent()
+            setBSPlanContent()
             return
         }
 
@@ -237,7 +237,7 @@ class MainActivity : ComponentActivity() {
 //        val intentData = intent.data?.lastPathSegment
 
         readTaskFocusExtras(intent)
-        setBooxDayContent(snackState)
+        setBSPlanContent(snackState)
 
         // In-app updates (Oct 2026): checks GitHub for a newer release 15 s from now
         com.boox.day.update.AppUpdateGate.onAppStart(this)
@@ -365,7 +365,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val maxFingerTouchMajorPx: Float by lazy {
+        android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_MM,
+            10f,
+            resources.displayMetrics
+        )
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.pointerCount > 0) {
+            val toolType = event.getToolType(0)
+            if (toolType == MotionEvent.TOOL_TYPE_STYLUS || toolType == MotionEvent.TOOL_TYPE_ERASER) {
+                DrawCanvas.recordStylusHover(event.actionMasked != MotionEvent.ACTION_HOVER_EXIT)
+            }
+        }
+        return super.dispatchGenericMotionEvent(event)
+    }
+
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        DrawCanvas.recordAndroidTouchMetrics(event, maxFingerTouchMajorPx)
         if (!DrawCanvas.dispatchAndroidStylusEvent(event)) return super.dispatchTouchEvent(event)
         if (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
             // A palm may already have started a Compose gesture before the pen arrived.
@@ -446,7 +465,7 @@ class MainActivity : ComponentActivity() {
         Intent().apply {
             action = "com.onyx.app.optimize.setting"
             putExtra("optimize_fullScreen", true)
-            putExtra("optimize_pkgName", "com.boox.day")
+            putExtra("optimize_pkgName", packageName)
             sendBroadcast(this)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -480,7 +499,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun setBooxDayContent(snackState: SnackState? = null) {
+    private fun setBSPlanContent(snackState: SnackState? = null) {
         setContent {
             val startupStatus by StartupDiagnostics.status.collectAsState()
 

@@ -44,7 +44,7 @@ class OnyxPenLibraryTest {
     private val settingsBefore = GlobalAppSettings.current
 
     @Before fun setUp() {
-        OnyxCompat.initResManager(app)  // as BooxDayApp does at start
+        OnyxCompat.initResManager(app)  // as BSPlanApp does at start
         onyxPenLibraryFailed = false
     }
 
@@ -53,7 +53,7 @@ class OnyxPenLibraryTest {
         GlobalAppSettings.update(settingsBefore)
     }
 
-    // Size 10, pressures 512 and 1024 of 1024: BooxDay's Fountain look draws them 8 and 10 wide
+    // Size 10, pressures 512 and 1024 of 1024: BSPlan's Fountain look draws them 8 and 10 wide
     private fun stroke(pen: Pen) = Stroke(size = 10f, pen = pen, maxPressure = 1024,
         top = 10f, bottom = 90f, left = 10f, right = 90f,
         points = listOf(StrokePoint(20f, 20f, 512f), StrokePoint(80f, 80f, 1024f)),
@@ -81,7 +81,7 @@ class OnyxPenLibraryTest {
             val canvas = RecordingCanvas()
             drawStroke(canvas, stroke(pen), Offset.Zero)
             assertTrue("$pen: the library should fail to load on the PC", onyxPenLibraryFailed)
-            assertEquals("$pen drawn by BooxDay from the saved pressures", listOf(8f, 10f), canvas.widths)
+            assertEquals("$pen drawn by BSPlan from the saved pressures", listOf(8f, 10f), canvas.widths)
         }
     }
 

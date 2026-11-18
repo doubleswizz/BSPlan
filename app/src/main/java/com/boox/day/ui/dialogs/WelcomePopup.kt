@@ -42,7 +42,7 @@ import com.boox.day.ui.theme.EInkTheme
 
 /**
  * First-run welcome popup shown once after installation.
- * Engaging introduction to BooxDay with feature highlights and
+ * Engaging introduction to BSPlan with feature highlights and
  * a note on the Settings dots (things that need the user, ui/attention).
  *
  * Part of Play Store launch onboarding (Jan 2026).

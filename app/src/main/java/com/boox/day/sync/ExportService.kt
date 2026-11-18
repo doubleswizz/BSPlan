@@ -39,7 +39,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Export Service for BooxDay backup (format v3, see BackupSchema.kt).
+ * Export Service for BSPlan backup (format v3, see BackupSchema.kt).
  *
  * Streams every backed-up table into the JSON file one row at a time (strokes and OCR text in
  * batches), so a long handwriting history never has to fit in memory.

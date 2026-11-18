@@ -52,7 +52,7 @@ data class CatalogModel(
     val supportsJsonSchema: Boolean = false,
     /** Takes `temperature` (OpenAI's reasoning models don't) */
     val supportsTemperature: Boolean = false,
-    /** Takes `max_tokens` (every BooxDay request sets one) */
+    /** Takes `max_tokens` (every BSPlan request sets one) */
     val supportsMaxTokens: Boolean = false,
     val reasoning: ReasoningOptions = ReasoningOptions(),
     val contextLength: Int? = null,

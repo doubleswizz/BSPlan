@@ -16,7 +16,7 @@ import com.boox.day.R
 import com.boox.day.notifications.NotificationChannelManager
 
 /**
- * BooxDay was just replaced by a newer version (MY_PACKAGE_REPLACED, Oct 2026). Android doesn't let
+ * BSPlan was just replaced by a newer version (MY_PACKAGE_REPLACED, Oct 2026). Android doesn't let
  * an app open itself from the background, so a notification brings the user back in one tap.
  * Nothing shows when notifications are off; the app then simply waits on the home screen.
  */

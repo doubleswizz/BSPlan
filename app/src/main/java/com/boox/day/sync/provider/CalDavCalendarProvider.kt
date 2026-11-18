@@ -47,7 +47,7 @@ import java.util.UUID
  * - A calendar's id is its URL path (caldav_calendar.href).
  * - Reading: [CalDavReader]. The sync manager deletes window events a provider didn't return, so a
  *   calendar that failed makes the fetch a [CalendarProviderException.PartialSyncException].
- * - Writing: [CalDavWriter] (step 3.5): only BooxDay's fields change in the file, each write guarded
+ * - Writing: [CalDavWriter] (step 3.5): only BSPlan's fields change in the file, each write guarded
  *   by its change tag; one day of a series changes or goes alone.
  */
 class CalDavCalendarProvider internal constructor(

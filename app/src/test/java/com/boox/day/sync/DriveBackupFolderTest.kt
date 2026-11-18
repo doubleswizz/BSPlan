@@ -39,7 +39,7 @@ class DriveBackupFolderTest {
             },
             GsonFactory.getDefaultInstance(),
             null
-        ).setApplicationName("BooxDay test").build()
+        ).setApplicationName("BSPlan test").build()
 
         private fun answer(method: String, url: String, request: MockLowLevelHttpRequest): LowLevelHttpResponse {
             val path = url.substringAfter("/drive/v3/files").substringBefore('?')

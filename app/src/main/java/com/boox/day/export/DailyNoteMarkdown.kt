@@ -14,7 +14,7 @@ import java.util.Locale
  * The Markdown daily note (Oct 2026, idea from CrossInk's "My Clippings.txt"): one file per day
  * with the schedule, the tasks and the text of the memo pages, for Obsidian and other notes apps.
  *
- * BooxDay's part sits between [START] and [END]. Writing the note again replaces only that part,
+ * BSPlan's part sits between [START] and [END]. Writing the note again replaces only that part,
  * so whatever the user added around it in their notes app stays. Front matter (date, source) is
  * written once, when the file is new.
  */
@@ -28,7 +28,7 @@ object DailyNoteMarkdown {
     fun frontMatter(digest: DayDigest): String = "---\ndate: ${digest.date}\nsource: BSPlan\n---\n"
 
     /**
-     * BooxDay's part of the note, markers included. [memoWaitReason]: why handwriting is not read
+     * BSPlan's part of the note, markers included. [memoWaitReason]: why handwriting is not read
      * yet, if reading is waiting (e.g. "no internet (Wi-Fi is off)", `IndexingStatus`).
      * [pageImages]: page number (from 1) to the page's picture, from an export ([imagesIn] keeps them
      * when the note is written again). A page with its picture needs no "not read yet" line.
@@ -123,7 +123,7 @@ object DailyNoteMarkdown {
     private val PAGE_IMAGE = Regex("""!\[Page (\d+)]\((attachments/[^)]+)\)""")
 
     /**
-     * The file's new content: [block] in place of the old BooxDay part, or added at the end of a
+     * The file's new content: [block] in place of the old BSPlan part, or added at the end of a
      * file that has none, or a new file with front matter.
      */
     fun merge(existing: String?, block: String, frontMatter: String): String {

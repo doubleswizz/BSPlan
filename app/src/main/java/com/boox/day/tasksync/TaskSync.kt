@@ -50,7 +50,7 @@ object TaskSync {
     /**
      * Changes whenever what [attentionReason] reads may have changed (a run's result, turning it on
      * or off, deletes approved or kept), so the Settings menu updates at once (Nov 2026; before, it
-     * waited for BooxDay to come back to the front).
+     * waited for BSPlan to come back to the front).
      */
     val statusChanges: StateFlow<Long> = changes
 
@@ -333,7 +333,7 @@ object TaskSync {
         Log.i(TAG, "Task sync watching for changes")
     }
 
-    /** The app's own scope (BooxDayApp), for runs that must outlive the screen that asked; null in tests. */
+    /** The app's own scope (BSPlanApp), for runs that must outlive the screen that asked; null in tests. */
     @Volatile
     internal var appScope: CoroutineScope? = null
         private set

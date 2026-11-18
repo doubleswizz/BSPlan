@@ -343,7 +343,7 @@ class DigitalInkService(
     }
 
     /**
-     * Convert BooxDay strokes to ML Kit Ink format.
+     * Convert BSPlan strokes to ML Kit Ink format.
      *
      * @param strokes List of strokes to convert
      * @param offsetX X offset to subtract (control column width)

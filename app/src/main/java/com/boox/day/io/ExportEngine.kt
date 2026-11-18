@@ -297,19 +297,19 @@ class ExportEngine(
      *
      * Rules:
      *  Book export:
-     *      folder: Documents/BooxDay/<folderHierarchy>/BookTitle
+     *      folder: Documents/BSPlan/<folderHierarchy>/BookTitle
      *      file:   BookTitle
      *
      *  Page export (belongs to a book):
-     *      folder: Documents/BooxDay/<folderHierarchy>/BookTitle
+     *      folder: Documents/BSPlan/<folderHierarchy>/BookTitle
      *      file:   BookTitle-p<PageNumber>   (falls back to BookTitle-p? if no number)
      *
      *  Day page export:
-     *      folder: Documents/BooxDay/Calendar/<year-month>
-     *      file:   BooxDay <date> p<PageNumber>
+     *      folder: Documents/BSPlan/Calendar/<year-month>
+     *      file:   BSPlan <date> p<PageNumber>
      *
      *  Quick page export:
-     *      folder: Documents/BooxDay/<folderHierarchyFromPageParent?>
+     *      folder: Documents/BSPlan/<folderHierarchyFromPageParent?>
      *      file:   booxday-<timestamp>
      *
      * - If options.saveToUri is provided, it must point to a directory (tree/document folder Uri or file:// directory).
@@ -335,7 +335,7 @@ class ExportEngine(
         return defaultFolderFor(target, format) to fileName
     }
 
-    /** The default export directory under Documents/BooxDay/<subfolder>. */
+    /** The default export directory under Documents/BSPlan/<subfolder>. */
     private fun defaultFolderFor(target: ExportTarget, format: ExportFormat): Uri =
         getDefaultExportDirectoryUri(createSubfolderName(target, format))
 
@@ -418,7 +418,7 @@ class ExportEngine(
     }
 
 
-    // Create a default directory Uri under Documents/BooxDay/<subfolderPath> using file:// scheme.
+    // Create a default directory Uri under Documents/BSPlan/<subfolderPath> using file:// scheme.
     private fun getDefaultExportDirectoryUri(subfolderPath: String): Uri {
         val documentsDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
@@ -434,9 +434,9 @@ class ExportEngine(
      *
      * Book export: BookTitle
      * Page export in book: BookTitle-p<PageNumber> (or p?)
-     * Day page: BooxDay <date> p<PageNumber> (e.g., BooxDay 2024-11-24 p1)
-     * A day: BooxDay <date>
-     * Several days: BooxDay <from> to <to>
+     * Day page: BSPlan <date> p<PageNumber> (e.g., BSPlan 2024-11-24 p1)
+     * A day: BSPlan <date>
+     * Several days: BSPlan <from> to <to>
      * Quick page: booxday-<timestamp>
      */
     fun createFileName(target: ExportTarget): String {

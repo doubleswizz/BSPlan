@@ -248,7 +248,7 @@ data class NewEventData(
     val attendees: String? = null,  // Comma-separated emails for Google Calendar invites
     val syncEnabled: Boolean = false,  // Whether to sync this event to Google Calendar (hybrid mode)
     /**
-     * BooxDay's own id for the event, the same on every try of a create sent later (plan step 3.7).
+     * BSPlan's own id for the event, the same on every try of a create sent later (plan step 3.7).
      * CalDAV names the event's file with it, so a try whose answer was lost finds its file instead
      * of making a second one. Null: a new id.
      */

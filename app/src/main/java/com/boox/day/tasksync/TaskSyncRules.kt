@@ -5,7 +5,7 @@ import com.boox.day.data.db.TaskSyncLink
 import java.security.MessageDigest
 
 /**
- * What a BooxDay task looks like to a task service (Oct 2026). Plan:
+ * What a BSPlan task looks like to a task service (Oct 2026). Plan:
  * C:\Users\fort\.claude\plans\reactive-wiggling-micali.md, step 1.8.
  */
 internal object TaskSyncRules {

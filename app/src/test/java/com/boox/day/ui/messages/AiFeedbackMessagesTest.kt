@@ -52,7 +52,7 @@ class AiFeedbackMessagesTest {
         assertTrue("Taglines over 50 characters: $long", long.isEmpty())
         assertEquals(splashTaglines.size, splashTaglines.map { it.lowercase() }.toSet().size)
         assertTrue(splashTaglines.size >= 30)
-        // BooxDay is a black and white daily planner
+        // BSPlan is a black and white daily planner
         assertTrue(splashTaglines.none { it.contains("shades of gray", true) || it.contains("frames per second", true) })
     }
 }

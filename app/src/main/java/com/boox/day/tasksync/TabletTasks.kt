@@ -14,7 +14,7 @@ import com.boox.day.tasks.TaskPagination
 /**
  * The tablet side of a merge (task sync, Oct 2026). Plan:
  * C:\Users\fort\.claude\plans\reactive-wiggling-micali.md, steps 2.3-2.4. A change the task service
- * brings is made through BooxDay's own task operations, so reminders, subtasks and ink behave as
+ * brings is made through BSPlan's own task operations, so reminders, subtasks and ink behave as
  * when the user makes it. What can't be done now says so, and the merge tries again at the next
  * sync: rows of unknown size (Tasks never shown), a day on full screen pages, the page being
  * written on, a day with all 10 pages full.
@@ -26,13 +26,13 @@ internal interface TabletTasks {
     /** New words for a typed or converted task (handwriting keeps its ink: owner decision 2). */
     fun setWords(task: Task, words: String)
 
-    /** Ticks or unticks it, with BooxDay's subtask rules (a parent ticks its subtasks, and back). */
+    /** Ticks or unticks it, with BSPlan's subtask rules (a parent ticks its subtasks, and back). */
     fun setCompleted(taskId: String, completed: Boolean)
 
-    /** Its own due day; false when BooxDay refuses it (a subtask due after its parent). */
+    /** Its own due day; false when BSPlan refuses it (a subtask due after its parent). */
     fun setDueDay(taskId: String, dueDay: String?): Boolean
 
-    /** Priority ("", "A", "B", "C"), with BooxDay's subtask rules. */
+    /** Priority ("", "A", "B", "C"), with BSPlan's subtask rules. */
     fun setPriority(taskId: String, priority: String)
 
     /** Its own reminder time (minutes after midnight), null = the usual time. */
@@ -55,8 +55,8 @@ internal interface TabletTasks {
 
 /**
  * The Tasks rows' size for sync's writes. With Tasks on screen, what MainScreen measured. With
- * BooxDay closed (a background run), the size the stored ink is laid out for, which TasksInkLayout
- * saved; it also becomes the session's top offset, where BooxDay's row code reads it
+ * BSPlan closed (a background run), the size the stored ink is laid out for, which TasksInkLayout
+ * saved; it also becomes the session's top offset, where BSPlan's row code reads it
  * (tasksTopOffset). 0 when Tasks has never been shown: then rows can't be found and writes wait.
  */
 internal fun syncCanvasHeight(context: Context): Float {
@@ -85,7 +85,7 @@ internal class RepositoryTabletTasks(
     private val changedDays = ThreadLocal<MutableSet<String>?>()
 
     init {
-        // With BooxDay closed nothing has loaded the settings: reminders follow them (TaskRepository)
+        // With BSPlan closed nothing has loaded the settings: reminders follow them (TaskRepository)
         if (!GlobalAppSettings.loaded) GlobalAppSettings.update(workerAppSettings(context))
     }
 

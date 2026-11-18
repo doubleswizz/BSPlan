@@ -91,7 +91,7 @@ internal fun buildCalendarFetchSyncResult(
 }
 
 /**
- * Calendar Sync Manager for BooxDay
+ * Calendar Sync Manager for BSPlan
  * Handles Google Calendar API operations including full CRUD:
  * - Create: Add new events to Google Calendar
  * - Read: Sync events from Google Calendar to local cache

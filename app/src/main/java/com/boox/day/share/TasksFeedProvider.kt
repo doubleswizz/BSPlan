@@ -20,7 +20,7 @@ import com.boox.day.tasks.TaskPagination
 import java.time.LocalDate
 
 /**
- * Read-only feed of BooxDay tasks for other apps on the device (launchers, widgets,
+ * Read-only feed of BSPlan tasks for other apps on the device (launchers, widgets,
  * assistants). It exposes task text and dates only: no strokes, notes, pages,
  * accounts or settings, and every write is refused.
  *
@@ -129,7 +129,7 @@ class TasksFeedProvider : ContentProvider() {
         const val TODAY = 2
         const val OPEN = 3
         const val HANDWRITTEN = "Handwritten task"
-        // Same "slot has content" rule BooxDay uses for its own task counts.
+        // Same "slot has content" rule BSPlan uses for its own task counts.
         const val HAS_CONTENT = "(isCompleted = 1 OR priority != '' OR typedText IS NOT NULL OR convertedText IS NOT NULL " +
             "OR (recognizedText IS NOT NULL AND recognizedText != '') OR parentTaskId IS NOT NULL OR dueDay IS NOT NULL)"
     }

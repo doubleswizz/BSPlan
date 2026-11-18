@@ -26,7 +26,7 @@ object FileAccess {
         }
 
     /**
-     * Android's All files access page for BooxDay, then the general one, then App info: the first that
+     * Android's All files access page for BSPlan, then the general one, then App info: the first that
      * opens. [launch] starts it (an activity-result launcher, so the caller hears when the user is back).
      */
     fun openAllFilesSettings(context: Context, launch: (Intent) -> Unit) {

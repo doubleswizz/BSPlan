@@ -205,14 +205,7 @@ import com.boox.day.editor.state.EditorState
 import com.boox.day.editor.state.History
 import com.boox.day.editor.ui.EditorGestureReceiver
 import com.boox.day.editor.ui.EditorSurface
-// ScrollIndicator imports removed - infinite scroll is disabled
-import com.boox.day.editor.ui.SelectedBitmap
-import com.boox.day.editor.ui.TextBoxOverlay
-import com.boox.day.editor.ui.TASKS_CONTROL_COLUMN_WIDTH
 import com.boox.day.editor.ui.TASKS_TOOLBAR_OFFSET
-import com.boox.day.editor.ui.TasksControlColumn
-import com.boox.day.editor.ui.TasksLinesOverlay
-import com.boox.day.editor.ui.TaskRowHighlight
 import com.boox.day.editor.ui.DeletePageConfirmDialog
 import com.boox.day.editor.utils.MoveTaskError
 import com.boox.day.editor.utils.SlotAllocator
@@ -275,7 +268,7 @@ enum class EditorTab {
 }
 
 /**
- * Main screen for BooxDay - combines calendar view with drawing canvas
+ * Main screen for BSPlan - combines calendar view with drawing canvas
  * Layout: Top Toolbar -> Calendar (40%) -> Drawing Toolbar -> Drawing Canvas (60%)
  */
 
@@ -1524,22 +1517,18 @@ fun MainScreen(
         Log.i(TAG, "PERF: Tasks pre-warm LaunchedEffect end at ${System.currentTimeMillis()}")
     }
 
-    // PERF: Preload preview bitmaps for neighboring days after current day loads
-    // This eliminates disk I/O delay when switching between days
-    LaunchedEffect(selectedDate, currentPageId, currentTaskPageId, isMemosPageLoading, isTasksPageLoading) {
-        // Only preload when both tabs have finished loading
-        if (isMemosPageLoading || isTasksPageLoading) return@LaunchedEffect
-        if (currentPageId == null) return@LaunchedEffect
+    LaunchedEffect(selectedDate, currentPageId, isMemosPageLoading) {
+        if (isMemosPageLoading || currentPageId == null) return@LaunchedEffect
 
-        // Small delay to not compete with initial rendering (reduced from 100ms for faster preload start)
+        // Small delay to not compete with initial rendering
         kotlinx.coroutines.delay(50)
 
-        // Trigger preloading of neighboring days' preview bitmaps (Memos + Tasks)
+        // Trigger preloading of neighboring days' preview bitmaps
         PageDataManager.preloadNeighboringPreviews(
             context = context,
             currentDate = selectedDate,
             currentTabPageId = currentPageId!!,
-            otherTabPageId = currentTaskPageId,
+            otherTabPageId = null,
             dayPageRepository = appRepository.dayPageRepository,
             taskRepository = taskRepository
         )
@@ -2363,7 +2352,7 @@ fun MainScreen(
                     if (PERF_LOGS) Log.i(TAG, "PERF: Tab switch to $currentEditorTab at ${System.currentTimeMillis()}")
                 }
 
-                if (currentPageId != null && currentTaskPageId != null) {
+                if (currentPageId != null) {
                     PersistentCanvasHost(
                         navController = navController,
                         selectedDate = selectedDate,
@@ -2373,7 +2362,7 @@ fun MainScreen(
                         tabManager = tabManager,
                         currentTab = currentEditorTab,
                         memosPageId = currentPageId!!,
-                        tasksPageId = currentTaskPageId!!,
+                        tasksPageId = currentTaskPageId.orEmpty(),
                         tasks = currentTasks,
                         taskPageInfo = currentTaskPageInfo,
                         memosIsLoading = isMemosPageLoading,
@@ -3081,7 +3070,7 @@ fun MainScreen(
                     goToTask(taskId, date)
                 },
                 onOpenBooxNote = { uniqueId ->
-                    // Opens the note here first; its Open in Notes App button leaves BooxDay
+                    // Opens the note here first; its Open in Notes App button leaves BSPlan
                     com.boox.day.ui.dialogs.BooxNotesPlaces.openNote(uniqueId)
                     showSearchDialog = false
                 },
@@ -4465,10 +4454,10 @@ private fun PersistentCanvasHost(
                 DrawCanvas.contentChanged.collect { check() }
             }
 
-            // PERF: Protect both Memos and Tasks pages from cache eviction during tab switches
-            LaunchedEffect(memosPageId, tasksPageId) {
-                if (memosPageId.isNotEmpty() && tasksPageId.isNotEmpty()) {
-                    com.boox.day.data.PageDataManager.setDualActivePages(memosPageId, tasksPageId)
+            // PERF: Protect the active planner canvas page from cache eviction
+            LaunchedEffect(memosPageId) {
+                if (memosPageId.isNotEmpty()) {
+                    com.boox.day.data.PageDataManager.setDualActivePages(memosPageId, memosPageId)
                 }
             }
 
@@ -4610,7 +4599,6 @@ private fun PersistentCanvasHost(
         var visibleRecurringTemplates by remember {
             mutableStateOf<Map<String, com.boox.day.data.db.RecurringTaskTemplate>>(emptyMap())
         }
-        var taskContentVersion by remember { mutableIntStateOf(0) }
 
         // Task card (31 Oct 2026, task dialogs review option B): the chevron of a row with content opens
         // one card with the task's text, priority, due date, reminder, repeat and subtasks, each setting
@@ -4649,301 +4637,20 @@ private fun PersistentCanvasHost(
             }
         }
 
-        // PERF: Two-phase task content detection for instant tab switching
-        // Phase 1 (SYNC): Metadata-only map computed during composition - available immediately
-        // This catches tasks with typedText, completion status, or priority set
-        val metadataContentMap = remember(tasks) {
-            tasks.associate { task ->
-                task.id to (task.typedText?.isNotBlank() == true ||
-                    task.isCompleted ||
-                    task.priority.isNotEmpty())
-            }
-        }
-
-        // Phase 2 (ASYNC): Full map with stroke detection - enhances metadata map
-        // Tracks which task set it was computed for to detect staleness
-        var asyncContentMap by remember { mutableStateOf<Map<String, Boolean>?>(null) }
-        var asyncMapTaskIds by remember { mutableStateOf<Set<String>?>(null) }
-        // Track which rows have strokes (for hiding recognizedText overlay when strokes exist)
-        var asyncRowsWithStrokes by remember { mutableStateOf<Set<Int>>(emptySet()) }
-
-        // Final taskContentMap: use async if computed for current tasks, else fall back to metadata-only
-        val currentTaskIds = remember(tasks) { tasks.map { it.id }.toSet() }
-        val taskContentMap = if (asyncMapTaskIds == currentTaskIds && asyncContentMap != null) {
-            asyncContentMap!!
-        } else {
-            metadataContentMap
-        }
-        val tasksPage = remember { mutableStateOf<PageView?>(null) }
-        val tasksState = remember { mutableStateOf<EditorState?>(null) }
-        val tasksHistory = remember { mutableStateOf<History?>(null) }
-        val tasksControlTower = remember { mutableStateOf<EditorControlTower?>(null) }
-
-        // Save Tasks state on dispose
-        DisposableEffect(tasksPageId) {
-            onDispose {
-                tasksState.value?.let { oldState ->
-                    android.util.Log.i("TOOL_STATE", "DisposableEffect: Saving Tasks state")
-                    tabManager.saveToolState(EditorTab.Tasks, oldState)
-                }
-            }
-        }
-
-        // OPTIMIZATION: Reuse existing Tasks objects when possible
-        // ============================================================================
-        // 1PX MISMATCH FIX (RESOLVED - December 2025) - DO NOT ADD currentTab TO DEPENDENCIES
-        // ============================================================================
-        // See Memos LaunchedEffect above for full explanation.
-        // The same 1px tolerance dimension check is used here for Tasks.
-        // ============================================================================
-        ResizeHiddenPageInPlace(tasksPage.value, isActive = currentTab == EditorTab.Tasks, surfaceSize = surfaceSize)
-        LaunchedEffect(tasksPageId, width, height) {
-            val currentPage = tasksPage.value
-            val currentState = tasksState.value
-            val currentHistory = tasksHistory.value
-            val currentControl = tasksControlTower.value
-
-            // 1PX MISMATCH FIX: Use 1px tolerance for dimension check (safety net - see comment above)
-            if (currentPage != null && currentState != null && currentHistory != null && currentControl != null &&
-                abs(currentPage.viewWidth - width) <= 1 && abs(currentPage.viewHeight - height) <= 1) {
-
-                // Dimensions match (with 1px tolerance) - REUSE existing PageView
-                if (currentPage.currentPageId != tasksPageId) {
-                    // LAZY LOAD FIX: Only update if tab is active to prevent surface flicker
-                    if (currentTab == EditorTab.Tasks) {
-                        currentPage.changePage(tasksPageId)
-                        currentState.dayDate = selectedDate
-                        currentState.changePage(tasksPageId)
-                        currentState.refreshDayPageInfo()
-                        currentHistory.cleanHistory()
-                    }
-                }
-            } else {
-                // Initialize or Recreate
-                android.util.Log.i("PERF", "Creating NEW Tasks objects (init/resize)")
-                
-                tasksControlTower.value?.cancelObservers()
-                tasksHistory.value?.cleanHistory()
-                tasksPage.value?.disposeOldPage()
-
-                val page = PageView(
-                    context = context,
-                    coroutineScope = scope,
-                    currentPageId = tasksPageId,
-                    viewWidth = width,
-                    viewHeight = height,
-                    snackManager = snackManager,
-                    appRepository = appRepository
-                )
-                val state = EditorState(
-                    bookId = null,
-                    dayDate = selectedDate,
-                    pageId = tasksPageId,
-                    pageView = page,
-                    appRepository = appRepository,
-                    onPageChange = { }
-                ).apply {
-                    refreshDayPageInfo()
-                    hasInternalToolbar = false
-                    val restored = tabManager.restoreToolState(EditorTab.Tasks, this)
-                    if (!restored) {
-                        android.util.Log.i("TOOL_STATE", "Fallback to Draw mode for Tasks")
-                        mode = com.boox.day.editor.state.Mode.Draw
-                    }
-                }
-                val history = History(page)
-                val controlTower = EditorControlTower(scope, page, history, state).apply { registerObservers() }
-
-                tasksPage.value = page
-                tasksState.value = state
-                tasksHistory.value = history
-                tasksControlTower.value = controlTower
-            }
-        }
-
-        val tasksReady = tasksPage.value != null &&
-            tasksState.value != null &&
-            tasksHistory.value != null &&
-            tasksControlTower.value != null
-        if (tasksReady) {
-            val readyState = tasksState.value!!
-            val readyControl = tasksControlTower.value!!
-            val readyPage = tasksPage.value!!
-            val readyHistory = tasksHistory.value!!
-            
-            DisposableEffect(readyState) {
-                tabManager.registerTasksCanvas(readyState, readyControl)
-                onDispose {
-                    tabManager.unregisterTasksCanvas()
-                }
-            }
-            
-            DisposableEffect(Unit) {
-                onDispose {
-                    readyState.selectionState.applySelectionDisplace(readyPage)
-                    readyState.textBoxState.reset()
-                    readyHistory.cleanHistory()
-                    readyControl.cancelObservers()
-                    readyPage.disposeOldPage()
-                }
-            }
-        }
-
-        // Full screen Tasks (Oct 2026): pages of more rows of the same height (tasks/TaskPagination)
-        TasksFullScreenPages(
-            isFullScreen = isFullScreen,
-            isTasksTab = currentTab == EditorTab.Tasks,
-            selectedDate = selectedDate,
-            fullScreenHeight = if (isFullScreen && abs(layoutHeight - height) <= 2) height else 0,
-            topOffsetPx = topOffsetPx,
-            rowCount = tasksRowCount,
-            rowsHeight = tasksRowsHeight,
-            taskPageInfo = taskPageInfo,
-            tasksHistory = tasksHistory.value,
-            onTasksNeedRefresh = onTasksNeedRefresh
-        )
-
-        // AI FEATURE: Provide bitmap capture function when tasks page is ready
-        LaunchedEffect(tasksPage.value) {
-            val page = tasksPage.value
-            if (page != null) {
-                onTasksBitmapProviderReady?.invoke {
-                    // Return a copy of the current tasks page bitmap for AI processing
-                    page.windowedBitmap.copy(page.windowedBitmap.config ?: android.graphics.Bitmap.Config.ARGB_8888, false)
-                }
-            }
-        }
-
-        // Sync completed row indices to Tasks PageView for stroke graying
-        LaunchedEffect(tasks, tasksIsLoading, currentTab) {
-            if (tasksIsLoading || tasks.isEmpty()) return@LaunchedEffect
-
-            val completedRows = tasks.filter { it.isCompleted }.map { it.rowIndex }.toSet()
-            val page = tasksPage.value
-            if (page != null && page.completedRowIndices != completedRows) {
-                page.completedRowIndices = completedRows
-                // STROKE_CLEAR_FIX: Only emit forceUpdate when Tasks tab is active.
-                // This LaunchedEffect fires on every `tasks` list change, including during
-                // date switching (tasks briefly becomes emptyList()). forceUpdate.emit(null)
-                // triggers a full close/open raw drawing cycle on the ACTIVE canvas.
-                // If Memos is active, this wipes the Memos bitmap while strokes are still
-                // loading from DB, causing the "strokes get cleared" bug.
-                // See EditorTabManager.kt:254,301 for prior instance of this exact bug.
-                // On a day switch the page is still loading the new day, and that load ends with
-                // its own full redraw, which greys these rows. Asking for one here too ran the
-                // close → 100 ms → reopen pen cycle twice on most day switches (Oct 2026).
-                if (currentTab == EditorTab.Tasks && !page.isLoadRedrawPending) {
-                    DrawCanvas.forceUpdate.emit(null)
-                }
-            }
-        }
-
-        // Listen to contentChanged signal and trigger taskContentMap recalculation when on Tasks tab
-        // This ensures chevron behavior updates after user draws strokes
-        LaunchedEffect(tasksPageId, currentTab) {
-            if (currentTab == EditorTab.Tasks) {
-                DrawCanvas.contentChanged.collect {
-                    taskContentVersion++
-                }
-            }
-        }
-
-        // PERF: Async stroke detection - enhances metadata-only map with stroke data
-        // taskContentVersion is incremented when strokes are drawn to trigger recalculation
-        // Uses optimized Spatial Hashing (Stroke -> Row) instead of iterating rows
-        LaunchedEffect(tasks, tasksPageId, tasksRowsHeight, taskContentVersion) {
-            val taskIdSet = tasks.map { it.id }.toSet()
-
-            // Handle empty tasks case
-            if (tasks.isEmpty()) {
-                asyncContentMap = emptyMap()
-                asyncMapTaskIds = taskIdSet
-                asyncRowsWithStrokes = emptySet()
-                return@LaunchedEffect
-            }
-
-            // Wait for valid height before computing
-            if (tasksRowsHeight <= 0) return@LaunchedEffect
-
-            val rowCount = tasks.size
-            val (newMap, strokeRows) = withContext(Dispatchers.Default) {
-                // 1. Get all strokes for the page once (O(1) access if cached)
-                val allStrokes = com.boox.day.data.PageDataManager.getStrokes(tasksPageId)
-
-                // 2. Map strokes to row indices using unified algorithm (O(Strokes * 10))
-                // Uses getDominantRowIndex for correct row assignment matching visual overlay
-                val rowsWithStrokes = mutableSetOf<Int>()
-                allStrokes.forEach { stroke ->
-                    val rowIndex = getDominantRowIndex(stroke, tasksRowsHeight.toFloat(), rowCount)
-                    if (rowIndex in 0 until rowCount) {
-                        rowsWithStrokes.add(rowIndex)
-                    }
-                }
-
-                // 3. Build map (O(Rows)) - combines stroke detection with metadata
-                val contentMap = tasks.associate { task ->
-                    val hasContent = if (task.rowIndex in 0 until rowCount) {
-                        // Check if row was marked by spatial hash OR has metadata
-                        rowsWithStrokes.contains(task.rowIndex) ||
-                        task.typedText?.isNotBlank() == true ||
-                        task.isCompleted ||
-                        task.priority.isNotEmpty()
-                    } else {
-                        // Fallback for invalid row index
-                        task.typedText?.isNotBlank() == true ||
-                        task.isCompleted ||
-                        task.priority.isNotEmpty()
-                    }
-                    task.id to hasContent
-                }
-                contentMap to rowsWithStrokes.toSet()
-            }
-            asyncContentMap = newMap
-            asyncMapTaskIds = taskIdSet
-            asyncRowsWithStrokes = strokeRows
-        }
-
-        LaunchedEffect(tasks) {
-            val templateIds = tasks.mapNotNull { it.templateId }.distinct()
-            visibleRecurringTemplates = if (templateIds.isEmpty()) {
-                emptyMap()
-            } else {
-                withContext(Dispatchers.IO) {
-                    appRepository.taskRepository.getRecurringTemplatesByIds(templateIds)
-                }
-            }
-        }
-
-        // Guard: wait until both memo/task objects are initialized
-        if (memosPage.value == null || memosState.value == null || memosHistory.value == null || memosControlTower.value == null ||
-            tasksPage.value == null || tasksState.value == null || tasksHistory.value == null || tasksControlTower.value == null
-        ) {
+        // Guard: wait until the planner canvas page objects are initialized
+        if (memosPage.value == null || memosState.value == null || memosHistory.value == null || memosControlTower.value == null) {
             return@BoxWithConstraints
         }
 
-        // Active bindings
-        val activePage: PageView
-        val activeState: EditorState
-        val activeHistory: History
-        val activeControlTower: EditorControlTower
-        val isMemosCanvas: Boolean
-        if (currentTab == EditorTab.Memos) {
-            activePage = memosPage.value!!
-            activeState = memosState.value!!
-            activeHistory = memosHistory.value!!
-            activeControlTower = memosControlTower.value!!
-            isMemosCanvas = true
-        } else {
-            activePage = tasksPage.value!!
-            activeState = tasksState.value!!
-            activeHistory = tasksHistory.value!!
-            activeControlTower = tasksControlTower.value!!
-            isMemosCanvas = false
-        }
+        // Active bindings (BSPlan uses a single unified planner canvas)
+        val activePage: PageView = memosPage.value!!
+        val activeState: EditorState = memosState.value!!
+        val activeHistory: History = memosHistory.value!!
+        val activeControlTower: EditorControlTower = memosControlTower.value!!
+        val isMemosCanvas = true
 
-        // Update tab type on the existing canvas
-        LaunchedEffect(currentTab) {
-            com.boox.day.editor.DrawCanvas.memoModeChanged.value = (currentTab == EditorTab.Memos)
+        LaunchedEffect(Unit) {
+            com.boox.day.editor.DrawCanvas.memoModeChanged.value = true
         }
 
         // Two-finger tap: Delete page confirmation dialog
@@ -4962,8 +4669,7 @@ private fun PersistentCanvasHost(
                     childTaskBeingCopied != null ||
                     recurringSeriesDeleteTask != null ||
                     showDeletePageDialog ||
-                    (currentTab == EditorTab.Memos && memosIsLoading) ||
-                    (currentTab == EditorTab.Tasks && tasksIsLoading)
+                    memosIsLoading
             }
         }
 
@@ -4991,324 +4697,13 @@ private fun PersistentCanvasHost(
                     isMemosCanvas = isMemosCanvas
                 )
                 EditorGestureReceiver(controlTower = activeControlTower, editorState = activeState)
-                SelectedBitmap(
-                    context = context,
-                    controlTower = activeControlTower,
-                    onScheduleSelection = if (currentTab == EditorTab.Memos) { strokes -> com.boox.day.proposals.ScheduleUi.start(strokes, selectedDate) } else null
-                )
-                TextBoxOverlay(context = context, controlTower = activeControlTower)
-                // Memos page map (Oct 2026, Phase 0 spike): above the canvas's other overlays
+                // Planner page map (above the canvas's other overlays)
                 com.boox.day.editor.ui.MemoNavigationEffects(
-                    memosControlTower.value?.navigator, memosPageId, currentTab == EditorTab.Memos
+                    memosControlTower.value?.navigator, memosPageId, true
                 )
-                if (currentTab == EditorTab.Memos) com.boox.day.editor.ui.MemoPageMap()
-                if (currentTab == EditorTab.Tasks) {
-                  // Full screen (Oct 2026): rows keep the normal view's height, so the row overlays end
-                  // at the last row and the space under it stays empty
-                  val tasksRowsArea = if (isFullScreen) {
-                      Modifier.height(with(LocalDensity.current) { tasksRowsHeight.toDp() })
-                  } else {
-                      Modifier.fillMaxHeight()
-                  }
-                  Box(modifier = Modifier.fillMaxWidth().then(tasksRowsArea)) {
-                    // PERFORMANCE FIX: taskHasContent now reads from pre-computed map (O(1) lookup)
-                    // The map is populated asynchronously by LaunchedEffect above
-                    val rowCount = if (tasks.isEmpty()) 10 else tasks.size
-                    val taskHasContent: (Task) -> Boolean = { task ->
-                        // Instant lookup from pre-computed map; defaults to false if not yet calculated
-                        taskContentMap[task.id] ?: false
-                    }
-                    val taskHasInteractiveContent: (Task) -> Boolean = { task ->
-                        if (taskContentMap[task.id] == true) {
-                            true
-                        } else {
-                            val hasMetadata = task.typedText?.isNotBlank() == true ||
-                                task.recognizedText?.isNotBlank() == true ||
-                                task.isCompleted ||
-                                task.priority.isNotEmpty() ||
-                                task.dueDay != null
-                            if (hasMetadata) {
-                                true
-                            } else if (tasksRowsHeight > 0 && task.rowIndex in 0 until rowCount) {
-                                val rowBounds = com.boox.day.editor.utils.calculateRowBounds(
-                                    task.rowIndex, tasksRowsHeight.toFloat(), rowCount
-                                )
-                                val strokes = com.boox.day.data.PageDataManager.getStrokesInRectangle(
-                                    rowBounds.toRect(), tasksPageId
-                                )
-                                com.boox.day.editor.utils.taskRowHasContent(task, strokes, rowBounds)
-                            } else {
-                                false
-                            }
-                        }
-                    }
-
-                    // ERASER ENHANCEMENT: Auto-clear metadata when task row becomes stroke-empty
-                    // This LaunchedEffect observes eraser completions and checks affected rows
-                    // Using rememberUpdatedState to avoid restarting collector on every tasks change
-                    val currentTasksState = rememberUpdatedState(tasks)
-                    LaunchedEffect(tasksPageId) {
-                        DrawCanvas.eraserCompleted.collect { erasedRect ->
-                            // Iterate through tasks to find rows affected by the erased area
-                            for (task in currentTasksState.value) {
-                                if (task.rowIndex !in 0 until rowCount) continue
-
-                                // Calculate row bounds
-                                val rowBounds = com.boox.day.editor.utils.calculateRowBounds(
-                                    task.rowIndex, tasksRowsHeight.toFloat(), rowCount
-                                )
-
-                                // Check if erased area intersects with this row
-                                val rowTop = rowBounds.topY.toInt()
-                                val rowBottom = rowBounds.bottomY.toInt()
-                                if (erasedRect.bottom < rowTop || erasedRect.top > rowBottom) continue
-
-                                // Row was affected - keep typed/converted tasks intact
-                                val hasTypedText = task.typedText?.isNotBlank() == true
-                                val hasConvertedText = task.convertedText?.isNotBlank() == true
-                                if (hasTypedText || hasConvertedText) continue
-
-                                // Check if row still has strokes
-                                val rect = android.graphics.Rect(
-                                    0, rowBounds.topY.toInt(), Int.MAX_VALUE, rowBounds.bottomY.toInt()
-                                )
-                                val strokes = com.boox.day.data.PageDataManager.getStrokesInRectangle(rect, tasksPageId)
-                                val hasStrokes = com.boox.day.editor.utils.hasIntentionalStrokeContent(strokes, rowBounds)
-
-                                // T1 (Oct 2026): row ink erased (usually to rewrite it) -> drop only the
-                                // recognized text; due date, priority, reminder and subtasks stay.
-                                if (!hasStrokes) {
-                                    scope.launch(Dispatchers.IO) {
-                                        appRepository.taskRepository.clearRecognizedTextAfterErase(task)
-                                    }
-                                    onTaskInkErased(task)
-                                }
-                            }
-                        }
-                    }
-
-                    // Cross out = done (plan T4 §13.6C, Oct 2026): a line drawn through a task's ink or
-                    // typed text checks it; undoing (or erasing) that line unchecks it again. Runs after
-                    // the stroke is saved (contentChanged) — never in the pen path.
-                    val crossOutLines = remember(tasksPageId) { mutableMapOf<String, String>() }  // line id -> task id
-                    val currentCanvasHeight = rememberUpdatedState(tasksRowsHeight)
-                    val currentToggleCompleted = rememberUpdatedState(onToggleTaskCompleted)
-                    val crossOutTextGeometry = with(LocalDensity.current) {
-                        val columnEnd = TASKS_CONTROL_COLUMN_WIDTH.toPx()
-                        TaskCrossOut.TextGeometry(
-                            textStartPx = columnEnd + EInkTheme.TasksTab.typedTextPaddingStart.toPx(),
-                            subtaskTextStartPx = columnEnd + EInkTheme.TasksTab.Subtask.paddingStart.toPx(),
-                            textSizePx = EInkTheme.TasksTab.typedTextFontSize.toPx(),
-                            subtaskTextSizePx = EInkTheme.TasksTab.Subtask.fontSize.toPx(),
-                            maxRightPx = width - EInkTheme.TasksTab.typedTextPaddingEnd.toPx()
-                        )
-                    }
-                    val currentTextGeometry = rememberUpdatedState(crossOutTextGeometry)
-                    LaunchedEffect(tasksPageId) {
-                        var knownIds = withContext(Dispatchers.Default) {
-                            com.boox.day.data.PageDataManager.getStrokes(tasksPageId).mapTo(HashSet()) { it.id }
-                        }
-                        DrawCanvas.contentChanged.collect {
-                            val pageStrokes = withContext(Dispatchers.Default) {
-                                com.boox.day.data.PageDataManager.getStrokes(tasksPageId).toList()
-                            }
-                            val ids = pageStrokes.mapTo(HashSet()) { it.id }
-                            val added = pageStrokes.filter { it.id !in knownIds }
-                            val removed = knownIds.filter { it !in ids }
-                            knownIds = ids
-                            val canvasHeight = currentCanvasHeight.value.toFloat()
-                            val pageTasks = currentTasksState.value
-                            if (canvasHeight <= 0f || pageTasks.isEmpty()) return@collect
-
-                            // Undo (or erase) of a cross-out line: uncheck its task again
-                            for (id in removed) {
-                                val taskId = crossOutLines[id] ?: continue
-                                val task = pageTasks.firstOrNull { it.id == taskId && it.isCompleted } ?: continue
-                                currentToggleCompleted.value(task)
-                            }
-
-                            // A pen stroke adds one stroke; page loads and moves add many
-                            if (added.isEmpty() || added.size > 3) return@collect
-                            val rows = pageTasks.size
-                            val now = System.currentTimeMillis()
-                            for (line in added) {
-                                // Redo of a cross-out line: check its task again
-                                val redoTaskId = crossOutLines[line.id]
-                                if (redoTaskId != null) {
-                                    val task = pageTasks.firstOrNull { it.id == redoTaskId && !it.isCompleted } ?: continue
-                                    currentToggleCompleted.value(task)
-                                    continue
-                                }
-                                if (!GlobalAppSettings.current.taskCrossOutEnabled) continue
-                                if (now - line.createdAt.time > TaskCrossOut.FRESH_STROKE_MS) continue
-                                val rowIndex = getDominantRowIndex(line, canvasHeight, rows)
-                                if (rowIndex !in 0 until rows) continue
-                                val task = pageTasks.firstOrNull { it.rowIndex == rowIndex } ?: continue
-                                if (task.isCompleted) continue
-                                val rowBounds = com.boox.day.editor.utils.calculateRowBounds(rowIndex, canvasHeight, rows)
-                                // Earlier content: ink written before this line (rows without any are ignored)
-                                val earlierInk = pageStrokes.filter {
-                                    it.id != line.id &&
-                                        it.createdAt.time <= line.createdAt.time - TaskCrossOut.EARLIER_CONTENT_MS &&
-                                        getDominantRowIndex(it, canvasHeight, rows) == rowIndex
-                                }
-                                val typed = task.typedText?.takeIf { it.isNotBlank() }
-                                    ?: task.convertedText?.takeIf { it.isNotBlank() }
-                                val content = when {
-                                    earlierInk.isNotEmpty() -> TaskCrossOut.inkExtent(earlierInk)
-                                    typed != null -> TaskCrossOut.typedTextExtent(
-                                        typed, task.parentTaskId != null, rowBounds.topY, rowBounds.bottomY,
-                                        currentTextGeometry.value
-                                    )
-                                    else -> null
-                                } ?: continue
-                                if (TaskCrossOut.isCrossOut(line, content, minContentWidth = rowBounds.bottomY - rowBounds.topY)) {
-                                    crossOutLines[line.id] = task.id
-                                    currentToggleCompleted.value(task)
-                                }
-                            }
-                        }
-                    }
-
-                    // Control column with checkbox, priority, and contextual chevron
-                    // NOTE: forceUnfreeze() is called in the individual callbacks (onCheckboxToggle, etc.)
-                    // instead of using pointerInteropFilter which blocks events from reaching children
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(TASKS_CONTROL_COLUMN_WIDTH)
-                            .background(EInkTheme.TasksTab.controlColumnBackground)
-                    ) {
-                        TasksControlColumn(
-                            tasks = tasks,
-                            taskHasContent = taskHasContent,
-                            onCheckboxToggle = { task ->
-                                if (taskHasInteractiveContent(task)) {
-                                    onToggleTaskCompleted(task)
-                                }
-                            },
-                            onCheckboxLongPress = {
-                                // Long-press checkbox: toggle all tasks on page
-                                // If ANY task is unchecked → check all; if ALL checked → uncheck all
-                                // T8 (Oct 2026): only rows with real content (text, subtask or ink);
-                                // empty rows are never completed.
-                                val pageTasks = tasks
-                                val canvasHeight = tasksNormalHeight
-                                scope.launch(Dispatchers.IO) {
-                                    val contentTasks = pageTasks.filter {
-                                        appRepository.taskRepository.taskHasRealContent(it, canvasHeight)
-                                    }
-                                    val newState = contentTasks.any { !it.isCompleted }
-                                    contentTasks.forEach { task ->
-                                        if (task.isCompleted != newState) {
-                                            appRepository.taskRepository.setCompleted(task.id, newState)
-                                        }
-                                    }
-                                    // Refresh UI to reflect changes
-                                    onTasksNeedRefresh?.invoke(null)
-                                }
-                            },
-                            onPriorityChange = { task, priority ->
-                                if (taskHasInteractiveContent(task)) {
-                                    onChangeTaskPriority(task, priority)
-                                }
-                            },
-                            onDueDateTap = { task ->
-                                if (taskHasInteractiveContent(task)) {
-                                    // The task card at its Due screen (Back shows the rest of the card)
-                                    openTaskCard(task, com.boox.day.editor.ui.TaskCardScreen.Due)
-                                }
-                            },
-                            onChevronTap = { task ->
-                                // Contextual: type if empty, move if has content
-                                // IMPORTANT: Do fresh synchronous check here to avoid race condition
-                                // Uses taskRowHasContent() which detects INTENTIONAL strokes (not overflow)
-                                val hasContent = if (task.rowIndex in 0 until rowCount) {
-                                    val rowBounds = com.boox.day.editor.utils.calculateRowBounds(
-                                        task.rowIndex, tasksRowsHeight.toFloat(), rowCount
-                                    )
-                                    val strokes = com.boox.day.data.PageDataManager.getStrokesInRectangle(
-                                        rowBounds.toRect(), tasksPageId
-                                    )
-                                    com.boox.day.editor.utils.taskRowHasContent(task, strokes, rowBounds)
-                                } else {
-                                    // Fallback for invalid row index - check typed text and metadata only
-                                    task.typedText?.isNotBlank() == true ||
-                                    task.isCompleted ||
-                                    task.priority.isNotEmpty()
-                                }
-
-                                if (hasContent) {
-                                    openTaskCard(task)  // T3: one card for everything about the task
-                                } else {
-                                    taskBeingTyped = task
-                                }
-                            },
-                            onChevronLongPress = { task ->
-                                // Long-press: directly open edit dialog (bypass move popup)
-                                // Pre-fill with typedText or recognizedText (for handwriting conversion)
-                                // Fetch fresh task from DB to get latest recognizedText
-                                // (OCR may have updated it after the in-memory list was loaded)
-                                scope.launch {
-                                    val freshTask = withContext(Dispatchers.IO) {
-                                        appRepository.taskRepository.getTaskById(task.id)
-                                    } ?: task
-                                    taskBeingTyped = freshTask
-                                }
-                            },
-                            onLongPressRow = { task ->
-                                // Clear the task slot
-                                onTaskCleared(task)
-                                scope.launch(Dispatchers.IO) {
-                                    appRepository.taskRepository.clearTaskSlot(task, tasksNormalHeight)
-                                    withContext(Dispatchers.Main) {
-                                        snackManager.displaySnack(SnackConf(text = "Task cleared successfully", duration = SnackConf.DURATION_STANDARD))
-                                    }
-                                }
-                            }
-                        )
-                    }
-                    Divider(
-                        color = EInkTheme.TasksTab.controlColumnBorderColor,
-                        thickness = EInkTheme.TasksTab.controlColumnBorderWidth,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(EInkTheme.TasksTab.controlColumnBorderWidth)
-                            .align(Alignment.TopStart)
-                            .offset(x = TASKS_CONTROL_COLUMN_WIDTH)
-                    )
-                    TasksLinesOverlay(
-                        rowCount = if (tasks.isEmpty()) 10 else tasks.size,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = TASKS_CONTROL_COLUMN_WIDTH)
-                    )
-                    // Overlay for rendering typed text ONLY (no touch handling - drawing area is for stylus)
-                    com.boox.day.editor.ui.TaskTypedTextOverlay(
-                        tasks = tasks,
-                        rowCount = if (tasks.isEmpty()) 10 else tasks.size,
-                        canvasHeightPx = tasksRowsHeight,
-                        rowsWithStrokes = asyncRowsWithStrokes,
-                        recurringStateForTask = { task ->
-                            task.templateId?.let { templateId ->
-                                visibleRecurringTemplates[templateId]?.isActive ?: true
-                            }
-                        },
-                        modifier = Modifier.padding(start = TASKS_CONTROL_COLUMN_WIDTH)
-                    )
-                    (taskBeingMoved ?: taskCard?.task ?: tasks.firstOrNull { it.id == highlightedTaskId })?.let { task ->
-                        TaskRowHighlight(
-                            rowIndex = task.rowIndex,
-                            rowCount = if (tasks.isEmpty()) 10 else tasks.size,
-                            modifier = Modifier.padding(start = TASKS_CONTROL_COLUMN_WIDTH)
-                        )
-                    }
-                  }  // end Tasks rows area
-                }
+                com.boox.day.editor.ui.MemoPageMap()
                 // Hide stale content while the next date is loading.
-                val showCanvasLoadingCover =
-                    (currentTab == EditorTab.Memos && memosIsLoading) ||
-                    (currentTab == EditorTab.Tasks && tasksIsLoading)
+                val showCanvasLoadingCover = memosIsLoading
                 if (showCanvasLoadingCover) {
                     Box(
                         modifier = Modifier
@@ -5636,10 +5031,7 @@ private fun PersistentCanvasHost(
 
                                     // Register undo operations for same-date moves
                                     result.undoOperations?.let { undoOps ->
-                                        withContext(Dispatchers.Main) {
-                                            tasksHistory.value?.addOperationsToHistory(undoOps)
-                                            Log.i(TAG, "UNDO: Registered ${undoOps.size} operations for task move undo")
-                                        }
+                                        Log.i(TAG, "Task move completed with ${undoOps.size} undo operations")
                                     }
 
                                     // Check if source page is now empty (no content in any row)

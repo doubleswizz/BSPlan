@@ -3,8 +3,6 @@ package com.boox.day.ui.calendar
 import android.view.MotionEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,8 +41,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.PointerType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -75,7 +71,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import kotlin.math.hypot
 
 /**
  * Unified top header bar for BSPlan (`Month` and `Day` views).
@@ -437,82 +432,55 @@ fun DayPlannerTouchOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    // Let stylus and tail eraser pass directly to Onyx TouchHelper / DrawCanvas
-                    if (down.type == PointerType.Stylus || down.type == PointerType.Eraser) {
-                        return@awaitEachGesture
-                    }
+            .plannerFingerTap { upPos, overlaySize ->
+                val widthPx = overlaySize.width.toFloat()
+                val heightPx = overlaySize.height.toFloat()
+                val dashboardBottomY = DayPlannerCanvasRenderer.dashboardBottomY(heightPx)
+                val rowsTopY = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX
 
-                    val startPos = down.position
-                    var upPos = startPos
-                    var movedTooFar = false
+                // Only intercept finger taps inside the Top Dashboard rows
+                if (upPos.y < rowsTopY || upPos.y > dashboardBottomY || widthPx <= 0f) {
+                    return@plannerFingerTap
+                }
 
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        upPos = change.position
-                        if (hypot((upPos.x - startPos.x).toDouble(), (upPos.y - startPos.y).toDouble()) > 28.0) {
-                            movedTooFar = true
-                        }
-                        if (!change.pressed) {
-                            change.consume()
-                            break
-                        }
-                    }
+                val rowsAreaHeight = (dashboardBottomY - rowsTopY - 4f).coerceAtLeast(50f)
+                val rowHeight = rowsAreaHeight / DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS
+                val rowIndex = ((upPos.y - rowsTopY) / rowHeight).toInt()
+                    .coerceIn(0, DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS - 1)
 
-                    if (movedTooFar) return@awaitEachGesture
+                val midX = widthPx * 0.5f
+                val model = currentModelState.value ?: return@plannerFingerTap
 
-                    val widthPx = size.width.toFloat()
-                    val heightPx = size.height.toFloat()
-                    val dashboardBottomY = DayPlannerCanvasRenderer.dashboardBottomY(heightPx)
-                    val rowsTopY = DayPlannerCanvasRenderer.SECTION_HEADER_HEIGHT_PX
-
-                    // Only intercept finger taps inside the Top Dashboard rows
-                    if (upPos.y < rowsTopY || upPos.y > dashboardBottomY || widthPx <= 0f) {
-                        return@awaitEachGesture
-                    }
-
-                    val rowsAreaHeight = (dashboardBottomY - rowsTopY - 4f).coerceAtLeast(50f)
-                    val rowHeight = rowsAreaHeight / DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS
-                    val rowIndex = ((upPos.y - rowsTopY) / rowHeight).toInt()
-                        .coerceIn(0, DayPlannerCanvasRenderer.DASHBOARD_MAX_ROWS - 1)
-
-                    val midX = widthPx * 0.5f
-                    val model = currentModelState.value ?: return@awaitEachGesture
-
-                    if (upPos.x < midX) {
-                        // Left column: TODAY'S SCHEDULE
-                        val scheduleRow = model.scheduleRows.getOrNull(rowIndex) ?: return@awaitEachGesture
+                if (upPos.x < midX) {
+                    // Left column: TODAY'S SCHEDULE
+                    val scheduleRow = model.scheduleRows.getOrNull(rowIndex) ?: return@plannerFingerTap
+                    DrawCanvas.forceUnfreeze()
+                    MainScreenRequests.request(MainScreenRequest.ShowEvent(scheduleRow.event))
+                } else {
+                    // Right column: GOOGLE TASKS
+                    val hasPendingEntry = model.pendingTasks.isNotEmpty()
+                    if (hasPendingEntry && rowIndex == 0) {
                         DrawCanvas.forceUnfreeze()
-                        MainScreenRequests.request(MainScreenRequest.ShowEvent(scheduleRow.event))
+                        showPendingTasksPopup = true
+                        return@plannerFingerTap
+                    }
+
+                    val taskIndex = if (hasPendingEntry) rowIndex - 1 else rowIndex
+                    val taskRow = model.taskRows.getOrNull(taskIndex) ?: return@plannerFingerTap
+                    DrawCanvas.forceUnfreeze()
+                    val checkboxZoneRightX = midX + 80f
+                    if (upPos.x <= checkboxZoneRightX) {
+                        // Toggle task completion directly
+                        val targetTask = taskRow.task
+                        val nextCompleted = !targetTask.isCompleted
+                        scope.launch(Dispatchers.IO) {
+                            taskRepository.setCompleted(targetTask.id, nextCompleted)
+                            MainScreenRequests.request(MainScreenRequest.ReloadTasks)
+                        }
                     } else {
-                        // Right column: GOOGLE TASKS
-                        val hasPendingEntry = model.pendingTasks.isNotEmpty()
-                        if (hasPendingEntry && rowIndex == 0) {
-                            DrawCanvas.forceUnfreeze()
-                            showPendingTasksPopup = true
-                            return@awaitEachGesture
-                        }
-
-                        val taskIndex = if (hasPendingEntry) rowIndex - 1 else rowIndex
-                        val taskRow = model.taskRows.getOrNull(taskIndex) ?: return@awaitEachGesture
-                        DrawCanvas.forceUnfreeze()
-                        val checkboxZoneRightX = midX + 80f
-                        if (upPos.x <= checkboxZoneRightX) {
-                            // Toggle task completion directly
-                            val targetTask = taskRow.task
-                            val nextCompleted = !targetTask.isCompleted
-                            scope.launch(Dispatchers.IO) {
-                                taskRepository.setCompleted(targetTask.id, nextCompleted)
-                                MainScreenRequests.request(MainScreenRequest.ReloadTasks)
-                            }
-                        } else {
-                            // Open Task Management Popup
-                            reopenPendingAfterManage = false
-                            managingTaskRow = taskRow
-                        }
+                        // Open Task Management Popup
+                        reopenPendingAfterManage = false
+                        managingTaskRow = taskRow
                     }
                 }
             }

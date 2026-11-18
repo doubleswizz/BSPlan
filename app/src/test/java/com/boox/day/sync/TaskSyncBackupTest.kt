@@ -62,7 +62,7 @@ class TaskSyncBackupTest {
         )
         sql.execSQL(
             "INSERT INTO task_sync_list (provider, accountEmail, serverUrl, listId, title, isDefaultForNew, pullCursor, lastFullCheckAt) " +
-                "VALUES ('${TaskSyncProvider.GOOGLE_TASKS}', 'me@gmail.com', '', 'list-1', 'BooxDay test', 1, '2026-10-30T10:00:00Z', 9)"
+                "VALUES ('${TaskSyncProvider.GOOGLE_TASKS}', 'me@gmail.com', '', 'list-1', 'BSPlan test', 1, '2026-10-30T10:00:00Z', 9)"
         )
     }
 

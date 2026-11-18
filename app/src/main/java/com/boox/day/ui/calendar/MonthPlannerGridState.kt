@@ -178,14 +178,15 @@ object MonthPlannerGridState {
         fun taskHasContent(task: Task): Boolean =
             WeekLoader.text(task) != null || handwriting.inRow(task.pageId, task.dayDate, task.rowIndex)
 
-        val startStr = gridStart.toString()
-        val endStr = gridEnd.toString()
+        val yearMonth = YearMonth.of(year, monthZeroBased + 1)
+        val monthStartStr = yearMonth.atDay(1).toString()
+        val monthEndStr = yearMonth.atEndOfMonth().toString()
 
-        val writtenTasksByDay = taskDao.getTasksForDateRange(startStr, endStr)
+        val writtenTasksByDay = taskDao.getTasksForDateRange(monthStartStr, monthEndStr)
             .filter { it.parentTaskId == null && taskHasContent(it) }
             .groupBy { it.dayDate }
 
-        val dueTasksByDay = taskDao.getTasksDueBetween(startStr, endStr)
+        val dueTasksByDay = taskDao.getTasksDueBetween(monthStartStr, monthEndStr)
             .filter { it.parentTaskId == null && it.dueDay != it.dayDate }
             .groupBy { it.dueDay }
 
@@ -197,6 +198,23 @@ object MonthPlannerGridState {
                 shortMonthFormatter.format(date)
             } else {
                 date.dayOfMonth.toString()
+            }
+
+            if (!isCurrentMonth) {
+                return@map MonthCellData(
+                    date = date,
+                    dateStr = dateStr,
+                    dayOfMonth = date.dayOfMonth,
+                    isCurrentMonth = false,
+                    isToday = date == today,
+                    isSelected = dateStr == selectedDate,
+                    headerLabel = headerLabel,
+                    events = emptyList(),
+                    openTaskCount = 0,
+                    completedTaskCount = 0,
+                    taskPreviews = emptyList(),
+                    hasDayNotes = false
+                )
             }
 
             val dayEvents = loadEventsForDay(dateStr).map { event ->
@@ -227,7 +245,7 @@ object MonthPlannerGridState {
                 date = date,
                 dateStr = dateStr,
                 dayOfMonth = date.dayOfMonth,
-                isCurrentMonth = isCurrentMonth,
+                isCurrentMonth = true,
                 isToday = date == today,
                 isSelected = dateStr == selectedDate,
                 headerLabel = headerLabel,

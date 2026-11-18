@@ -32,7 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-class BooxDayApp : Application() {
+class BSPlanApp : Application() {
 
     // Application-scoped coroutine scope for background tasks
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -68,7 +68,7 @@ class BooxDayApp : Application() {
             return
         }
         // Oct 2026: the Onyx pen library's app context; without it the first Brush or Pencil stroke
-        // closed the app (1.0.33 to 1.0.38). Not fatal: drawing falls back to BooxDay's own strokes.
+        // closed the app (1.0.33 to 1.0.38). Not fatal: drawing falls back to BSPlan's own strokes.
         runSafeStartupStep("Onyx pen library setup") { OnyxCompat.initResManager(this) }
 
         runSafeStartupStep("OpenRouter key") { initUserOpenRouterKey() }
@@ -105,7 +105,7 @@ class BooxDayApp : Application() {
             try {
                 com.boox.day.tasks.TaskPagination.normalizeStrayDays()
             } catch (e: Exception) {
-                Log.w("BooxDayApp", "Tasks pages check failed: ${e.message}")
+                Log.w("BSPlanApp", "Tasks pages check failed: ${e.message}")
             }
         }
     }
@@ -117,9 +117,9 @@ class BooxDayApp : Application() {
     private fun deleteRemovedCalendarAccounts() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                AppDatabase.getDatabase(this@BooxDayApp).connectedAccountDao().deleteInactive()
+                AppDatabase.getDatabase(this@BSPlanApp).connectedAccountDao().deleteInactive()
             } catch (e: Exception) {
-                Log.w("BooxDayApp", "Removed calendar accounts cleanup failed: ${e.message}")
+                Log.w("BSPlanApp", "Removed calendar accounts cleanup failed: ${e.message}")
             }
         }
     }
@@ -145,9 +145,9 @@ class BooxDayApp : Application() {
     private fun scheduleBackgroundSync() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                com.boox.day.sync.BackgroundSyncWorker.schedule(this@BooxDayApp)
+                com.boox.day.sync.BackgroundSyncWorker.schedule(this@BSPlanApp)
             } catch (e: Exception) {
-                Log.w("BooxDayApp", "Background sync schedule failed: ${e.message}")
+                Log.w("BSPlanApp", "Background sync schedule failed: ${e.message}")
             }
         }
     }
@@ -160,13 +160,13 @@ class BooxDayApp : Application() {
     private fun requestPendingCalendarPush() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                val pending = AppDatabase.getDatabase(this@BooxDayApp).localEventDao().getPendingSyncCount()
+                val pending = AppDatabase.getDatabase(this@BSPlanApp).localEventDao().getPendingSyncCount()
                 if (pending > 0) {
-                    Log.i("BooxDayApp", "Pending calendar changes: $pending - requesting push")
-                    SyncScheduler(this@BooxDayApp).requestPendingPush()
+                    Log.i("BSPlanApp", "Pending calendar changes: $pending - requesting push")
+                    SyncScheduler(this@BSPlanApp).requestPendingPush()
                 }
             } catch (e: Exception) {
-                Log.w("BooxDayApp", "Pending calendar push check failed: ${e.message}")
+                Log.w("BSPlanApp", "Pending calendar push check failed: ${e.message}")
             }
         }
     }
@@ -191,7 +191,7 @@ class BooxDayApp : Application() {
             val prefs = getSharedPreferences("notification_prefs", Context.MODE_PRIVATE)
             if (!prefs.contains("force_workmanager_notifications")) {
                 prefs.edit().putBoolean("force_workmanager_notifications", true).apply()
-                Log.i("BooxDayApp", "Boox device detected at startup - enabled WorkManager-only notifications")
+                Log.i("BSPlanApp", "Boox device detected at startup - enabled WorkManager-only notifications")
             }
         }
     }
@@ -219,26 +219,26 @@ class BooxDayApp : Application() {
     private fun initNotificationScheduling() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                val settings = KvProxy(this@BooxDayApp)
+                val settings = KvProxy(this@BSPlanApp)
                     .get(APP_SETTINGS_KEY, AppSettings.serializer())
                     ?: return@launch  // No settings = notifications not configured yet
 
                 // Log diagnostic info for debugging notification issues
-                Log.i("BooxDayApp", "Notification diagnostics: " +
+                Log.i("BSPlanApp", "Notification diagnostics: " +
                     "taskEnabled=${settings.taskNotificationsEnabled}, " +
                     "eventEnabled=${settings.eventNotificationsEnabled}, " +
-                    "notifPermission=${NotificationPermissionHelper.hasNotificationPermission(this@BooxDayApp)}, " +
-                    "exactAlarmPermission=${NotificationPermissionHelper.canScheduleExactAlarms(this@BooxDayApp)}, " +
-                    "batteryExempt=${NotificationPermissionHelper.isBatteryOptimizationExempt(this@BooxDayApp)}, " +
+                    "notifPermission=${NotificationPermissionHelper.hasNotificationPermission(this@BSPlanApp)}, " +
+                    "exactAlarmPermission=${NotificationPermissionHelper.canScheduleExactAlarms(this@BSPlanApp)}, " +
+                    "batteryExempt=${NotificationPermissionHelper.isBatteryOptimizationExempt(this@BSPlanApp)}, " +
                     "isBoox=${isBooxDevice()}")
 
                 // Schedule daily scan if task notifications are enabled
                 if (settings.taskNotificationsEnabled) {
-                    TaskNotificationScheduler(this@BooxDayApp).scheduleDailyScan()
-                    Log.d("BooxDayApp", "Daily scan worker scheduled on startup")
+                    TaskNotificationScheduler(this@BSPlanApp).scheduleDailyScan()
+                    Log.d("BSPlanApp", "Daily scan worker scheduled on startup")
                 }
             } catch (e: Exception) {
-                Log.e("BooxDayApp", "Failed to init notification scheduling: ${e.message}")
+                Log.e("BSPlanApp", "Failed to init notification scheduling: ${e.message}")
             }
         }
     }
@@ -254,15 +254,15 @@ class BooxDayApp : Application() {
         applicationScope.launch(Dispatchers.IO) {
             try {
                 // Skip if already migrated
-                if (CalendarMigrationHelper.isMigrationComplete(this@BooxDayApp)) {
+                if (CalendarMigrationHelper.isMigrationComplete(this@BSPlanApp)) {
                     return@launch
                 }
 
-                val db = AppDatabase.getDatabase(this@BooxDayApp)
-                val googleAuthManager = GoogleAuthManager(this@BooxDayApp)
+                val db = AppDatabase.getDatabase(this@BSPlanApp)
+                val googleAuthManager = GoogleAuthManager(this@BSPlanApp)
 
                 CalendarMigrationHelper.migrateExistingGoogleEvents(
-                    context = this@BooxDayApp,
+                    context = this@BSPlanApp,
                     googleAuthManager = googleAuthManager,
                     accountDao = db.connectedAccountDao(),
                     eventDao = db.calendarEventDao()
@@ -270,10 +270,10 @@ class BooxDayApp : Application() {
 
                 // Invalidate events cache so UI picks up the updated accountId/providerId
                 // Without this, cached events lack account info and provider icons don't show
-                CalendarEventRepository(this@BooxDayApp).invalidateEventsCache()
-                Log.d("BooxDayApp", "Events cache invalidated after migration")
+                CalendarEventRepository(this@BSPlanApp).invalidateEventsCache()
+                Log.d("BSPlanApp", "Events cache invalidated after migration")
             } catch (e: Exception) {
-                Log.e("BooxDayApp", "Calendar migration error: ${e.message}")
+                Log.e("BSPlanApp", "Calendar migration error: ${e.message}")
                 // Don't crash - migration will retry on next launch
             }
         }
@@ -292,7 +292,7 @@ class BooxDayApp : Application() {
     private fun enableHiddenApiBypass() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             HiddenApiBypass.addHiddenApiExemptions("")
-            Log.d("BooxDayApp", "Hidden API bypass enabled for Onyx SDK")
+            Log.d("BSPlanApp", "Hidden API bypass enabled for Onyx SDK")
         }
     }
 
@@ -317,7 +317,7 @@ class BooxDayApp : Application() {
         try {
             block()
         } catch (t: Throwable) {
-            Log.e("BooxDayApp", "$name failed during startup", t)
+            Log.e("BSPlanApp", "$name failed during startup", t)
         }
     }
 
@@ -329,10 +329,10 @@ class BooxDayApp : Application() {
     private fun reconcileOcrConfig() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                OcrConfigReconciliationCoordinator(this@BooxDayApp)
+                OcrConfigReconciliationCoordinator(this@BSPlanApp)
                     .reconcileIfNeeded("app startup local OCR defaults")
             } catch (e: Exception) {
-                Log.e("BooxDayApp", "OCR config reconcile error: ${e.message}")
+                Log.e("BSPlanApp", "OCR config reconcile error: ${e.message}")
             }
         }
     }
@@ -364,18 +364,18 @@ class BooxDayApp : Application() {
         applicationScope.launch(Dispatchers.IO) {
             try {
                 // Pre-load English normalizer on startup (optimization)
-                val englishNormalizer = HandwritingNormalizerFactory.getInstance(this@BooxDayApp, "en-US")
+                val englishNormalizer = HandwritingNormalizerFactory.getInstance(this@BSPlanApp, "en-US")
                 if (englishNormalizer != null) {
-                    Log.d("BooxDayApp", "English HandwritingNormalizer initialized: " +
+                    Log.d("BSPlanApp", "English HandwritingNormalizer initialized: " +
                             "${englishNormalizer.getWordDictSize()} words, " +
                             "${englishNormalizer.getNamesDictSize()} names")
                 }
 
                 // Log all supported languages
-                val supported = HandwritingNormalizerFactory.getSupportedLanguages(this@BooxDayApp)
-                Log.i("BooxDayApp", "Handwriting normalization supported for: $supported")
+                val supported = HandwritingNormalizerFactory.getSupportedLanguages(this@BSPlanApp)
+                Log.i("BSPlanApp", "Handwriting normalization supported for: $supported")
             } catch (e: Exception) {
-                Log.e("BooxDayApp", "HandwritingNormalizerFactory init failed: ${e.message}")
+                Log.e("BSPlanApp", "HandwritingNormalizerFactory init failed: ${e.message}")
                 // Non-fatal - extraction will work with reduced normalization
             }
         }
@@ -388,12 +388,12 @@ class BooxDayApp : Application() {
     private fun initSemanticIndexing() {
         applicationScope.launch(Dispatchers.IO) {
             try {
-                val service = SemanticGeniusService(this@BooxDayApp)
+                val service = SemanticGeniusService(this@BSPlanApp)
                 service.checkAndReindexIfVersionChanged()
                 // Also index any unindexed events (handles seeding/import scenarios)
                 service.indexUnindexedEvents()
             } catch (e: Exception) {
-                Log.e("BooxDayApp", "Semantic indexing init failed: ${e.message}", e)
+                Log.e("BSPlanApp", "Semantic indexing init failed: ${e.message}", e)
             }
         }
     }

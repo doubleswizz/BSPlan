@@ -19,7 +19,7 @@ import com.boox.day.ui.noRippleClickable
 import com.boox.day.ui.theme.EInkTheme
 
 /**
- * E-ink optimized button components for BooxDay.
+ * E-ink optimized button components for BSPlan.
  * High contrast black/white design for optimal readability on e-ink displays.
  * Uses EInkTheme tokens for consistency across the app.
  */

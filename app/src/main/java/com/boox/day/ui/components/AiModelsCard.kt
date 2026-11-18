@@ -52,7 +52,7 @@ val AiJob.description: String
 
 /**
  * AI Models (Oct 2026, plan steps c and d): which OpenRouter model each AI job uses right now, the
- * user's pick or BooxDay's choice (ModelConfigProvider). Each row opens the job's model list
+ * user's pick or BSPlan's choice (ModelConfigProvider). Each row opens the job's model list
  * ([ModelPickerPopup]). Greyed out, and not tappable, while AI Features is off.
  *
  * Reads Compose state (the settings, OpenRouterAccount and the model list), so a new pick, the
@@ -129,7 +129,7 @@ fun AiModelsCard(aiEnabled: Boolean, modifier: Modifier = Modifier) {
                                 color = textColor
                             )
                         }
-                        // Plan step f: the pick failed last time and BooxDay's models answered
+                        // Plan step f: the pick failed last time and BSPlan's models answered
                         val failure = if (inUse.isUserChoice) {
                             AiPickStatus.failureFor(job, GlobalAppSettings.current.aiModels.forJob(job)?.id)
                         } else null

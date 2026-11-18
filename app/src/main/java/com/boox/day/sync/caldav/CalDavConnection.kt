@@ -39,7 +39,7 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
 /**
- * A CalDAV server as BooxDay talks to it (plan stage 3, step 3.3, Oct 2026): https only (owner
+ * A CalDAV server as BSPlan talks to it (plan stage 3, step 3.3, Oct 2026): https only (owner
  * decision 5), Basic/Digest sign-in with the user's (app) password, finding the user's calendars
  * (RFC 6764 well-known, RFC 5397 principal, RFC 4791 calendar home). A server certificate Android
  * doesn't trust fails with [Failure.UntrustedCertificate], whose fingerprint the user may choose to
@@ -71,7 +71,7 @@ internal class CalDavConnection(
         val taskLists: List<RemoteCalendar> = emptyList()
     )
 
-    /** One calendar collection. [href] is its URL path (BooxDay's calendarId). */
+    /** One calendar collection. [href] is its URL path (BSPlan's calendarId). */
     data class RemoteCalendar(
         val href: String,
         val name: String,

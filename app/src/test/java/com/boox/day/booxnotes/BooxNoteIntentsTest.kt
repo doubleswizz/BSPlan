@@ -13,7 +13,7 @@ import org.robolectric.annotation.Config
 
 /**
  * BOOX's app shows and saves the name it is handed. Without one it shows "Create notebook"; with a name
- * BooxDay made up, it would rename the note.
+ * BSPlan made up, it would rename the note.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)

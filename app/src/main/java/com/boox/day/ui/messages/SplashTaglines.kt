@@ -1,7 +1,7 @@
 package com.boox.day.ui.messages
 
 /**
- * Taglines under the BooxDay logo on the start screen, one per launch (Router: shuffled deck,
+ * Taglines under the BSPlan logo on the start screen, one per launch (Router: shuffled deck,
  * every one seen once before any repeats).
  *
  * Rewritten 29 Oct 2026: the start screen shows for about 3 s at 22 sp, so each line is at most

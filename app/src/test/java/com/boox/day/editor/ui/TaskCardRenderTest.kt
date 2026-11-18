@@ -124,7 +124,7 @@ abstract class TaskCardRenderBase(private val device: String) {
             )
         )
         // Task sync's List line and screen (owner decisions 47, 53)
-        val lists = listOf("l1" to "BooxDay test", "l2" to "Work", "l3" to "Personal shopping and errands")
+        val lists = listOf("l1" to "BSPlan test", "l2" to "Work", "l3" to "Personal shopping and errands")
         val withList = TaskCardActions(
             onEditText = {}, onConvertToText = {}, onPriorityChange = {}, onSaveDue = {}, onClearDue = {}, onShowDay = {},
             onReminderChange = {}, onSaveRepeat = {}, onPauseRepeat = {}, onStopRepeat = {}, onBreakDown = {},

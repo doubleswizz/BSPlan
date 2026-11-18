@@ -13,7 +13,7 @@ import java.time.ZonedDateTime
 import java.util.TimeZone
 
 /**
- * CalDAV event files turned into BooxDay rows (plan step 3.4): repeats in the event's own time zone
+ * CalDAV event files turned into BSPlan rows (plan step 3.4): repeats in the event's own time zone
  * across a summer-time change, removed, moved and cancelled days, all-day events, ids that stay the
  * same. The tablet is in Toronto, the meeting in Berlin: their clocks change a week apart.
  */

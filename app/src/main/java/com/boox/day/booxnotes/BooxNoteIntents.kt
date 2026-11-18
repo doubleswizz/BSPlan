@@ -12,7 +12,7 @@ internal object BooxNoteIntents {
     /**
      * [title]: the note's own name. BOOX's app shows the name it is handed, not the one it has stored:
      * without it the name field stays on its "Create notebook" placeholder. It also saves that name
-     * over the stored one, so pass only a name BOOX gave us, never one BooxDay made up
+     * over the stored one, so pass only a name BOOX gave us, never one BSPlan made up
      * (BooxNoteIndex.nameInBoox).
      */
     fun direct(documentId: String, title: String? = null): Intent {

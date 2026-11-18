@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
  *
  * When it is redrawn:
  * - a few seconds after the day's data changes ([DayDataWatcher]; a minute after writing ink),
- * - when BooxDay goes to the background (the tablet is often put to sleep right after),
+ * - when BSPlan goes to the background (the tablet is often put to sleep right after),
  * - just after midnight (a daily job), and on unlock if the image shows another day,
  * - right away when the setting is turned on.
  */
@@ -64,7 +64,7 @@ object SleepAgenda {
 
     fun isEnabled(context: Context): Boolean = false
 
-    /** BooxDayApp.onCreate: follow the day's changes while the setting is on. */
+    /** BSPlanApp.onCreate: follow the day's changes while the setting is on. */
     fun onAppStart(context: Context, appScope: CoroutineScope) {
         val app = context.applicationContext
         appContext = app

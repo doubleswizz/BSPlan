@@ -15,7 +15,7 @@ import java.time.LocalDate
  *
  * Daily Summary, Weekly Summary and Smart Suggestions read only the tablet's events before, so a
  * synced calendar never reached them (Go 10.3: 607 synced events, none on the tablet). Synced events
- * come from the calendars shown in BooxDay, as on the calendar: the privacy policy says only
+ * come from the calendars shown in BSPlan, as on the calendar: the privacy policy says only
  * Optimize My Day (AgenticContextBuilder) reads hidden calendars, so it can avoid planning over them.
  */
 object AiCalendarEvents {

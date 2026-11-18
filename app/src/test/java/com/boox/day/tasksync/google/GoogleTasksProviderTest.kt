@@ -61,7 +61,7 @@ class GoogleTasksProviderTest {
                 },
                 GsonFactory.getDefaultInstance(),
                 null
-            ).setApplicationName("BooxDay test").build(),
+            ).setApplicationName("BSPlan test").build(),
             clock = { NOW_MS }
         )
 

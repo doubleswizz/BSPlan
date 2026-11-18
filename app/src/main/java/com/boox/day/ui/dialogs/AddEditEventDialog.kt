@@ -1289,7 +1289,7 @@ fun AddEditEventDialog(
                                                             onDismissRequest = { showCalendarDropdown = false }
                                                         ) {
                                                             calendarsForSelectedProvider.forEach { calendar ->
-                                                                // CalDAV has no main calendar: BooxDay's pick isn't one
+                                                                // CalDAV has no main calendar: BSPlan's pick isn't one
                                                                 val displayName = if (calendar.isPrimary && calendar.providerId != ProviderId.CALDAV) {
                                                                     "${calendar.name} (Primary)"
                                                                 } else {

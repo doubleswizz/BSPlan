@@ -84,7 +84,7 @@ class SyncWorker(
         Log.d(TAG, "SyncWorker started")
 
         // Check if we're in hybrid mode. The saved settings: with no screen open, GlobalAppSettings
-        // holds defaults (Private Mode), and the push skipped until BooxDay was opened (Oct 2026).
+        // holds defaults (Private Mode), and the push skipped until BSPlan was opened (Oct 2026).
         if (workerAppSettings(applicationContext).syncMode != AppSettings.SyncMode.HYBRID) {
             Log.d(TAG, "Not in HYBRID mode, skipping sync")
             return Result.success(workDataOf(KEY_RESULT_MESSAGE to "Skipped: standalone mode"))

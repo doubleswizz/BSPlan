@@ -131,7 +131,7 @@ private val markerDotShaders = arrayOfNulls<BitmapShader>(17)
  *
  * The canvas is shown in BOOX's black-and-white handwriting mode (onSurfaceInit). The old marker
  * grey (LTGRAY at alpha 100, grey 237 on the page) showed as white there, so marker ink vanished
- * as soon as BooxDay's drawing replaced the live pen layer: on a pen switch, or an erase nearby.
+ * as soon as BSPlan's drawing replaced the live pen layer: on a pen switch, or an erase nearby.
  * Dots show the same in every e-ink mode. There are as many as the marker colour is dark (2 to 8
  * of every 16 pixels, so ink under the marker stays readable), and overlapping passes don't darken.
  */
@@ -190,11 +190,11 @@ fun drawFountainPenStroke(
 // The Onyx pen library draws Brush and Pencil strokes, and Marker and Fountain with NeoTools on.
 // 1.0.33 to 1.0.38 never set it up (OnyxCompat.initResManager), so the first such stroke closed the
 // app and its page then closed the app every time it opened. Since Oct 2026, when the library
-// fails, BooxDay draws the stroke itself.
+// fails, BSPlan draws the stroke itself.
 
 /**
  * True once the Onyx pen library failed to load in this process (a class that could not
- * initialise, a missing native library). Its pens are then drawn by BooxDay until the app restarts:
+ * initialise, a missing native library). Its pens are then drawn by BSPlan until the app restarts:
  * a class that failed to load stays failed, and a failed call can leave a native pen behind (the
  * library frees it only after the stroke's last point).
  */
@@ -202,7 +202,7 @@ fun drawFountainPenStroke(
 @VisibleForTesting
 internal var onyxPenLibraryFailed = false
 
-/** Draws a stroke with the Onyx pen library ([libraryDraw]), or with BooxDay's own drawing when that library fails. */
+/** Draws a stroke with the Onyx pen library ([libraryDraw]), or with BSPlan's own drawing when that library fails. */
 internal inline fun drawWithOnyxPen(
     canvas: Canvas, stroke: Stroke, offset: Offset, colorOverride: Int?, maxPressure: Float,
     libraryDraw: () -> Unit
@@ -230,7 +230,7 @@ internal fun onyxPenFailed(pen: Pen, e: Throwable) {
 }
 
 /**
- * BooxDay's own drawing for a stroke of an Onyx library pen: the Marker look for Marker, the
+ * BSPlan's own drawing for a stroke of an Onyx library pen: the Marker look for Marker, the
  * pressure-sensitive Fountain look for the others. It starts again from the saved points and a new
  * paint: the library changes the points it is given (it divides each pressure by the maximum
  * before its first pen call, which is where 1.0.38 failed).

@@ -50,7 +50,7 @@ class TaskSyncPullerTest {
         sync = db.taskSyncDao()
         db.openHelper.writableDatabase.execSQL(
             "INSERT INTO task_sync_list (provider, accountEmail, serverUrl, listId, title, isDefaultForNew) " +
-                "VALUES ('${TaskSyncProvider.GOOGLE_TASKS}', '$EMAIL', '', '$LIST', 'BooxDay test', 1)"
+                "VALUES ('${TaskSyncProvider.GOOGLE_TASKS}', '$EMAIL', '', '$LIST', 'BSPlan test', 1)"
         )
         val merger = TaskSyncMerger(
             db, RepositoryTabletTasks(context, repo, canvasHeight = { canvasHeight }, penOn = { false }), TaskSyncProvider.GOOGLE_TASKS, EMAIL,

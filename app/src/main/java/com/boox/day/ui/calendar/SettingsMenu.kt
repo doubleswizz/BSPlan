@@ -33,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.boox.day.R
+import com.boox.day.editor.DrawCanvas
 import com.boox.day.ui.attention.SettingsAttention
 import com.boox.day.ui.attention.SettingsJump
 import com.boox.day.ui.attention.SettingsPlace
@@ -86,6 +88,15 @@ fun SettingsMenu(
 ) {
     // State for showing tooltip when tapping disabled Calendar Accounts
     var showStandaloneTooltip by remember { mutableStateOf(false) }
+
+    // Keep DrawCanvas raw drawing paused while the dropdown is open so E-Ink doesn't re-freeze over it.
+    DisposableEffect(Unit) {
+        DrawCanvas.mainScreenModalVisible.value = true
+        DrawCanvas.forceUnfreeze()
+        onDispose {
+            DrawCanvas.mainScreenModalVisible.value = false
+        }
+    }
 
     Popup(
         alignment = Alignment.TopEnd,

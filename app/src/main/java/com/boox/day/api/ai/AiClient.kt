@@ -100,7 +100,7 @@ object AiClient {
 
     /**
      * What a paid model's answer says about the account's credit (Oct 2026): a refusal for credit
-     * makes BooxDay's choice use free models for a while (OpenRouterAccount), an answer ends that.
+     * makes BSPlan's choice use free models for a while (OpenRouterAccount), an answer ends that.
      */
     internal fun noteCreditState(modelId: String, result: AiResponse<String>) {
         if (OpenRouterAccount.isFreeModel(modelId)) return
@@ -271,7 +271,7 @@ object AiClient {
 
         // Build reasoning config at ROOT level
         // Priority: 1. overrideReasoning (set by the feature), 2. the user's level for a model they
-        // picked (Oct 2026; none = the model's own default), 3. the level BooxDay's own model was
+        // picked (Oct 2026; none = the model's own default), 3. the level BSPlan's own model was
         // tested at (29 Oct 2026; "reasoning on" let them think through the whole output limit),
         // 4. enableReasoning flag
         val customModel = request.model as? AiModel.Custom

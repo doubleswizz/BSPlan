@@ -62,7 +62,7 @@ data class CalDavCalendar(
 )
 
 /**
- * One event file as the server holds it. Kept whole, so an edit on the tablet changes only BooxDay's
+ * One event file as the server holds it. Kept whole, so an edit on the tablet changes only BSPlan's
  * fields and leaves everything else (alarms, attendees, other apps' data) as it was; the etag guards
  * every write ("If-Match"). Its occurrences in the window are rows of calendar_events.
  */
@@ -92,7 +92,7 @@ data class CalDavResource(
 
 /**
  * One task file (VTODO) of a CalDAV task list (v33, plan step 4.2), kept whole like [CalDavResource]
- * so a change made on the tablet touches only BooxDay's fields. Its own table: a collection can hold
+ * so a change made on the tablet touches only BSPlan's fields. Its own table: a collection can hold
  * events and tasks, and the calendar reader forgets every file its event query didn't list.
  */
 @Entity(

@@ -15,7 +15,7 @@ import java.time.LocalDate
 
 /**
  * Reads one day for the sleep-screen agenda and the Markdown daily note (Oct 2026). Works in a
- * cold process (a worker): only the database and BooxDay's own tasks feed, no view model.
+ * cold process (a worker): only the database and BSPlan's own tasks feed, no view model.
  *
  * - Events: the calendars the user shows (calendar_selections) plus local events, merged and
  *   ordered like EventsViewModel.getEventsForDateSync.

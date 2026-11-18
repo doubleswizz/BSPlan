@@ -663,7 +663,7 @@ fun DataBackupDialog(
                                         }
                                     },
                                     // Owner decision 74 (Nov 2026): stops backup on this tablet only. It was a
-                                    // "Sign Out" that withdrew every Google permission BooxDay had, so calendar
+                                    // "Sign Out" that withdrew every Google permission BSPlan had, so calendar
                                     // sync and Task Sync stopped too, and reset the sync settings.
                                     onTurnOffBackupClick = {
                                         isDriveBackupEnabled = false

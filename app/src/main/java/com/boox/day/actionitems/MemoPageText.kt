@@ -22,7 +22,7 @@ object MemoPageText {
 
     /**
      * A memo page's lines, top to bottom: its handwriting recognized line by line (when [ink] is given)
-     * and its typed text boxes, without the meeting header BooxDay stamps. The page's latest content when
+     * and its typed text boxes, without the meeting header BSPlan stamps. The page's latest content when
      * it is open on the canvas, else what's saved.
      */
     suspend fun pageLines(context: Context, ink: DigitalInkService?, pageId: String): List<String> {

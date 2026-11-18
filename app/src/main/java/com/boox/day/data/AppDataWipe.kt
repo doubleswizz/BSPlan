@@ -9,7 +9,7 @@ import com.boox.day.sleepscreen.SleepAgenda
 
 /**
  * Data & Backup → Wipe All Data (Oct 2026). It used to empty a memory cache only and still say
- * "All data wiped". Now Android erases everything BooxDay keeps on the tablet: the database,
+ * "All data wiped". Now Android erases everything BSPlan keeps on the tablet: the database,
  * settings, the OpenRouter key, sign-ins, scheduled work and alarms. The app process ends.
  *
  * Files in shared folders (exports, backups, daily notes) are the user's and stay; the dialog says so.
@@ -18,7 +18,7 @@ import com.boox.day.sleepscreen.SleepAgenda
 object AppDataWipe {
     private const val TAG = "AppDataWipe"
 
-    /** Erases BooxDay's data; on success the app closes. False when Android refused, so the caller can say so. */
+    /** Erases BSPlan's data; on success the app closes. False when Android refused, so the caller can say so. */
     fun wipe(context: Context): Boolean {
         val app = context.applicationContext
         return run(

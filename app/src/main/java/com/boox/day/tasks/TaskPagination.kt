@@ -176,7 +176,7 @@ object TaskPagination {
     }
 
     /**
-     * App start (BooxDayApp, before any screen): a day left on full screen pages because the app was
+     * App start (BSPlanApp, before any screen): a day left on full screen pages because the app was
      * killed in full screen goes back to pages of 10 rows. Blocks only when that happened.
      */
     fun restoreAtStartup() {

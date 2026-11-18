@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 /**
- * Tells apps reading the tasks feed that BooxDay's tasks changed, so they can re-query.
+ * Tells apps reading the tasks feed that BSPlan's tasks changed, so they can re-query.
  *
  * Watches the task and stroke tables themselves, so every change reaches readers: the app's own edits,
  * and also handwriting recognition, sync, repeating tasks and full screen Tasks, which write to the

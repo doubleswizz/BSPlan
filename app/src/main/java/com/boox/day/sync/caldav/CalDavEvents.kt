@@ -26,7 +26,7 @@ import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAmount
 
 /**
- * One CalDAV event file (iCalendar) turned into the rows BooxDay shows (plan stage 3, step 3.4,
+ * One CalDAV event file (iCalendar) turned into the rows BSPlan shows (plan stage 3, step 3.4,
  * Oct 2026), the way Google's events arrive: one row per day a repeating event happens, inside the
  * sync window. Repeats are worked out in the event's own time zone, so a 09:00 meeting in Berlin
  * stays 09:00 Berlin across a summer-time change; a moved or retitled day (an exception, own
@@ -45,14 +45,14 @@ internal object CalDavEvents {
     private val UTC_KEY = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC)
 
     /**
-     * BooxDay's id for a row: unique per account and file, the same at every sync (calendar_events'
+     * BSPlan's id for a row: unique per account and file, the same at every sync (calendar_events'
      * key, Memo links and Smart Link use it). [occurrence] is the repeat's original start, null for
      * an event that doesn't repeat.
      */
     fun eventId(accountId: String, href: String, occurrence: String?): String =
         "caldav:$accountId:${hrefHash(href)}" + (occurrence?.let { ":$it" } ?: "")
 
-    /** 16 hex characters of the file path's SHA-256: short, and no server characters in BooxDay's ids. */
+    /** 16 hex characters of the file path's SHA-256: short, and no server characters in BSPlan's ids. */
     fun hrefHash(href: String): String =
         MessageDigest.getInstance("SHA-256").digest(href.toByteArray()).take(8).joinToString("") { "%02x".format(it) }
 

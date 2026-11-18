@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Calculates storage usage for the BooxDay app.
+ * Calculates storage usage for the BSPlan app.
  *
  * Storage is organized into user-friendly categories matching LocalBackupCard:
  * - Memos & Drawings: Pages, strokes, images

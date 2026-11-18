@@ -35,7 +35,7 @@ import java.io.File
 
 /**
  * The image the user wants back when the sleep screen setting goes off (Nov 2026). BOOX clears the
- * user's own sleep screen when an app sets one and keeps it where apps can't read it, so BooxDay holds
+ * user's own sleep screen when an app sets one and keeps it where apps can't read it, so BSPlan holds
  * its own copy: sized for the panel and as a JPEG, because BOOX refuses files over 10 MB. Device-only.
  */
 object SleepBackImage {

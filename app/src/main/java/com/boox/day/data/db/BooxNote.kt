@@ -45,7 +45,7 @@ data class BooxNoteIndex(
     val hasTextContent: Boolean = false,
     val warningsJson: String? = null    // Compact JSON array of warning strings
 ) {
-    /** The name BOOX has for this note; null when [title] is one BooxDay made up from a date or the id */
+    /** The name BOOX has for this note; null when [title] is one BSPlan made up from a date or the id */
     val nameInBoox: String?
         get() = title.takeIf { it.isNotBlank() && titleSource != null && titleSource != "derived" && titleSource != "generated" }
 }

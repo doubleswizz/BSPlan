@@ -23,10 +23,10 @@ import java.util.Locale
 /**
  * The last time an AI feature told the user it failed, kept on this tablet (2 Nov 2026, owner's
  * decision): what the dialog said, and each try behind it (which step, which model, why). Convert to
- * Tasks failed on a tablet away from the PC and left nothing to read: the system log drops BooxDay's
+ * Tasks failed on a tablet away from the PC and left nothing to read: the system log drops BSPlan's
  * lines within minutes, and every AI request had answered (the failure was "no tasks").
  *
- * Never a prompt, an answer or the user's text: steps are answer formats, reasons are BooxDay's own
+ * Never a prompt, an answer or the user's text: steps are answer formats, reasons are BSPlan's own
  * words. Kept in a small preferences file (survives a restart), not in the settings backups export.
  */
 object LastAiProblem {
@@ -70,7 +70,7 @@ object LastAiProblem {
     fun noteTry(request: AiRequest, error: AiResponse.Error, nowMs: Long = System.currentTimeMillis()) =
         noteTry(request, whyOf(error), nowMs)
 
-    /** A request whose answer the feature could not use, or any other [why] in BooxDay's own words. */
+    /** A request whose answer the feature could not use, or any other [why] in BSPlan's own words. */
     fun noteTry(request: AiRequest, why: String, nowMs: Long = System.currentTimeMillis()) {
         val step = request.jsonSchema?.name?.let { STEPS[it] ?: it } ?: "answer"
         synchronized(recentTries) {
@@ -112,7 +112,7 @@ object LastAiProblem {
         }
     }.trimEnd()
 
-    /** Why [error] failed, in BooxDay's words: its kind, then the model's own fault if it was one. */
+    /** Why [error] failed, in BSPlan's words: its kind, then the model's own fault if it was one. */
     internal fun whyOf(error: AiResponse.Error): String = buildString {
         append(AiProblem.of(error).shortText)
         AiPickStatus.reasonFor(error)?.let { append(" (").append(it).append(")") }

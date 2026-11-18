@@ -33,13 +33,13 @@ internal fun workerAppSettings(context: Context): AppSettings =
  * Background sync (task sync Groundwork, Oct 2026): every connected Google, Outlook and CalDAV account,
  * on the "Sync frequency" setting (4 h / 8 h / Daily) while "Background auto-sync" is on.
  * Until now nothing ran it: SyncScheduler.schedulePeriodicSync had no callers, so calendars synced
- * only while BooxDay was open (owner decision 12). Same dates as the calendar screen (2 months
+ * only while BSPlan was open (owner decision 12). Same dates as the calendar screen (2 months
  * back, 3 ahead). Then tasks, when task sync is on: the same switch and frequency (owner decision 33).
  *
  * Kept scheduled only while an account is connected ([schedule] runs at app start, when the
  * auto-sync switch or the frequency changes, and when an account is added or removed); each run
  * also checks Cloud Sync mode. BOOX may hold background work back while the tablet sleeps: opening
- * BooxDay still syncs as before.
+ * BSPlan still syncs as before.
  */
 class BackgroundSyncWorker(
     context: Context,

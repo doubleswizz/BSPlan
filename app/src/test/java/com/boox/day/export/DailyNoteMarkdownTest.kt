@@ -21,7 +21,7 @@ import java.util.Locale
 
 /**
  * The Markdown daily note (Oct 2026): what it says, and that writing it again replaces only Boox
- * Day's part of the file. Robolectric for the file written to Documents/BooxDay/Daily Notes.
+ * Day's part of the file. Robolectric for the file written to Documents/BSPlan/Daily Notes.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)

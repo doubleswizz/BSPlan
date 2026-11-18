@@ -30,7 +30,7 @@ fun StartupFailureScreen(
     val context = LocalContext.current
     val reportData = remember(context) {
         val startupTags = listOf(
-            "BooxDayApp",
+            "BSPlanApp",
             "MainActivity",
             "DrawCanvas",
             "OnyxCompat",

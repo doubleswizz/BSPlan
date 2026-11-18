@@ -13,7 +13,7 @@ import android.content.res.Resources
  * rewrites the density inside `ResourcesImpl.updateConfigurationImpl` on every resources update in
  * this process, so it replaces whatever MainActivity set in attachBaseContext and onResume. Compose
  * reads the density from these resources when the screen and each popup window are created, so
- * MainActivity and BooxDayApp put this value back in getResources() through [apply].
+ * MainActivity and BSPlanApp put this value back in getResources() through [apply].
  */
 object AppDensity {
     private const val LARGE_SCREEN_DPI = 385

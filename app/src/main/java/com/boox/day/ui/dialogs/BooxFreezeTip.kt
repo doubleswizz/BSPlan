@@ -44,8 +44,8 @@ import com.boox.day.ui.theme.EInkTheme
 
 /**
  * "Reminders and sync on BOOX" (Nov 2026, owner decision 73): BOOX freezes apps it thinks the user
- * is done with ("Freeze new apps" is on, so BooxDay's switch is on from the install), and a frozen or
- * force-stopped BooxDay runs nothing in the background: no reminders, no background sync, until it
+ * is done with ("Freeze new apps" is on, so BSPlan's switch is on from the install), and a frozen or
+ * force-stopped BSPlan runs nothing in the background: no reminders, no background sync, until it
  * is opened again. BOOX gives apps no way to open its Freeze Settings, so the tip says where they are.
  */
 object BooxFreezeTip {
@@ -58,7 +58,7 @@ object BooxFreezeTip {
     private const val START_DELAY_MS = 20_000L
 
     /**
-     * Once per install, on BOOX only, when something needs BooxDay in the background (owner decision
+     * Once per install, on BOOX only, when something needs BSPlan in the background (owner decision
      * 73); never over the first-run welcome (it waits for a later start then).
      */
     internal fun shouldShow(

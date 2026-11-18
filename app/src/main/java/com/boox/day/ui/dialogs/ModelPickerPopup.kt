@@ -90,7 +90,7 @@ private val FILTERS_AND_SORT_ONE_ROW = 560.dp
 /**
  * One AI job's model list (Oct 2026, plan step d), opened from the AI Models card: the 10 most used
  * OpenRouter models that can do the job, of any price, paid or free (Show), with search and Sort
- * ([OpenRouterModelCatalog]). BooxDay's choice is pinned first; Use Model on it removes the
+ * ([OpenRouterModelCatalog]). BSPlan's choice is pinned first; Use Model on it removes the
  * pick. Next on a model opens its settings step ([ModelSettingsStep], plan step e), whose Use
  * Model tries the model on the job ([AiModelCheck]) and saves it only when it works.
  *
@@ -127,7 +127,7 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
     // The settings step (plan step e) for this model, or null while the list shows
     var settingsFor by remember { mutableStateOf<CatalogModel?>(null) }
 
-    /** Saves the job's pick (null = BooxDay's choice) and closes. */
+    /** Saves the job's pick (null = BSPlan's choice) and closes. */
     fun save(choice: AiModelChoice?) {
         // A new pick starts without the old one's failure note (plan step f)
         if (choice?.id != currentPick?.id) AiPickStatus.clear(job)
@@ -325,7 +325,7 @@ fun ModelPickerPopup(job: AiJob, onDismiss: () -> Unit) {
                     }
                 }
 
-                // ── Buttons: BooxDay's choice saves at once; a model goes to its settings ──
+                // ── Buttons: BSPlan's choice saves at once; a model goes to its settings ──
                 val selectedModel = snapshot?.models?.firstOrNull { it.id == selectedKey }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

@@ -9,7 +9,7 @@ import java.io.File
 import java.io.OutputStream
 
 /**
- * Where the Markdown daily notes go (Oct 2026): Documents/BooxDay/Daily Notes by default, or a
+ * Where the Markdown daily notes go (Oct 2026): Documents/BSPlan/Daily Notes by default, or a
  * folder the user picked (an Obsidian vault, a Syncthing folder) through Android's folder picker.
  * The picked folder is kept on this tablet only (its own preferences, not the exported settings).
  */

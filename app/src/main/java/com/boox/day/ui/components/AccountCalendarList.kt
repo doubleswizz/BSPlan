@@ -552,7 +552,7 @@ private fun AccountHeader(
 }
 
 /**
- * Confirmation dialog for disconnecting an account: its events leave BooxDay, the calendars online
+ * Confirmation dialog for disconnecting an account: its events leave BSPlan, the calendars online
  * stay as they are. [mayRunTaskSync]: a Google account, which Task Sync may use.
  */
 @Composable
